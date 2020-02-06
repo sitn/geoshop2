@@ -8,8 +8,8 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <role name="geoshop"
       login="true"
       encrypted="true"
-      password="geoshop"
-      sql-disabled="true">
+      password="geoshop">
+	<prepended-sql><![CDATA[DROP role geoshop;]]></prepended-sql>
 </role>
 
 <database name="geoshop" is-template="false" allow-conns="true">
@@ -152,7 +152,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="product_format" layer="0" collapse-mode="2" max-obj-count="3">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<position x="540" y="260"/>
+	<position x="580" y="320"/>
 	<column name="product_id" not-null="true">
 		<type name="uuid" length="0"/>
 	</column>
@@ -358,7 +358,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="numeric" length="0"/>
 	</column>
 	<column name="geom">
-		<type name="polygon" length="0"/>
+		<type name="geometry" length="0" spatial-type="MULTIPOLYGON" variation="0" srid="2056"/>
 	</column>
 	<column name="user_id">
 		<type name="uuid" length="0"/>
@@ -371,7 +371,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="user" layer="0" collapse-mode="2" max-obj-count="6">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<position x="540" y="20"/>
+	<position x="640" y="20"/>
 	<column name="id" not-null="true" default-value="uuid_generate_v4()">
 		<type name="uuid" length="0"/>
 	</column>
@@ -391,12 +391,6 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
-
-<constraint name="order_user" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.&quot;user&quot;" table="geoshop.&quot;order&quot;">
-	<columns names="id" ref-type="src-columns"/>
-	<columns names="id" ref-type="dst-columns"/>
-</constraint>
 
 <constraint name="product_pricing" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.product" table="geoshop.pricing">
@@ -491,6 +485,12 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <constraint name="metadata_identity_identity" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.identity" table="geoshop.metadata_identity">
 	<columns names="identity_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="order_user" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.&quot;user&quot;" table="geoshop.&quot;order&quot;">
+	<columns names="id" ref-type="src-columns"/>
 	<columns names="id" ref-type="dst-columns"/>
 </constraint>
 
