@@ -1,7 +1,17 @@
 from django.contrib.gis import admin
 
 # Register your models here.
-from .models import *
+from .models import (
+    Copyright,
+    Document, 
+    Format,
+    Identity,
+    Metadata,
+    Order,
+    OrderItem,
+    Pricing,
+    Product,
+    ProductFormat)
 
 # Register your models here.
 admin.site.register(Copyright)
@@ -14,5 +24,3 @@ admin.site.register(OrderItem)
 admin.site.register(Pricing)
 admin.site.register(Product)
 admin.site.register(ProductFormat)
-admin.site.register(ProductGroup)
-

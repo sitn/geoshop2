@@ -9,44 +9,59 @@ class Copyright(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.TextField(blank=True, null=True)
 
+    class Meta:
+        db_table = 'copyright'
+
 
 class Document(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.TextField(blank=True, null=True)
-    link = models.TextField(blank=True, null=True)
+    name = models.CharField(max_length=80, blank=True, null=True)
+    link = models.CharField(max_length=2000, blank=True, null=True)
+
+    class Meta:
+        db_table = 'document'
 
 
 class Format(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.TextField(blank=True, null=True)
+    name = models.CharField(max_length=30, blank=True, null=True)
+
+    class Meta:
+        db_table = 'format'
 
 
 class Identity(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    firstname = models.TextField(blank=True, null=True)
-    lastname = models.TextField(blank=True, null=True)
-    street = models.TextField(blank=True, null=True)
-    street2 = models.TextField(blank=True, null=True)
-    postcode = models.SmallIntegerField(blank=True, null=True)
-    city = models.TextField(blank=True, null=True)
-    country = models.TextField(blank=True, null=True)
-    companyname = models.TextField(blank=True, null=True)
+    firstname = models.CharField(max_length=50, blank=True, null=True)
+    lastname = models.CharField(max_length=50, blank=True, null=True)
+    street = models.CharField(max_length=100, blank=True, null=True)
+    street2 = models.CharField(max_length=100, blank=True, null=True)
+    postcode = models.PositiveIntegerField(blank=True, null=True)
+    city = models.CharField(max_length=50, blank=True, null=True)
+    country = models.CharField(max_length=50, blank=True, null=True)
+    companyname = models.CharField(max_length=50, blank=True, null=True)
     phone = models.TextField(blank=True, null=True)
     sap_id = models.BigIntegerField(blank=True, null=True)
     contract_accepted = models.DateField(blank=True, null=True)
 
+    class Meta:
+        db_table = 'identity'
+
 
 class Metadata(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.TextField(blank=True, null=True)
-    description_short = models.TextField(blank=True, null=True)
+    name = models.CharField(max_length=50, blank=True, null=True)
+    description_short = models.CharField(max_length=500, blank=True, null=True)
     description_long = models.TextField(blank=True, null=True)
-    geocat_link = models.TextField(blank=True, null=True)
-    legend_link = models.TextField(blank=True, null=True)
-    image_link = models.TextField(blank=True, null=True)
+    geocat_link = models.CharField(max_length=2000, blank=True, null=True)
+    legend_link = models.CharField(max_length=2000, blank=True, null=True)
+    image_link = models.CharField(max_length=2000, blank=True, null=True)
     copyright = models.ForeignKey(Copyright, models.DO_NOTHING, blank=True, null=True)
     documents = models.ManyToManyField(Document, blank=True)
     contact_persons = models.ManyToManyField(Identity, blank=True)
+
+    class Meta:
+        db_table = 'metadata'
 
 
 class Order(models.Model):
@@ -56,6 +71,9 @@ class Order(models.Model):
     geom = models.PolygonField(srid=2056)
     client = models.ForeignKey(User, models.DO_NOTHING, blank=True, null=True)
 
+    class Meta:
+        db_table = 'order'
+
 
 class OrderItem(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -64,45 +82,44 @@ class OrderItem(models.Model):
     format = models.ForeignKey(Format, models.DO_NOTHING, blank=True, null=True)
     last_download = models.DateTimeField(blank=True, null=True)
 
+    class Meta:
+        db_table = 'orderitem'
+
 
 class Pricing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     product = models.ForeignKey('Product', models.DO_NOTHING, blank=True, null=True)
-    type = models.TextField(blank=True, null=True)
+    price_type = models.CharField(max_length=50, blank=True, null=True)
     base_fee = MoneyField(max_digits=14, decimal_places=2, default_currency='CHF')
     price = MoneyField(max_digits=14, decimal_places=2, default_currency='CHF')
 
+    class Meta:
+        db_table = 'pricing'
+
 
 class Product(models.Model):
+
+    class ProductStatus(models.TextChoices):
+        DRAFT = 'DRAFT', 'Draft'
+        VALID = 'VALID', 'Valid'
+        DEPRECATED = 'DEPRECATED', 'Deprecated'
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     metadata = models.ForeignKey(Metadata, models.DO_NOTHING, blank=True, null=True)
-    label = models.TextField(blank=True, null=True)
-    status = models.TextField(blank=True, null=True)  # This field type is a guess.
+    label = models.CharField(max_length=50, blank=True, null=True)
+    status = models.CharField(max_length=10, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     is_published = models.BooleanField()
-    is_group = models.BooleanField()
+    group_id = models.ForeignKey('self', models.DO_NOTHING)
+
+    class Meta:
+        db_table = 'product'
 
 
 class ProductFormat(models.Model):
     product = models.OneToOneField(Product, models.DO_NOTHING, primary_key=True)
     format = models.ForeignKey(Format, models.DO_NOTHING)
-    availability = models.TextField(blank=True, null=True)  # This field type is a guess.
+    is_manual = models.BooleanField() # extraction manuelle ou automatique
 
     class Meta:
+        db_table = 'productformat'
         unique_together = (('product', 'format'),)
-
-
-class ProductGroup(models.Model):
-    product_id_parent = models.OneToOneField(
-        Product,
-        models.DO_NOTHING,
-        db_column='product_id_parent',
-        primary_key=True,
-        related_name='product_group_parent')
-    product_id_child = models.ForeignKey(
-        Product,
-        models.DO_NOTHING,
-        db_column='product_id_child',
-        related_name='product_group_child')
-
-    class Meta:
-        unique_together = (('product_id_parent', 'product_id_child'),)
