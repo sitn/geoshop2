@@ -10,7 +10,7 @@
 
 ### Database
 
-Set up a database (user geoshop is assumed to be already created):
+User geoshop is assumed to be already created. Set up a database manually or with the provided script in `scripts/create_db.ps1` :
 
 ```sql
 CREATE DATABASE geoshop;
@@ -34,6 +34,12 @@ $env:PIPENV_VENV_IN_PROJECT="True"
 pipenv install --dev           # installs everything needed
 pipenv shell                   # activates venv and reads .env file
 python manage.py migrate       # runs migrations
+```
+
+If you're starting with a fresh new database you'll need to create an user:
+
+```powershell
+python manage.py createsuperuser --email admin@example.com --username admin
 ```
 
 Your database should be ready, now you can run the backend:
