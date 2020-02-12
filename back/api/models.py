@@ -29,6 +29,10 @@ class Format(models.Model):
     class Meta:
         db_table = 'format'
 
+class OrderType(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=30, blank=True, null=True)
+
 
 class Identity(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -59,6 +63,7 @@ class Metadata(models.Model):
     copyright = models.ForeignKey(Copyright, models.DO_NOTHING, blank=True, null=True)
     documents = models.ManyToManyField(Document, blank=True)
     contact_persons = models.ManyToManyField(Identity, blank=True)
+    validations_needed = models.ManyToManyField(OrderType, blank=True)
 
     class Meta:
         db_table = 'metadata'
