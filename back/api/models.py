@@ -70,7 +70,11 @@ class Metadata(models.Model):
 
 
 class Order(models.Model):
+    """
+    processing_fee should default to the maximum of base fees in the order but can then be edited mannually
+    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    processing_fee = MoneyField(max_digits=14, decimal_places=2, default_currency='CHF')
     total_cost = MoneyField(max_digits=14, decimal_places=2, default_currency='CHF')
     vat = models.DecimalField(max_digits=5, decimal_places=2, default=7.8)
     geom = models.PolygonField(srid=2056)
