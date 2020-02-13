@@ -52,12 +52,10 @@ class OrderTypeSerializer(GeoModelSerializer):
         fields = '__all__'
 
 
-
 class IdentitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Identity
         fields = '__all__'
-
 
 
 class MetadataSerializer(serializers.HyperlinkedModelSerializer):
@@ -66,12 +64,10 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-
 class OrderSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
-
 
 
 class OrderItemSerializer(serializers.HyperlinkedModelSerializer):
@@ -80,19 +76,16 @@ class OrderItemSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-
 class PricingSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Pricing
         fields = '__all__'
 
 
-
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
-
 
 
 class ProductFormatSerializer(serializers.HyperlinkedModelSerializer):
