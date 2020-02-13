@@ -1,6 +1,30 @@
 from django.contrib.auth.models import User, Group
+from .models import (
+    Copyright,
+    Document, 
+    Format,
+    Identity,
+    Metadata,
+    Order,
+    OrderItem,
+    OrderType,
+    Pricing,
+    Product,
+    ProductFormat)
 from rest_framework import viewsets
-from api.serializers import UserSerializer, GroupSerializer
+from api.serializers import (
+    CopyrightSerializer,
+    DocumentSerializer, 
+    FormatSerializer,
+    IdentitySerializer,
+    MetadataSerializer,
+    OrderSerializer,
+    OrderItemSerializer,
+    OrderTypeSerializer,
+    PricingSerializer,
+    ProductSerializer,
+    ProductFormatSerializer,
+    UserSerializer, GroupSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -17,3 +41,91 @@ class GroupViewSet(viewsets.ModelViewSet):
     """
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+
+
+class CopyrightViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Copyright to be viewed or edited.
+    """
+    queryset = Copyright.objects.all()
+    serializer_class = CopyrightSerializer
+
+
+class DocumentViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Document to be viewed or edited.
+    """
+    queryset = Document.objects.all()
+    serializer_class = DocumentSerializer
+
+
+class FormatViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Format to be viewed or edited.
+    """
+    queryset = Format.objects.all()
+    serializer_class = FormatSerializer
+
+
+class IdentityViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Identity to be viewed or edited.
+    """
+    queryset = Identity.objects.all()
+    serializer_class = IdentitySerializer
+
+
+class MetadataViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Metadata to be viewed or edited.
+    """
+    queryset = Metadata.objects.all()
+    serializer_class = MetadataSerializer
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Order to be viewed or edited.
+    """
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+
+class OrderItemViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows OrderItem to be viewed or edited.
+    """
+    queryset = OrderItem.objects.all()
+    serializer_class = OrderItemSerializer
+
+
+class OrderTypeViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows OrderType to be viewed or edited.
+    """
+    queryset = OrderType.objects.all()
+    serializer_class = OrderTypeSerializer
+
+
+class PricingViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Pricing to be viewed or edited.
+    """
+    queryset = Pricing.objects.all()
+    serializer_class = PricingSerializer
+
+
+class ProductViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Product to be viewed or edited.
+    """
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+
+class ProductFormatViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows ProductFormat to be viewed or edited.
+    """
+    queryset = ProductFormat.objects.all()
+    serializer_class = ProductFormatSerializer
