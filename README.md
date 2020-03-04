@@ -4,7 +4,7 @@
 
 * PostgreSQL + PostGIS database
 * Python > 3.6
-* pipenv
+* pipenv (pip install pipenv)
 
 ## Getting started
 
