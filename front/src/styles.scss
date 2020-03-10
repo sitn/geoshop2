@@ -9,6 +9,16 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
+.flex-row {
+  display: flex;
+  align-items: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
 .spacer {
   flex: 1;
 }

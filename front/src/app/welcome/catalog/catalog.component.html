@@ -1,0 +1,41 @@
+<mat-form-field color="accent">
+    <mat-label>Catalogue</mat-label>
+    <input matInput (keyup)="applyFilter($event)" placeholder="Rechercher un produit">
+</mat-form-field>
+
+<table mat-table [dataSource]="filteredProducts" class="mat-elevation-z8">
+
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef> Name </th>
+        <td mat-cell *matCellDef="let element">
+            <div class="flex-column">
+                <span>{{element.name}}</span>
+                <span style="align-self: flex-end;">dès {{element.minPrice | currency}}</span>
+            </div>
+        </td>
+    </ng-container>
+
+    <ng-container matColumnDef="help">
+        <th mat-header-cell *matHeaderCellDef> Help </th>
+        <td mat-cell *matCellDef="let element">
+            <button color="primary" mat-mini-fab aria-label="Aide" style="margin: 10px 10px;"
+                (click)="openMetadata(element)">
+                <mat-icon>help</mat-icon>
+            </button>
+        </td>
+    </ng-container>
+
+    <ng-container matColumnDef="cart">
+        <th mat-header-cell *matHeaderCellDef> Cart </th>
+        <td mat-cell *matCellDef="let element">
+            <button color="primary" mat-mini-fab aria-label="Ajouter au panier">
+                <mat-icon>add_shopping_cart</mat-icon>
+            </button>
+        </td>
+    </ng-container>
+
+
+
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>

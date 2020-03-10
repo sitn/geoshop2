@@ -6,8 +6,12 @@ import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
-import {MatSnackBarModule} from '@angular/material/snack-bar';
-import {MatProgressSpinnerModule} from '@angular/material/progress-spinner'; 
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableModule } from '@angular/material/table';
+import { MatInputModule } from '@angular/material/input';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatCardModule } from '@angular/material/card';
 
 const MODULES = [
     MatSidenavModule,
@@ -19,6 +23,10 @@ const MODULES = [
     MatMenuModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
+    MatTableModule,
+    MatInputModule,
+    MatDialogModule,
+    MatCardModule,
 ];
 
 @NgModule({

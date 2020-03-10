@@ -1,0 +1,30 @@
+<img src="assets/images/logo_ne.png" alt="Logo Neuchâtel">
+
+<mat-card class="example-card">
+    <mat-card-header>
+        <div mat-card-avatar class="header-image" [style.backgroundImage]="'url(' + data.imageLink + ')'"></div>
+        <mat-card-title>Métadonnée</mat-card-title>
+        <mat-card-subtitle>{{data.title}}</mat-card-subtitle>
+    </mat-card-header>
+    <img mat-card-image [src]="data.imageLink" [alt]="data.title">
+    <mat-card-content>
+        <p *ngIf="!showLongDescription">
+            {{data.shortDescription}}
+            <button mat-button (click)="showLongDescription = true;">...voir plus</button>
+        </p>
+        <p *ngIf="showLongDescription">
+            {{data.longDescription}}
+            <button mat-button (click)="showLongDescription = false;">voir moins</button>
+        </p>
+    </mat-card-content>
+    <mat-card-actions>
+        <a [href]="data.legendLink" target="_blank" mat-button>
+            Voir légende
+            <mat-icon>open_in_new</mat-icon>
+        </a>
+        <a [href]="data.geocatLink" target="_blank" mat-button>
+            Voir géocat
+            <mat-icon>open_in_new</mat-icon>
+        </a>
+    </mat-card-actions>
+</mat-card>
