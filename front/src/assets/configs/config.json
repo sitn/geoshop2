@@ -1,0 +1,13 @@
+{
+    "basemaps": [
+        {
+            "id": 1,
+            "label": "OSM",
+            "description": "Lorem ipsum",
+            "gisServiceType": "xyz",
+            "thumbUrl": "assets/images/osm_thumbnail.png",
+            "url": "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            "isPublic": "Yes"
+          }
+    ]
+}

@@ -1,30 +1,38 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialModule } from './material-module';
-import { HomeComponent } from './home/home.component';
-import { CatalogComponent } from './home/catalog/catalog.component';
-import { CatalogItemComponent } from './home/catalog/catalog-item/catalog-item.component';
-import { MapComponent } from './home/map/map.component';
+import { ConfigService } from './_services/config.service';
+import { HttpClientModule } from '@angular/common/http';
+
+export function initializeApp(configService: ConfigService) {
+  return async () => {
+    await configService.load();
+  };
+}
 
 @NgModule({
   declarations: [
     AppComponent,
-    HomeComponent,
-    CatalogComponent,
-    CatalogItemComponent,
-    MapComponent
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule,
     BrowserAnimationsModule,
+    AppRoutingModule,
+    HttpClientModule,
     MaterialModule
   ],
-  providers: [],
+  providers: [
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeApp,
+      deps: [ConfigService],
+      multi: true
+    },
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
