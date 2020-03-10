@@ -9,7 +9,7 @@ import XYZ from 'ol/source/XYZ';
 import TileLayer from 'ol/layer/Tile';
 import LayerGroup from 'ol/layer/Group';
 import ScaleLine from 'ol/control/ScaleLine';
-import OSM from 'ol/source/OSM';
+import Geocoder from 'ol-geocoder/dist/ol-geocoder.js';
 
 @Injectable({
   providedIn: 'root'
@@ -49,6 +49,8 @@ export class MapService {
       ]
     });
 
+    this.initializeGeocoder();
+
     this.initialized = true;
   }
 
@@ -57,6 +59,31 @@ export class MapService {
       center: [771815.10, 5942074.07],
       zoom: 10,
     });
+  }
+
+  private initializeGeocoder() {
+    const geocoder = new Geocoder('nominatim', {
+      provider: 'osm',
+      lang: 'fr-CH',
+      placeholder: 'Rechercher une commune, etc.',
+      targetType: 'text-input',
+      limit: 5,
+      keepOpen: false,
+      autoComplete: true,
+      autoCompleteMinLength: 3,
+      preventDefault: true
+    });
+    geocoder.on('addresschosen', (event: any) => {
+      const resolutionForZoom = this.view.getResolutionForZoom(0);
+      const extent: any = [
+        event.coordinate[0] - (0.1 * resolutionForZoom),
+        event.coordinate[1] - (0.1 * resolutionForZoom),
+        event.coordinate[0] + (0.1 * resolutionForZoom),
+        event.coordinate[1] + (0.1 * resolutionForZoom),
+      ];
+      this.view.fit(extent);
+    });
+    this.map.addControl(geocoder);
   }
 
   /* Base Map Managment */
