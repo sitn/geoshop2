@@ -12,8 +12,27 @@ body {
 .spacer {
   flex: 1;
 }
-
+.text-white {
+  color: white;
+}
 .main-container {
   width: 100%;
   height: calc(100vh - 64px);
+}
+
+.basemap-button {
+  &.mat-mini-fab {
+    .mat-button-wrapper {
+      padding: 0;
+    }
+  }
+}
+
+.mat-menu-item {
+  display: flex !important;
+  align-items: center;
+
+  img {
+    margin-right: 10px;
+  }
 }
