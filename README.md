@@ -2,13 +2,13 @@
 
 ## Requirements
 
-* PostgreSQL + PostGIS database
-* Python > 3.6
+* PostgreSQL > 10 + PostGIS
+* Python 3.6 / 3.7
 * pipenv (pip install pipenv)
 * GDAL 2.4 (see instructions below)
 
 ### Installing GDAL on Windows
-Download the GDAL 2.4 wheel on this page: https://www.lfd.uci.edu/~gohlke/pythonlibs/#gdal. For example, if you have Python 3.6 64bit, choose `GDAL‑2.4.1‑cp36‑cp36m‑win_amd64.whl`.
+Download the GDAL 2.4 wheel (3.X isn't supported yet by Django) on this page: https://www.lfd.uci.edu/~gohlke/pythonlibs/#gdal. For example, if you have Python 3.6 64bit, choose `GDAL‑2.4.1‑cp36‑cp36m‑win_amd64.whl`.
 Then install it:
 
 ```
@@ -28,6 +28,15 @@ print(PureWindowsPath(osgeo.__file__).parent)
 
 ## Getting started
 
+
+Fork and clone this repository. Make a copy of the `.env` file and adapt it to your environment settings:
+
+```powershell
+cd back
+cp .env.sample .env
+cd..
+```
+
 ### Database
 
 User geoshop is assumed to be already created. Set up a database manually or with the provided script in `scripts/create_db.ps1` :
@@ -39,12 +48,6 @@ CREATE SCHEMA geoshop AUTHORIZATION geoshop;
 ```
 
 ### Backend
-
-Fork and clone this repository. Make a copy of the `.env` file and adapt it to your environment settings:
-
-```powershell
-cp .env.sample .env
-```
 
 Install the app. If you want your `venv` to be inside your project directory, you need to set `PIPENV_VENV_IN_PROJECT` environment variable, otherwise it'll go to your profile:
 

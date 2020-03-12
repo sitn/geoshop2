@@ -15,6 +15,3 @@ django-filter = "*"
 djangorestframework-gis = "*"
 psycopg2 = "*"
 django-money = "*"
-
-[requires]
-python_version = "3.6"
