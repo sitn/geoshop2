@@ -18,6 +18,7 @@ from api.serializers import (
     FormatSerializer,
     IdentitySerializer,
     MetadataSerializer,
+    OrderDigestSerializer,
     OrderSerializer,
     OrderItemSerializer,
     OrderTypeSerializer,
@@ -25,6 +26,20 @@ from api.serializers import (
     ProductSerializer,
     ProductFormatSerializer,
     UserSerializer, GroupSerializer)
+
+from django.shortcuts import get_object_or_404
+from rest_framework.response import Response
+from rest_framework.pagination import LimitOffsetPagination
+
+
+class MultiSerializerViewSet(viewsets.ModelViewSet):
+    serializers = { 
+        'default': None,
+    }
+
+    def get_serializer_class(self):
+            return self.serializers.get(self.action,
+                        self.serializers['default'])
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -83,12 +98,15 @@ class MetadataViewSet(viewsets.ModelViewSet):
     serializer_class = MetadataSerializer
 
 
-class OrderViewSet(viewsets.ModelViewSet):
+class OrderViewSet(MultiSerializerViewSet):
     """
-    API endpoint that allows Order to be viewed or edited.
+    API endpoint that allows Orders to be viewed or edited.
     """
     queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+    serializers = {
+        'default':  OrderSerializer,
+        'list':    OrderDigestSerializer,
+    }
 
 
 class OrderItemViewSet(viewsets.ModelViewSet):

@@ -64,6 +64,12 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
+class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Order
+        exclude = ['geom']
+
+
 class OrderSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Order
@@ -85,7 +91,7 @@ class PricingSerializer(serializers.HyperlinkedModelSerializer):
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Product
-        fields = '__all__'
+        exclude = ['ts']
 
 
 class ProductFormatSerializer(serializers.HyperlinkedModelSerializer):

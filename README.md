@@ -47,3 +47,9 @@ Your database should be ready, now you can run the backend:
 ```powershell
 python manage.py runserver
 ```
+
+Translations can be generated with:
+
+```powershell
+python manage.py compilemessages
+```
