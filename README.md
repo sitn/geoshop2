@@ -4,7 +4,27 @@
 
 * PostgreSQL + PostGIS database
 * Python > 3.6
-* pipenv
+* pipenv (pip install pipenv)
+* GDAL 2.4 (see instructions below)
+
+### Installing GDAL on Windows
+Download the GDAL 2.4 wheel on this page: https://www.lfd.uci.edu/~gohlke/pythonlibs/#gdal. For example, if you have Python 3.6 64bit, choose `GDAL‑2.4.1‑cp36‑cp36m‑win_amd64.whl`.
+Then install it:
+
+```
+pip install path\to\your\GDAL-2.4XXXX.whl
+```
+
+You'll then need to add GDAL dll to your PATH. You can get the dll path with:
+
+```python
+python
+
+from pathlib import Path, PureWindowsPath
+from osgeo import gdal
+
+print(PureWindowsPath(osgeo.__file__).parent)
+```
 
 ## Getting started
 
