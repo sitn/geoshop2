@@ -3,6 +3,10 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework import routers
 from api import views
+from django.utils.translation import gettext_lazy as _
+
+admin.site.site_header = _("GeoShop Administration")
+admin.site.site_title = _("GeoShop Admin")
 
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)

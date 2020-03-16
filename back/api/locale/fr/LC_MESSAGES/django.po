@@ -1,0 +1,218 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-03-15 22:33+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "copyright"
+msgstr "copyright"
+
+msgid "name"
+msgstr "nom"
+
+msgid "link"
+msgstr "lien"
+
+msgid "document"
+msgstr "document"
+
+msgid "format"
+msgstr "format"
+
+msgid "order type"
+msgstr "type de commande"
+
+msgid "order types"
+msgstr "types de commande"
+
+msgid "street"
+msgstr "adresse"
+
+msgid "street2"
+msgstr "complément d'adresse"
+
+msgid "postcode"
+msgstr "NPA"
+
+msgid "city"
+msgstr "ville"
+
+msgid "country"
+msgstr "pays"
+
+msgid "company_name"
+msgstr "raison sociale"
+
+msgid "phone"
+msgstr "téléphone"
+
+msgid "sap_id"
+msgstr "Numéro SAP"
+
+msgid "contract_accepted"
+msgstr "Date d'acceptation du contrat"
+
+msgid "identity"
+msgstr "Utilisateurs"
+
+msgid "description_short"
+msgstr "description courte"
+
+msgid "description_long"
+msgstr "description longue"
+
+msgid "geocat_link"
+msgstr "lien Géocat"
+
+msgid "legend_link"
+msgstr "lien vers la légende"
+
+msgid "image_link"
+msgstr "lien vers l'image"
+
+msgid "documents"
+msgstr "documents"
+
+msgid "contact_persons"
+msgstr "contact"
+
+msgid "validations_needed"
+msgstr "validations nécessaires"
+
+msgid "metadata"
+msgstr "métadonnées"
+
+msgid "Draft"
+msgstr "Brouillon"
+
+msgid "Published"
+msgstr "Publié"
+
+msgid "Deprecated"
+msgstr "Obsolète"
+
+msgid "label"
+msgstr "étiquette"
+
+msgid "status"
+msgstr "statut"
+
+msgid "group"
+msgstr "groupe"
+
+msgid "order"
+msgstr "commande"
+
+msgid "product"
+msgstr "produit"
+
+msgid "Pending"
+msgstr "En attente"
+
+msgid "Ready"
+msgstr "Prêt"
+
+msgid "Partially delivered"
+msgstr "Partiellement traité"
+
+msgid "Processed"
+msgstr "Traité"
+
+msgid "Downloaded"
+msgstr "Téléchargé"
+
+msgid "Archived"
+msgstr "Archivé"
+
+msgid "Rejected"
+msgstr "Rejeté"
+
+msgid "title"
+msgstr "titre"
+
+msgid "description"
+msgstr "description"
+
+msgid "processing_fee"
+msgstr "taxe de base"
+
+msgid "total_cost"
+msgstr "total"
+
+msgid "part_vat"
+msgstr "dont TVA"
+
+msgid "geom"
+msgstr "géométrie"
+
+msgid "client"
+msgstr "client"
+
+msgid "order_contact"
+msgstr "contact"
+
+msgid "invoice_contact"
+msgstr "facture"
+
+msgid "invoice_reference"
+msgstr "référence"
+
+msgid "order_type"
+msgstr "type de commande"
+
+msgid "date_ordered"
+msgstr "date de commande"
+
+msgid "date_downloaded"
+msgstr "date de téléchargement"
+
+msgid "date_processed"
+msgstr "date de traitement"
+
+msgid "last_download"
+msgstr "date du dernier téléchargement"
+
+msgid "order_item"
+msgstr "produit commandé"
+
+msgid "price_type"
+msgstr "type de tarification"
+
+msgid "base_fee"
+msgstr "taxe de base"
+
+msgid "price"
+msgstr "prix"
+
+msgid "pricing"
+msgstr "tarification"
+
+msgid "db_name"
+msgstr "nom de la bd"
+
+msgid "export_name"
+msgstr "nom d'export"
+
+msgid "field_type"
+msgstr "type de champ"
+
+msgid "field_length"
+msgstr "longueur du champ"
+
+msgid "product_field"
+msgstr "attribut"
+
+msgid "is_manual"
+msgstr "traitement manuel"
+
+msgid "product_format"
+msgstr "format du produit"
