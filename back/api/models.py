@@ -11,24 +11,28 @@ class Copyright(models.Model):
 
     class Meta:
         db_table = 'copyright'
+        verbose_name = _('copyright')
 
 
 class Document(models.Model):
-    name = models.CharField(max_length=80, blank=True)
-    link = models.CharField(max_length=2000, blank=True)
+    name = models.CharField(_('name'), max_length=80, blank=True)
+    link = models.CharField(_('link'), max_length=2000, blank=True)
 
     class Meta:
         db_table = 'document'
+        verbose_name = _('document')
 
 
 class Format(models.Model):
-    name = models.CharField(max_length=30, blank=True)
+    name = models.CharField(_('name'), max_length=30, blank=True)
 
     class Meta:
         db_table = 'format'
+        verbose_name = _('format')
+
 
 class OrderType(models.Model):
-    name = models.CharField(max_length=30, blank=True)
+    name = models.CharField(_('name'), max_length=30, blank=True)
 
     class Meta:
         db_table = 'order_type'
@@ -37,15 +41,15 @@ class OrderType(models.Model):
 
 
 class Identity(User):
-    street = models.CharField(max_length=100, blank=True)
-    street2 = models.CharField(max_length=100, blank=True)
-    postcode = models.PositiveIntegerField(blank=True, null=True)
-    city = models.CharField(max_length=50, blank=True)
-    country = models.CharField(max_length=50, blank=True)
-    company_name = models.CharField(max_length=50, blank=True)
-    phone = models.TextField(blank=True)
-    sap_id = models.BigIntegerField(blank=True, null=True)
-    contract_accepted = models.DateField(blank=True, null=True)
+    street = models.CharField(_('street'), max_length=100, blank=True)
+    street2 = models.CharField(_('street2'), max_length=100, blank=True)
+    postcode = models.PositiveIntegerField(_('postcode'), blank=True, null=True)
+    city = models.CharField(_('city'), max_length=50, blank=True)
+    country = models.CharField(_('country'), max_length=50, blank=True)
+    company_name = models.CharField(_('company_name'), max_length=50, blank=True)
+    phone = models.TextField(_('phone'), blank=True)
+    sap_id = models.BigIntegerField(_('sap_id'), blank=True, null=True)
+    contract_accepted = models.DateField(_('contract_accepted'), blank=True, null=True)
 
     class Meta:
         db_table = 'identity'
@@ -53,19 +57,43 @@ class Identity(User):
 
 
 class Metadata(models.Model):
-    name = models.CharField(max_length=50, blank=True)
-    description_short = models.CharField(max_length=500, blank=True)
-    description_long = models.TextField(blank=True)
-    geocat_link = models.CharField(max_length=2000, blank=True)
-    legend_link = models.CharField(max_length=2000, blank=True)
-    image_link = models.CharField(max_length=2000, blank=True)
-    copyright = models.ForeignKey(Copyright, models.DO_NOTHING, blank=True, null=True)
-    documents = models.ManyToManyField(Document, blank=True)
-    contact_persons = models.ManyToManyField(Identity, blank=True)
-    validations_needed = models.ManyToManyField(OrderType, blank=True)
+    name = models.CharField(_('name'), max_length=50, blank=True)
+    description_short = models.CharField(_('description_short'), max_length=500, blank=True)
+    description_long = models.TextField(_('description_long'), blank=True)
+    geocat_link = models.CharField(_('geocat_link'), max_length=2000, blank=True)
+    legend_link = models.CharField(_('legend_link'), max_length=2000, blank=True)
+    image_link = models.CharField(_('image_link'), max_length=2000, blank=True)
+    copyright = models.ForeignKey(Copyright, models.DO_NOTHING, verbose_name=_('copyright'), blank=True, null=True)
+    documents = models.ManyToManyField(Document, verbose_name=_('documents'), blank=True)
+    contact_persons = models.ManyToManyField(Identity, verbose_name=_('contact_persons'), blank=True)
+    validations_needed = models.ManyToManyField(OrderType, verbose_name=_('validations_needed'), blank=True)
 
     class Meta:
         db_table = 'metadata'
+        verbose_name = _('metadata')
+
+
+class Product(models.Model):
+
+    class ProductStatus(models.TextChoices):
+        DRAFT = 'DRAFT', _('Draft')
+        PUBLISHED = 'PUBLISHED', _('Published')
+        DEPRECATED = 'DEPRECATED', _('Deprecated')
+
+    metadata = models.ForeignKey(Metadata, models.DO_NOTHING, verbose_name=_('metadata'), blank=True, null=True)
+    label = models.CharField(_('label'), max_length=250, blank=True)
+    status = models.CharField(_('status'), max_length=10, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
+    group = models.ForeignKey('self', models.DO_NOTHING, verbose_name=_('group'), null=True)
+    order = models.BigIntegerField(_('order'), blank=True, null=True)
+    ts = SearchVectorField(null=True)
+
+    class Meta:
+        db_table = 'product'
+        verbose_name = _('product')
+
+
+    def __str__(self):
+        return self.label
 
 
 class Order(models.Model):
@@ -83,21 +111,21 @@ class Order(models.Model):
         ARCHIVED = 'ARCHIVED', _('Archived')
         REJECTED = 'REJECTED', _('Rejected')
 
-    title = models.CharField(max_length=255, blank=True)
-    description = models.TextField(blank=True)
-    processing_fee = MoneyField(max_digits=14, decimal_places=2, default_currency='CHF', null=True)
-    total_cost = MoneyField(max_digits=14, decimal_places=2, default_currency='CHF', null=True)
-    part_vat = MoneyField(max_digits=14, decimal_places=2, default_currency='CHF', null=True)
-    geom = models.PolygonField(srid=2056)
-    client = models.ForeignKey(User, models.DO_NOTHING, blank=True)
-    order_contact = models.ForeignKey(Identity, models.DO_NOTHING, blank=True, related_name='order_contact', null=True)
-    invoice_contact = models.ForeignKey(Identity, models.DO_NOTHING, blank=True, related_name='invoice_contact', null=True)
-    invoice_reference = models.CharField(max_length=255, blank=True)
-    order_type = models.ForeignKey(OrderType, models.DO_NOTHING, blank=True, null=True)
-    status = models.CharField(max_length=20, choices=OrderStatus.choices, default=OrderStatus.DRAFT)
-    date_ordered = models.DateTimeField(blank=True, null=True)
-    date_downloaded = models.DateTimeField(blank=True, null=True)
-    date_processed = models.DateTimeField(blank=True, null=True)
+    title = models.CharField(_('title'), max_length=255, blank=True)
+    description = models.TextField(_('description'), blank=True)
+    processing_fee = MoneyField(_('processing_fee'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
+    total_cost = MoneyField(_('total_cost'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
+    part_vat = MoneyField(_('part_vat'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
+    geom = models.PolygonField(_('geom'), srid=2056)
+    client = models.ForeignKey(User, models.DO_NOTHING, verbose_name=_('client'), blank=True)
+    order_contact = models.ForeignKey(Identity, models.DO_NOTHING, verbose_name=_('order_contact'), blank=True, related_name='order_contact', null=True)
+    invoice_contact = models.ForeignKey(Identity, models.DO_NOTHING, verbose_name=_('invoice_contact'), blank=True, related_name='invoice_contact', null=True)
+    invoice_reference = models.CharField(_('invoice_reference'), max_length=255, blank=True)
+    order_type = models.ForeignKey(OrderType, models.DO_NOTHING, verbose_name=_('order_type'), blank=True, null=True)
+    status = models.CharField(_('status'), max_length=20, choices=OrderStatus.choices, default=OrderStatus.DRAFT)
+    date_ordered = models.DateTimeField(_('date_ordered'), blank=True, null=True)
+    date_downloaded = models.DateTimeField(_('date_downloaded'), blank=True, null=True)
+    date_processed = models.DateTimeField(_('date_processed'), blank=True, null=True)
 
     class Meta:
         db_table = 'order'
@@ -108,44 +136,26 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, models.DO_NOTHING, blank=True, null=True)
-    product = models.ForeignKey('Product', models.DO_NOTHING, blank=True, null=True)
-    format = models.ForeignKey(Format, models.DO_NOTHING, blank=True, null=True)
-    last_download = models.DateTimeField(blank=True, null=True)
+    order = models.ForeignKey(Order, models.DO_NOTHING, verbose_name=_('order'), blank=True, null=True)
+    product = models.ForeignKey(Product, models.DO_NOTHING, verbose_name=_('product'), blank=True, null=True)
+    format = models.ForeignKey(Format, models.DO_NOTHING, verbose_name=_('format'), blank=True, null=True)
+    last_download = models.DateTimeField(_('last_download'), blank=True, null=True)
 
     class Meta:
         db_table = 'order_item'
+        verbose_name = _('order_item')
 
 
 class Pricing(models.Model):
-    product = models.ForeignKey('Product', models.DO_NOTHING, blank=True, null=True)
-    price_type = models.CharField(max_length=50, blank=True)
-    base_fee = MoneyField(max_digits=14, decimal_places=2, default_currency='CHF', null=True)
-    price = MoneyField(max_digits=14, decimal_places=2, default_currency='CHF', null=True)
+    product = models.ForeignKey(Product, models.DO_NOTHING, verbose_name=_('product'), blank=True, null=True)
+    price_type = models.CharField(_('price_type'), max_length=50, blank=True)
+    base_fee = MoneyField(_('base_fee'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
+    price = MoneyField(_('price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
 
     class Meta:
         db_table = 'pricing'
+        verbose_name = _('pricing')
 
-
-class Product(models.Model):
-
-    class ProductStatus(models.TextChoices):
-        DRAFT = 'DRAFT', _('Draft')
-        PUBLISHED = 'PUBLISHED', _('Published')
-        DEPRECATED = 'DEPRECATED', _('Deprecated')
-
-    metadata = models.ForeignKey(Metadata, models.DO_NOTHING, blank=True, null=True)
-    label = models.CharField(max_length=250, blank=True)
-    status = models.CharField(max_length=10, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
-    group = models.ForeignKey('self', models.DO_NOTHING, null=True)
-    order = models.BigIntegerField(blank=True, null=True)
-    ts = SearchVectorField(null=True)
-
-    class Meta:
-        db_table = 'product'
-
-    def __str__(self):
-        return self.label
 
 class ProductField(models.Model):
 
@@ -158,21 +168,23 @@ class ProductField(models.Model):
         BIGINT = 'BIGINT', 'Big integer'
         FLOAT = 'FLOAT', 'Floating number'
 
-    db_name = models.CharField(max_length=50, blank=True)
-    export_name = models.CharField(max_length=50, blank=True)
-    field_type = models.CharField(max_length=10, choices=ProductFieldType.choices, blank=True)
-    field_length = models.SmallIntegerField()
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    db_name = models.CharField(_('db_name'), max_length=50, blank=True)
+    export_name = models.CharField(_('export_name'), max_length=50, blank=True)
+    field_type = models.CharField(_('field_type'), max_length=10, choices=ProductFieldType.choices, blank=True)
+    field_length = models.SmallIntegerField(_('field_length'), )
+    product = models.ForeignKey(Product, verbose_name=_('product'), on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'product_field'
+        verbose_name = _('product_field')
 
 
 class ProductFormat(models.Model):
-    product = models.OneToOneField(Product, models.DO_NOTHING, primary_key=True)
-    format = models.ForeignKey(Format, models.DO_NOTHING)
-    is_manual = models.BooleanField(default=False) # extraction manuelle ou automatique
+    product = models.OneToOneField(Product, models.DO_NOTHING, verbose_name=_('product'), primary_key=True)
+    format = models.ForeignKey(Format, models.DO_NOTHING, verbose_name=_('format'))
+    is_manual = models.BooleanField(_('is_manual'), default=False) # extraction manuelle ou automatique
 
     class Meta:
         db_table = 'product_format'
         unique_together = (('product', 'format'),)
+        verbose_name = _('product_format')

@@ -23,7 +23,7 @@ python
 from pathlib import Path, PureWindowsPath
 from osgeo import gdal
 
-print(PureWindowsPath(osgeo.__file__).parent)
+print(PureWindowsPath(gdal.__file__).parent)
 ```
 
 ## Getting started
@@ -39,7 +39,7 @@ cd..
 
 ### Database
 
-User geoshop is assumed to be already created. Set up a database manually or with the provided script in `scripts/create_db.ps1` :
+User geoshop is assumed to be already created. Set up a database manually or with the provided script in `scripts/create_db.ps1` (psql binary must be on PATH) :
 
 ```sql
 CREATE DATABASE geoshop;
