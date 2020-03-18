@@ -4,6 +4,7 @@ html,
 body {
   height: 100%;
 }
+
 body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
@@ -22,9 +23,19 @@ body {
 .spacer {
   flex: 1;
 }
+
 .text-white {
   color: white;
 }
+
+.text-ellipsis-2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; /* number of lines to show */
+}
+
 .main-container {
   width: 100%;
   height: calc(100vh - 64px);
@@ -45,4 +56,9 @@ body {
   img {
     margin-right: 10px;
   }
+}
+
+.primary-container {
+  background-color: #69f0ae;
+  color: black;
 }

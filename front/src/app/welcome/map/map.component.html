@@ -5,29 +5,29 @@
 <div id="ol-scaleline" class="scale-line"></div>
 
 <div class="map-button-container">
-    <button matTooltip="Cliquer pour activer / désactiver le dessing" [color]="isDrawing ? 'accent' : 'primary'"
-        mat-mini-fab aria-label="Activer / désactiver le dessin" (click)="toggleDrawing()">
-        <mat-icon>edit</mat-icon>
-    </button>
+  <button matTooltip="Un clique droit ou un double click termine le dessin" [color]="isDrawing ? 'accent' : 'primary'"
+          mat-mini-fab aria-label="Activer / désactiver le dessin" (click)="toggleDrawing()">
+    <mat-icon>edit</mat-icon>
+  </button>
 
-    <button matTooltip="Supprime le dessin en cours" color="primary" mat-mini-fab aria-label="Supprimer le dessin"
-        (click)="eraseDrawing()">
-        <mat-icon>delete</mat-icon>
-    </button>
+  <button matTooltip="Supprime le dessin en cours" color="primary" mat-mini-fab aria-label="Supprimer le dessin"
+          (click)="eraseDrawing()">
+    <mat-icon>delete</mat-icon>
+  </button>
 
-    <button mat-mini-fab color="primary" [matMenuTriggerFor]="menu" aria-label="Menu des fonds de plan">
-        <mat-icon>layers</mat-icon>
+  <button mat-mini-fab color="primary" [matMenuTriggerFor]="menu" aria-label="Menu des fonds de plan">
+    <mat-icon>layers</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item *ngFor="let basemap of basemaps" (click)="switchBasemap(basemap.id)">
+      <img alt="Basemap" [src]="basemap.thumbUrl" height="40px">
+      <span class="text-white">{{basemap.label}}</span>
     </button>
-    <mat-menu #menu="matMenu">
-        <button mat-menu-item *ngFor="let basemap of basemaps" (click)="switchBasemap(basemap.id)">
-            <img alt="Basemap" [src]="basemap.thumbUrl" height="40px">
-            <span class="text-white">{{basemap.label}}</span>
-        </button>
-    </mat-menu>
+  </mat-menu>
 
-    <button matTooltip="Cliquer pour activer / désactiver le suivi de position"
-        [color]="isTracking ? 'accent' : 'primary'" mat-mini-fab aria-label="Activer / désactiver le suivi de positon"
-        (click)="toggleGeolocation()">
-        <mat-icon>{{isTracking ? 'location_on' : 'location_off'}}</mat-icon>
-    </button>
+  <button matTooltip="Cliquer pour activer / désactiver le suivi de position"
+          [color]="isTracking ? 'accent' : 'primary'" mat-mini-fab aria-label="Activer / désactiver le suivi de positon"
+          (click)="toggleGeolocation()">
+    <mat-icon>{{isTracking ? 'location_on' : 'location_off'}}</mat-icon>
+  </button>
 </div>
