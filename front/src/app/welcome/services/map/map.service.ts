@@ -1,0 +1,288 @@
+import { Injectable } from '@angular/core';
+import { ConfigService } from 'src/app/_services/config.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+// Openlayers imports
+import Map from 'ol/Map';
+import View from 'ol/View';
+import BaseLayer from 'ol/layer/Base';
+import XYZ from 'ol/source/XYZ';
+import TileLayer from 'ol/layer/Tile';
+import LayerGroup from 'ol/layer/Group';
+import ScaleLine from 'ol/control/ScaleLine';
+import Geocoder from 'ol-geocoder/dist/ol-geocoder.js';
+import VectorSource from 'ol/source/Vector';
+import VectorLayer from 'ol/layer/Vector';
+import { Draw, Modify } from 'ol/interaction';
+import GeometryType from 'ol/geom/GeometryType';
+import { Feature } from 'ol';
+import Geolocation from 'ol/Geolocation';
+import { BehaviorSubject } from 'rxjs';
+import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
+import Point from 'ol/geom/Point';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class MapService {
+  private initialized = false;
+
+  private view: View;
+  private map: Map;
+  private basemapLayers: Array<BaseLayer> = [];
+
+  // Drawing
+  private isDrawing = false;
+  private drawingSource: VectorSource;
+  private drawingLayer: VectorLayer;
+  private modifyInteraction: Modify;
+  private drawInteraction: Draw;
+  private featureFromDrawing: Feature;
+
+  // Geolocation
+  private isTracking = false;
+  private geolocation: Geolocation;
+  private positionFeature = new Feature();
+  private positionLayer: VectorLayer;
+
+  public isTracking$ = new BehaviorSubject<boolean>(false);
+  public isMapLoading$ = new BehaviorSubject<boolean>(true);
+
+  public get Basemaps() {
+    return this.configService.Basemaps;
+  }
+
+  constructor(private configService: ConfigService, private snackBar: MatSnackBar) { }
+
+  public initialize() {
+    if (this.initialized) {
+      return;
+    }
+
+    this.initializeMap();
+  }
+
+  public toggleDrawing() {
+    this.isDrawing = !this.isDrawing;
+    this.modifyInteraction.setActive(this.isDrawing);
+    this.drawInteraction.setActive(this.isDrawing);
+  }
+
+  public eraseDrawing() {
+    if (this.featureFromDrawing) {
+      this.drawingSource.removeFeature(this.featureFromDrawing);
+    }
+  }
+
+  public toggleTracking() {
+    this.isMapLoading$.next(true);
+    this.isTracking = !this.isTracking;
+    this.geolocation.setTracking(this.isTracking);
+  }
+
+  public switchBasemap(gsId: number) {
+
+    this.map.getLayers().forEach((layerGroup, i, layerGroups) => {
+      if (layerGroup instanceof LayerGroup) {
+        layerGroup.getLayers().forEach((layer, index, layers) => {
+          const id = layer.get('gsId');
+          if (id && id === gsId) {
+            layer.setVisible(true);
+          } else {
+            layer.setVisible(false);
+          }
+        });
+      } else {
+        const id = layerGroup.get('gsId');
+        if (id && id === gsId) {
+          layerGroup.setVisible(true);
+        } else {
+          layerGroup.setVisible(false);
+        }
+      }
+    });
+
+  }
+
+  private initializeMap() {
+    this.initializeView();
+
+    const layers: any[] = [];
+    this.generateBasemapLayersFromConfig(layers);
+
+    // Create the map
+    this.map = new Map({
+      target: 'map',
+      view: this.view,
+      layers,
+      controls: [
+        new ScaleLine({
+          target: 'ol-scaleline',
+          className: 'my-scale-line'
+        })
+      ]
+    });
+    this.map.on('rendercomplete', () => this.map_renderCompleteExecuted);
+    this.map.on('change', () => this.isMapLoading$.next(true));
+
+    this.initializeGeocoder();
+    this.initializeDrawing();
+    this.initializeGeolocation();
+
+    this.initialized = true;
+  }
+
+  private initializeView() {
+    this.view = new View({
+      center: [771815.10, 5942074.07],
+      zoom: 10,
+    });
+  }
+
+  private initializeGeocoder() {
+    const geocoder = new Geocoder('nominatim', {
+      provider: 'osm',
+      lang: 'fr-CH',
+      placeholder: 'Rechercher une commune, etc.',
+      targetType: 'text-input',
+      limit: 5,
+      keepOpen: false,
+      autoComplete: true,
+      autoCompleteMinLength: 3,
+      preventDefault: true
+    });
+    geocoder.on('addresschosen', (event: any) => {
+      const resolutionForZoom = this.view.getResolutionForZoom(0);
+      const extent: any = [
+        event.coordinate[0] - (0.1 * resolutionForZoom),
+        event.coordinate[1] - (0.1 * resolutionForZoom),
+        event.coordinate[0] + (0.1 * resolutionForZoom),
+        event.coordinate[1] + (0.1 * resolutionForZoom),
+      ];
+      this.view.fit(extent);
+    });
+    this.map.addControl(geocoder);
+  }
+
+  private initializeDrawing() {
+    this.drawingSource = new VectorSource({
+      useSpatialIndex: false
+    });
+    this.drawingLayer = new VectorLayer({
+      source: this.drawingSource
+    });
+    this.map.addLayer(this.drawingLayer);
+
+    this.modifyInteraction = new Modify({
+      source: this.drawingSource
+    });
+    this.drawInteraction = new Draw({
+      source: this.drawingSource,
+      type: GeometryType.POLYGON,
+    });
+
+    this.drawInteraction.on('drawstart', (evt) => {
+      if (this.featureFromDrawing) {
+        this.drawingSource.removeFeature(this.featureFromDrawing);
+      }
+      this.featureFromDrawing = evt.feature;
+    });
+
+    // this.drawInteraction.on('change:active', (evt) => {
+    //   console.log('change:active', evt);
+    // });
+
+    this.map.addInteraction(this.modifyInteraction);
+    this.map.addInteraction(this.drawInteraction);
+
+    this.modifyInteraction.setActive(false);
+    this.drawInteraction.setActive(false);
+  }
+
+  private initializeGeolocation() {
+    this.positionFeature.setStyle(new Style({
+      image: new CircleStyle({
+        radius: 6,
+        fill: new Fill({
+          color: '#3399CC'
+        }),
+        stroke: new Stroke({
+          color: '#fff',
+          width: 2
+        })
+      })
+    }));
+    this.positionLayer = new VectorLayer({
+      map: this.map,
+      source: new VectorSource({
+        features: [this.positionFeature]
+      })
+    });
+    this.geolocation = new Geolocation({
+      trackingOptions: {
+        enableHighAccuracy: true
+      },
+      projection: this.view.getProjection()
+    });
+    this.geolocation.on('change:position', () => {
+      const firstLoad = this.positionFeature.getGeometry() == null;
+      const coordinates = this.geolocation.getPosition();
+      this.positionFeature.setGeometry(coordinates ? new Point(coordinates) : undefined);
+      if (firstLoad) {
+        this.view.animate(
+          { zoom: 10 },
+          { center: coordinates },
+          { duration: 200 }
+        );
+      }
+      this.isMapLoading$.next(false);
+    });
+    this.geolocation.on('change:tracking', (evt) => {
+      this.isTracking$.next(this.geolocation.getTracking());
+      this.isTracking = this.geolocation.getTracking();
+      if (!this.isTracking) {
+        this.positionFeature.setGeometry(undefined);
+      }
+    });
+    this.geolocation.on('error', (error: Error) => {
+      this.snackBar.open(error.message, 'Fermer');
+      this.isMapLoading$.next(false);
+    });
+  }
+
+  private map_renderCompleteExecuted(event: any) {
+    this.isMapLoading$.next(false);
+  }
+
+  /* Base Map Managment */
+  private generateBasemapLayersFromConfig(layers: Array<BaseLayer>) {
+
+    let isVisible = true;  // -> display the first one
+
+    for (const basemap of this.configService.Basemaps) {
+      if (basemap.url && basemap.gisServiceType === 'xyz') {
+
+        const baseMapXYZ = { url: basemap.url };
+
+        const xyzSource = new XYZ(baseMapXYZ);
+        const tileLayer = new TileLayer({
+          source: xyzSource,
+          visible: isVisible,
+        });
+
+        tileLayer.set('gsId', basemap.id);
+        tileLayer.set('label', basemap.label);
+        tileLayer.set('thumbnail', basemap.thumbUrl);
+
+        this.basemapLayers.push(tileLayer);
+        isVisible = false;
+      }
+    }
+
+    const layerGroup = new LayerGroup({
+      layers: this.basemapLayers,
+    });
+
+    layers.push(layerGroup);
+  }
+}

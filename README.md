@@ -47,3 +47,28 @@ Your database should be ready, now you can run the backend:
 ```powershell
 python manage.py runserver
 ```
+
+### Frontend
+
+Install the current LTS version of [Nodejs](https://nodejs.org/en/).
+
+Install @angular/cli and typescript globally
+
+```powershell
+npm install -g @angular/cli typescript
+```
+
+Install the dependances of the frontend
+
+```powershell
+cd front
+npm install
+```
+
+To start the debug of the frontend
+
+```powershell
+npm start
+```
+
+Then open a browser and go to [Geoshop2](http://localhost:4200)
