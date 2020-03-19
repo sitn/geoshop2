@@ -1,13 +1,16 @@
 <mat-sidenav-container [style.marginTop.px]="mobileQuery.matches ? 56 : 0">
 
-    <mat-sidenav #snav opened="true" [mode]="mobileQuery.matches ? 'over' : 'side'"
-        [fixedInViewport]="mobileQuery.matches" fixedTopGap="56">
+  <mat-sidenav #snav
+               opened="true"
+               [mode]="mobileQuery.matches ? 'over' : 'side'"
+               [fixedInViewport]="mobileQuery.matches"
+               fixedTopGap="56">
 
-        <gs2-catalog></gs2-catalog>
-    </mat-sidenav>
+    <gs2-catalog></gs2-catalog>
+  </mat-sidenav>
 
-    <mat-sidenav-content>
-        <gs2-map></gs2-map>
-    </mat-sidenav-content>
+  <mat-sidenav-content>
+    <gs2-map></gs2-map>
+  </mat-sidenav-content>
 
 </mat-sidenav-container>

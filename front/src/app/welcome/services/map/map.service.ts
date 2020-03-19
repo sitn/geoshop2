@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { ConfigService } from 'src/app/_services/config.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import {Injectable} from '@angular/core';
+import {ConfigService} from 'src/app/_services/config.service';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 // Openlayers imports
 import Map from 'ol/Map';
@@ -10,16 +10,20 @@ import XYZ from 'ol/source/XYZ';
 import TileLayer from 'ol/layer/Tile';
 import LayerGroup from 'ol/layer/Group';
 import ScaleLine from 'ol/control/ScaleLine';
+// @ts-ignore
 import Geocoder from 'ol-geocoder/dist/ol-geocoder.js';
 import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
-import { Draw, Modify } from 'ol/interaction';
+import {Draw, Modify} from 'ol/interaction';
 import GeometryType from 'ol/geom/GeometryType';
-import { Feature } from 'ol';
+import {Feature} from 'ol';
 import Geolocation from 'ol/Geolocation';
-import { BehaviorSubject } from 'rxjs';
-import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
+import {BehaviorSubject} from 'rxjs';
+import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
 import Point from 'ol/geom/Point';
+import DragPan from 'ol/interaction/DragPan';
+import {GeoHelper} from '../../../_helpers/geoHelper';
+import Polygon from 'ol/geom/Polygon';
 
 @Injectable({
   providedIn: 'root'
@@ -32,12 +36,15 @@ export class MapService {
   private basemapLayers: Array<BaseLayer> = [];
 
   // Drawing
-  private isDrawing = false;
+  private isDrawModeActivated = false;
   private drawingSource: VectorSource;
   private drawingLayer: VectorLayer;
   private modifyInteraction: Modify;
   private drawInteraction: Draw;
   private featureFromDrawing: Feature;
+
+  // Map's interactions
+  private dragInteraction: DragPan;
 
   // Geolocation
   private isTracking = false;
@@ -47,12 +54,14 @@ export class MapService {
 
   public isTracking$ = new BehaviorSubject<boolean>(false);
   public isMapLoading$ = new BehaviorSubject<boolean>(true);
+  public isDrawing$ = new BehaviorSubject<boolean>(false);
 
   public get Basemaps() {
-    return this.configService.Basemaps;
+    return this.configService.BaseMaps;
   }
 
-  constructor(private configService: ConfigService, private snackBar: MatSnackBar) { }
+  constructor(private configService: ConfigService, private snackBar: MatSnackBar) {
+  }
 
   public initialize() {
     if (this.initialized) {
@@ -63,12 +72,13 @@ export class MapService {
   }
 
   public toggleDrawing() {
-    this.isDrawing = !this.isDrawing;
-    this.modifyInteraction.setActive(this.isDrawing);
-    this.drawInteraction.setActive(this.isDrawing);
+    this.isDrawModeActivated = !this.isDrawModeActivated;
+    this.modifyInteraction.setActive(this.isDrawModeActivated);
+    this.drawInteraction.setActive(this.isDrawModeActivated);
   }
 
   public eraseDrawing() {
+    console.log(this.drawingSource.getFeatures());
     if (this.featureFromDrawing) {
       this.drawingSource.removeFeature(this.featureFromDrawing);
     }
@@ -80,11 +90,11 @@ export class MapService {
     this.geolocation.setTracking(this.isTracking);
   }
 
-  public switchBasemap(gsId: number) {
+  public switchBaseMap(gsId: number) {
 
-    this.map.getLayers().forEach((layerGroup, i, layerGroups) => {
+    this.map.getLayers().forEach((layerGroup) => {
       if (layerGroup instanceof LayerGroup) {
-        layerGroup.getLayers().forEach((layer, index, layers) => {
+        layerGroup.getLayers().forEach((layer) => {
           const id = layer.get('gsId');
           if (id && id === gsId) {
             layer.setVisible(true);
@@ -128,6 +138,7 @@ export class MapService {
     this.initializeGeocoder();
     this.initializeDrawing();
     this.initializeGeolocation();
+    this.initializeDragInteraction();
 
     this.initialized = true;
   }
@@ -166,11 +177,18 @@ export class MapService {
 
   private initializeDrawing() {
     this.drawingSource = new VectorSource({
-      useSpatialIndex: false
+      useSpatialIndex: false,
+    });
+    this.drawingSource.on('addfeature', (evt) => {
+      console.log('addfeature');
+      this.featureFromDrawing = evt.feature;
+      this.drawInteraction.setActive(false);
+      this.setAreaToCurrentFeature();
     });
     this.drawingLayer = new VectorLayer({
       source: this.drawingSource
     });
+
     this.map.addLayer(this.drawingLayer);
 
     this.modifyInteraction = new Modify({
@@ -179,24 +197,73 @@ export class MapService {
     this.drawInteraction = new Draw({
       source: this.drawingSource,
       type: GeometryType.POLYGON,
+      finishCondition: (evt) => {
+        console.log('finish Condition', evt);
+        return true;
+      }
     });
 
-    this.drawInteraction.on('drawstart', (evt) => {
-      if (this.featureFromDrawing) {
+    this.drawInteraction.on('change:active', () => {
+      const isActive = this.drawInteraction.getActive();
+
+      if (this.featureFromDrawing && isActive && this.drawingSource.getFeatures().length > 0) {
         this.drawingSource.removeFeature(this.featureFromDrawing);
       }
-      this.featureFromDrawing = evt.feature;
+      this.toggleDragInteraction(!isActive);
+
+      this.isDrawModeActivated = isActive;
+      this.isDrawing$.next(isActive);
+
+      if (isActive) {
+        window.oncontextmenu = (event: MouseEvent) => {
+          event.preventDefault();
+          event.stopPropagation();
+          this.drawInteraction.finishDrawing();
+          window.oncontextmenu = null;
+        };
+      }
     });
 
-    // this.drawInteraction.on('change:active', (evt) => {
-    //   console.log('change:active', evt);
-    // });
+    this.modifyInteraction.on('modifyend', (evt) => {
+      this.featureFromDrawing = evt.features.item(0);
+      this.setAreaToCurrentFeature();
+    });
 
     this.map.addInteraction(this.modifyInteraction);
     this.map.addInteraction(this.drawInteraction);
 
     this.modifyInteraction.setActive(false);
     this.drawInteraction.setActive(false);
+  }
+
+  private setAreaToCurrentFeature() {
+    const area = GeoHelper.formatArea(this.featureFromDrawing.getGeometry() as Polygon);
+    this.featureFromDrawing.set('area', area);
+    this.displayAreaMessage(area);
+  }
+
+  private displayAreaMessage(area: string) {
+    this.snackBar.open(`L'aire du polygone sélectionné est de ${area}`, 'Cancel', {
+      duration: 10000,
+      panelClass: 'primary-container'
+    });
+  }
+
+  private toggleDragInteraction(isActive: boolean) {
+    if (this.dragInteraction) {
+      this.dragInteraction.setActive(isActive);
+    }
+  }
+
+  private initializeDragInteraction() {
+    if (!this.dragInteraction) {
+      this.map.getInteractions().forEach(interaction => {
+        if (interaction instanceof DragPan) {
+          this.dragInteraction = interaction;
+          return;
+        }
+      });
+    }
   }
 
   private initializeGeolocation() {
@@ -230,14 +297,14 @@ export class MapService {
       this.positionFeature.setGeometry(coordinates ? new Point(coordinates) : undefined);
       if (firstLoad) {
         this.view.animate(
-          { zoom: 10 },
-          { center: coordinates },
-          { duration: 200 }
+          {zoom: 10},
+          {center: coordinates},
+          {duration: 200}
         );
       }
       this.isMapLoading$.next(false);
     });
-    this.geolocation.on('change:tracking', (evt) => {
+    this.geolocation.on('change:tracking', () => {
       this.isTracking$.next(this.geolocation.getTracking());
       this.isTracking = this.geolocation.getTracking();
       if (!this.isTracking) {
@@ -250,7 +317,7 @@ export class MapService {
     });
   }
 
-  private map_renderCompleteExecuted(event: any) {
+  private map_renderCompleteExecuted() {
     this.isMapLoading$.next(false);
   }
 
@@ -259,10 +326,10 @@ export class MapService {
 
     let isVisible = true;  // -> display the first one
 
-    for (const basemap of this.configService.Basemaps) {
+    for (const basemap of this.configService.BaseMaps) {
       if (basemap.url && basemap.gisServiceType === 'xyz') {
 
-        const baseMapXYZ = { url: basemap.url };
+        const baseMapXYZ = {url: basemap.url};
 
         const xyzSource = new XYZ(baseMapXYZ);
         const tileLayer = new TileLayer({

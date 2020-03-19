@@ -1,44 +1,45 @@
 {
-    "basemaps": [
-        {
-            "id": 1,
-            "label": "Carto DB Grey",
-            "description": "Lorem ipsum",
-            "gisServiceType": "xyz",
-            "thumbUrl": "assets/images/cartodb_thumbnail.png",
-            "url": "https://cartodb-basemaps-{a-c}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
-        },
-        {
-            "id": 2,
-            "label": "OSM",
-            "description": "Lorem ipsum",
-            "gisServiceType": "xyz",
-            "thumbUrl": "assets/images/osm_thumbnail.png",
-            "url": "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        },
-        {
-            "id": 3,
-            "label": "Thunder forest",
-            "description": "Lorem ipsum",
-            "gisServiceType": "xyz",
-            "thumbUrl": "assets/images/cartodb_thumbnail.png",
-            "url": "https://{a-c}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png"
-        },
-        {
-            "id": 4,
-            "label": "Esri",
-            "description": "Lorem ipsum",
-            "gisServiceType": "xyz",
-            "thumbUrl": "assets/images/esri-sat_thumbnail.jpg",
-            "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-        },
-        {
-            "id": 5,
-            "label": "Esri topo",
-            "description": "Lorem ipsum",
-            "gisServiceType": "xyz",
-            "thumbUrl": "assets/images/esri_topo_thumbnail.jpg",
-            "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
-        }
-    ]
+  "apiUrl": "https://sitn.ne.ch/geoshop2_dev/",
+  "basemaps": [
+    {
+      "id": 1,
+      "label": "Carto DB Grey",
+      "description": "Lorem ipsum",
+      "gisServiceType": "xyz",
+      "thumbUrl": "assets/images/cartodb_thumbnail.png",
+      "url": "https://cartodb-basemaps-{a-c}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
+    },
+    {
+      "id": 2,
+      "label": "OSM",
+      "description": "Lorem ipsum",
+      "gisServiceType": "xyz",
+      "thumbUrl": "assets/images/osm_thumbnail.png",
+      "url": "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    },
+    {
+      "id": 3,
+      "label": "Thunder forest",
+      "description": "Lorem ipsum",
+      "gisServiceType": "xyz",
+      "thumbUrl": "assets/images/cartodb_thumbnail.png",
+      "url": "https://{a-c}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png"
+    },
+    {
+      "id": 4,
+      "label": "Esri",
+      "description": "Lorem ipsum",
+      "gisServiceType": "xyz",
+      "thumbUrl": "assets/images/esri-sat_thumbnail.jpg",
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    },
+    {
+      "id": 5,
+      "label": "Esri topo",
+      "description": "Lorem ipsum",
+      "gisServiceType": "xyz",
+      "thumbUrl": "assets/images/esri_topo_thumbnail.jpg",
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+    }
+  ]
 }

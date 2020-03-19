@@ -1,23 +1,27 @@
-import { IMetadata } from './IMetadata';
+import {IMetadata} from './IMetadata';
 
 export interface IProduct {
-    name: string;
-    minPrice: number;
-    metadata: IMetadata;
+  url: string;
+  label: string;
+  status: string;
+  order: number;
+  metadata: IMetadata;
+  group: any;
 }
 
 export class Product {
-    public readonly name: string;
-    public readonly metadata: IMetadata;
-    private minPrice: number;
+  public readonly url: string;
+  public readonly label: string;
+  public readonly status: string;
+  public readonly order: number;
+  public readonly metadata: IMetadata;
+  public readonly group: any;
 
-    public get Price() {
-        return this.minPrice ? `dès CHF ${this.minPrice}` : `Gratuit`;
-    }
+  public get Price() {
+    return `Gratuit`;
+  }
 
-    constructor(args: IProduct) {
-        this.name = args.name;
-        this.minPrice = args.minPrice;
-        this.metadata = args.metadata;
-    }
+  constructor(args: IProduct) {
+    Object.assign(this, args);
+  }
 }

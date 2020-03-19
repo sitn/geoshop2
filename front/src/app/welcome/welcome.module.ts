@@ -7,14 +7,16 @@ import { MaterialModule } from '../material-module';
 import { MapComponent } from './map/map.component';
 import { CatalogComponent } from './catalog/catalog.component';
 import { DialogMetadataComponent } from './catalog/dialog-metadata/dialog-metadata.component';
+import {ReactiveFormsModule} from '@angular/forms';
 
 
 @NgModule({
   declarations: [WelcomeComponent, MapComponent, CatalogComponent, DialogMetadataComponent],
-  imports: [
-    CommonModule,
-    MaterialModule,
-    WelcomeRoutingModule,
-  ]
+    imports: [
+        CommonModule,
+        MaterialModule,
+        WelcomeRoutingModule,
+        ReactiveFormsModule,
+    ]
 })
 export class WelcomeModule { }
