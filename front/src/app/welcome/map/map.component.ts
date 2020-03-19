@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {MapService} from '../services/map/map.service';
 import {IBasemap} from 'src/app/_models/IConfig';
 
@@ -8,6 +8,8 @@ import {IBasemap} from 'src/app/_models/IConfig';
   styleUrls: ['./map.component.scss']
 })
 export class MapComponent implements OnInit {
+
+  @Input() leftPositionForButtons: number;
 
   isDrawing = false;
   isTracking = false;

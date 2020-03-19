@@ -2,9 +2,9 @@
 
 <div id="map"></div>
 
-<div id="ol-scaleline" class="scale-line"></div>
+<div id="ol-scaleline" class="scale-line" [style.left]="leftPositionForButtons"></div>
 
-<div class="map-button-container">
+<div class="map-button-container" [style.left]="leftPositionForButtons">
   <button matTooltip="Un clique droit ou un double click termine le dessin" [color]="isDrawing ? 'accent' : 'primary'"
           mat-mini-fab aria-label="Activer / désactiver le dessin" (click)="toggleDrawing()">
     <mat-icon>edit</mat-icon>

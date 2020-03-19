@@ -14,6 +14,8 @@ import {MatDialogModule} from '@angular/material/dialog';
 import {MatCardModule} from '@angular/material/card';
 import {ScrollingModule} from '@angular/cdk/scrolling';
 
+import { AngularSplitModule } from 'angular-split';
+
 const MODULES = [
   MatSidenavModule,
   MatListModule,
@@ -28,7 +30,8 @@ const MODULES = [
   MatInputModule,
   MatDialogModule,
   MatCardModule,
-  ScrollingModule
+  ScrollingModule,
+  AngularSplitModule
 ];
 
 @NgModule({

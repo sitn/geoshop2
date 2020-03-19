@@ -1,16 +1,8 @@
-<mat-sidenav-container [style.marginTop.px]="mobileQuery.matches ? 56 : 0">
-
-  <mat-sidenav #snav
-               opened="true"
-               [mode]="mobileQuery.matches ? 'over' : 'side'"
-               [fixedInViewport]="mobileQuery.matches"
-               fixedTopGap="56">
-
+<as-split (dragEnd)="dragEnd($event)">
+  <as-split-area size="30" minSize="20" class="dark-background" [visible]="isCatalogVisible">
     <gs2-catalog></gs2-catalog>
-  </mat-sidenav>
-
-  <mat-sidenav-content>
-    <gs2-map></gs2-map>
-  </mat-sidenav-content>
-
-</mat-sidenav-container>
+  </as-split-area>
+  <as-split-area size="70">
+    <gs2-map [leftPositionForButtons]="leftPositionForButtons"></gs2-map>
+  </as-split-area>
+</as-split>

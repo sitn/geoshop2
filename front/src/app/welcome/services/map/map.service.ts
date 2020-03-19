@@ -114,6 +114,10 @@ export class MapService {
 
   }
 
+  public resizeMap() {
+    this.map.updateSize();
+  }
+
   private initializeMap() {
     this.initializeView();
 
