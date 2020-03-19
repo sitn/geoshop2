@@ -1,0 +1,30 @@
+<div class="flex-column items-container" *ngFor="let orderItem of order.orderItems">
+  <div class="flex-row padding-horizontal-15 justify-content-space-between">
+    <span>{{orderItem.product.label}}</span>
+    <button mat-icon-button>
+      <mat-icon>delete</mat-icon>
+    </button>
+  </div>
+  <button mat-button color="accent" style="text-align: left">
+    Voir le produit
+  </button>
+
+  <mat-divider></mat-divider>
+
+</div>
+
+<div class="flex-row padding-horizontal-15 justify-content-space-between total-container">
+  <span>Total</span>
+  <span>{{order.total_cost | currency}}</span>
+</div>
+
+<button mat-button color="accent" class="trash-container">
+  <div class="flex-row" style="justify-content: flex-start">
+    <mat-icon>delete</mat-icon>
+    <span>Vider le panier</span>
+  </div>
+</button>
+
+<button mat-raised-button color="primary" class="button-submit">
+  Passer la commande
+</button>

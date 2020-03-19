@@ -1,4 +1,16 @@
 :host {
   width: 100vw;
   height: 100vh;
+
+  .right-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .mat-divider {
+      height: 40px;
+      margin: 0 10px;
+      border-right-color: #69f0ae;
+    }
+  }
 }

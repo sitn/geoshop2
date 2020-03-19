@@ -13,6 +13,7 @@ import {MatInputModule} from '@angular/material/input';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatCardModule} from '@angular/material/card';
 import {ScrollingModule} from '@angular/cdk/scrolling';
+import {MatDividerModule} from '@angular/material/divider';
 
 import { AngularSplitModule } from 'angular-split';
 
@@ -31,6 +32,7 @@ const MODULES = [
   MatDialogModule,
   MatCardModule,
   ScrollingModule,
+  MatDividerModule,
   AngularSplitModule
 ];
 

@@ -1,0 +1,28 @@
+:host {
+  height: 100%;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  color: white;
+
+  .items-container {
+    .mat-button {
+      line-height: 20px;
+    }
+  }
+
+  .total-container {
+    margin: 10px 0;
+  }
+
+  .trash-container {
+   margin-top: 20px;
+    mat-icon {
+      margin-right: 10px;
+    }
+  }
+
+  .button-submit {
+    margin-top: 10px;
+  }
+}

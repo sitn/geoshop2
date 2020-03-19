@@ -10,5 +10,6 @@ export interface IBasemap {
 
 export interface IConfig {
   apiUrl: string;
+  contact: { phone: { label: string; number: string }; email: string; };
   basemaps: Array<IBasemap>;
 }

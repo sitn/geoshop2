@@ -16,6 +16,15 @@ export class ConfigService {
   public get ApiUrl() {
     return this.config.apiUrl;
   }
+  public get PhoneLabel() {
+    return this.config.contact.phone.label;
+  }
+  public get PhoneNumber() {
+    return this.config.contact.phone.number;
+  }
+  public get Email() {
+    return this.config.contact.email;
+  }
 
   constructor(private http: HttpClient) {
   }
