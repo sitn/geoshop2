@@ -1,41 +1,38 @@
 <mat-form-field color="accent">
-    <mat-label>Catalogue</mat-label>
-    <input matInput (keyup)="applyFilter($event)" placeholder="Rechercher un produit">
+  <mat-label>Catalogue</mat-label>
+  <input matInput [formControl]="catalogInputControl" placeholder="Rechercher un produit">
+  <button mat-button *ngIf="catalogInputControl.value" matSuffix mat-icon-button aria-label="Clear"
+          (click)="catalogInputControl.setValue('')">
+    <mat-icon>close</mat-icon>
+  </button>
 </mat-form-field>
 
-<table mat-table [dataSource]="filteredProducts" class="mat-elevation-z8">
+<ng-container *ngIf="infinite|async as products">
+  <cdk-virtual-scroll-viewport class="list-container"
+                               [itemSize]="catalogItemHeight"
+                               (scrolledIndexChange)="nextBatch($event, products.length-1)">
 
-    <!-- Name Column -->
-    <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef> Name </th>
-        <td mat-cell *matCellDef="let element">
-            <div class="flex-column">
-                <span>{{element.name}}</span>
-                <span style="align-self: flex-end;">dès {{element.minPrice | currency}}</span>
-            </div>
-        </td>
-    </ng-container>
+    <div [style.height]="catalogItemHeight + 'px'"
+         *cdkVirtualFor="let product of products;let i = index; trackBy: trackByIdx"
+         class="list-group-item">
 
-    <ng-container matColumnDef="help">
-        <th mat-header-cell *matHeaderCellDef> Help </th>
-        <td mat-cell *matCellDef="let element">
-            <button color="primary" mat-mini-fab aria-label="Aide" style="margin: 10px 10px;"
-                (click)="openMetadata(element)">
-                <mat-icon>help</mat-icon>
-            </button>
-        </td>
-    </ng-container>
+      <img class="item-logo rounded-image" alt="Logo du produit" aria-label="Logo du produit"
+           src="https://swisskarte.ch/fr/canton/neuchatel/neuchatel-carte.jpg">
+      <div class="item-label text-ellipsis-2" [matTooltip]="product.label">{{product.label}}</div>
+      <span class="item-price text-accent">{{product.Price}}</span>
+      <button class="item-help" matTooltip="Voir les meta données" aria-label="Voir les meta données"
+              [disabled]="!product.metadata"
+              color="primary" mat-mini-fab
+              (click)="openMetadata(product)">
+        <mat-icon>help</mat-icon>
+      </button>
 
-    <ng-container matColumnDef="cart">
-        <th mat-header-cell *matHeaderCellDef> Cart </th>
-        <td mat-cell *matCellDef="let element">
-            <button color="primary" mat-mini-fab aria-label="Ajouter au panier">
-                <mat-icon>add_shopping_cart</mat-icon>
-            </button>
-        </td>
-    </ng-container>
+      <button class="item-cart" color="primary" mat-mini-fab matTooltip="Ajouter au panier"
+              aria-label="Ajouter au panier">
+        <mat-icon>add_shopping_cart</mat-icon>
+      </button>
 
+    </div>
 
-
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-</table>
+  </cdk-virtual-scroll-viewport>
+</ng-container>

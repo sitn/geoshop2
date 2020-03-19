@@ -10,6 +10,11 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
+ul {
+  margin: 0;
+  padding: 0;
+}
+
 .flex-row {
   display: flex;
   align-items: center;
@@ -24,8 +29,20 @@ body {
   flex: 1;
 }
 
+.rounded-image {
+  border-radius: 50%;
+}
+
 .text-white {
   color: white;
+}
+
+.text-primary {
+  color: #7b1fa2;
+}
+
+.text-accent {
+  color: #69f0ae;
 }
 
 .text-ellipsis-2 {

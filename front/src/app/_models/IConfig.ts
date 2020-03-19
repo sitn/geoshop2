@@ -1,13 +1,14 @@
 export interface IBasemap {
-    id: number;
-    label: string;
-    description: string;
-    gisServiceType: string;
-    thumbUrl: string;
-    url: string;
-    isPublic: boolean;
+  id: number;
+  label: string;
+  description: string;
+  gisServiceType: string;
+  thumbUrl: string;
+  url: string;
+  isPublic: boolean;
 }
 
 export interface IConfig {
-    basemaps: Array<IBasemap>;
+  apiUrl: string;
+  basemaps: Array<IBasemap>;
 }
