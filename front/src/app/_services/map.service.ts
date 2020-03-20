@@ -22,7 +22,7 @@ import {BehaviorSubject} from 'rxjs';
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
 import Point from 'ol/geom/Point';
 import DragPan from 'ol/interaction/DragPan';
-import {GeoHelper} from '../../../_helpers/geoHelper';
+import {GeoHelper} from '../_helpers/geoHelper';
 import Polygon from 'ol/geom/Polygon';
 
 @Injectable({
@@ -57,17 +57,13 @@ export class MapService {
   public isDrawing$ = new BehaviorSubject<boolean>(false);
 
   public get Basemaps() {
-    return this.configService.BaseMaps;
+    return this.configService.config.basemaps;
   }
 
   constructor(private configService: ConfigService, private snackBar: MatSnackBar) {
   }
 
   public initialize() {
-    if (this.initialized) {
-      return;
-    }
-
     this.initializeMap();
   }
 
@@ -330,7 +326,7 @@ export class MapService {
 
     let isVisible = true;  // -> display the first one
 
-    for (const basemap of this.configService.BaseMaps) {
+    for (const basemap of this.configService.config.basemaps) {
       if (basemap.url && basemap.gisServiceType === 'xyz') {
 
         const baseMapXYZ = {url: basemap.url};

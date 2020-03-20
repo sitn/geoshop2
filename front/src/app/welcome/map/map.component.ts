@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {MapService} from '../services/map/map.service';
+import {MapService} from '../../_services/map.service';
 import {IBasemap} from 'src/app/_models/IConfig';
 
 @Component({

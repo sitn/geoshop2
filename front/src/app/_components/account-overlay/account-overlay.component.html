@@ -1,4 +1,4 @@
-<ng-container *ngIf="true">
+<ng-container *ngIf="isLoggedIn$|async">
   <div class="flex-row name-container">
     <mat-icon>face</mat-icon>
     <span>Daenerys Targaryen</span>
@@ -25,19 +25,19 @@
 
 </ng-container>
 
-<ng-container *ngIf="false">
+<ng-container *ngIf="!(isLoggedIn$|async)">
   <div class="flex-row info-container">
     <mat-icon>info</mat-icon>
     <span>Pour commander vous devez obligatoirement vous authentifiez.</span>
   </div>
 
-  <button mat-button color="accent">
+  <button mat-button color="accent" [routerLink]="['auth/login']">
     <div class="flex-row">
       <mat-icon>input</mat-icon>
       <span>S'authentifier</span>
     </div>
   </button>
-  <button mat-button color="accent">
+  <button mat-button color="accent" [routerLink]="['auth/register']">
     <div class="flex-row">
       <mat-icon>person_add</mat-icon>
       <span>Créer un compte</span>

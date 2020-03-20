@@ -1,0 +1,20 @@
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .card-header-image {
+    background-size: cover;
+    background-image: url("../../../assets/images/logo_ne.png");
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+
+    .form-login-button {
+      margin-top: 15px;
+    }
+  }
+}

@@ -7,36 +7,24 @@ import {IConfig} from '../_models/IConfig';
 })
 export class ConfigService {
 
-  private config: IConfig;
-
-  public get BaseMaps() {
-    return this.config ? this.config.basemaps : [];
-  }
-
-  public get ApiUrl() {
-    return this.config.apiUrl;
-  }
-  public get PhoneLabel() {
-    return this.config.contact.phone.label;
-  }
-  public get PhoneNumber() {
-    return this.config.contact.phone.number;
-  }
-  public get Email() {
-    return this.config.contact.email;
-  }
+  public config: IConfig;
 
   constructor(private http: HttpClient) {
   }
 
-  async load() {
-    try {
-      this.config = await this.http.get<IConfig>('assets/configs/config.json').toPromise();
-      if (this.config.apiUrl.endsWith('/')) {
-        this.config.apiUrl = this.config.apiUrl.substr(0, this.config.apiUrl.length - 1);
+  load() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        this.config = await this.http.get<IConfig>('assets/configs/config.json').toPromise();
+        if (this.config.apiUrl.endsWith('/')) {
+          this.config.apiUrl = this.config.apiUrl.substr(0, this.config.apiUrl.length - 1);
+        }
+
+        resolve();
+      } catch (error) {
+        console.error(error);
+        reject(error);
       }
-    } catch (error) {
-      console.error(error);
-    }
+    });
   }
 }

@@ -1,4 +1,6 @@
 import {Component, OnInit} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {AppState, isLoggedIn} from '../../_store';
 
 @Component({
   selector: 'gs2-account-overlay',
@@ -7,7 +9,9 @@ import {Component, OnInit} from '@angular/core';
 })
 export class AccountOverlayComponent implements OnInit {
 
-  constructor() {
+  isLoggedIn$ = this.store.select(isLoggedIn);
+
+  constructor(private store: Store<AppState>) {
   }
 
   ngOnInit(): void {

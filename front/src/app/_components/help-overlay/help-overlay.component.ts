@@ -13,9 +13,9 @@ export class HelpOverlayComponent implements OnInit {
   email: string;
 
   constructor(configService: ConfigService) {
-    this.phoneLabel = configService.PhoneLabel;
-    this.phoneNumber = configService.PhoneNumber;
-    this.email = configService.Email;
+    this.phoneLabel = configService.config.contact.phone.label;
+    this.phoneNumber = configService.config.contact.phone.number;
+    this.email = configService.config.contact.email;
   }
 
   ngOnInit(): void {

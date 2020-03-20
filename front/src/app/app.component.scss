@@ -2,6 +2,13 @@
   width: 100vw;
   height: 100vh;
 
+  .header-title {
+    cursor: pointer;
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+  }
+
   .right-container {
     display: flex;
     justify-content: center;

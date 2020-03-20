@@ -1,0 +1,26 @@
+import {createAction, props} from '@ngrx/store';
+import {ICredentials, IIdentity} from '../../_models/IIdentity';
+
+export const LOGIN = '[Auth] Login';
+export const LOGIN_SUCCESS = '[Auth] Login success';
+export const LOGIN_FAILURE = '[Auth] Login failure';
+export const LOGOUT = '[Auth] Logout';
+export const LOGOUT_SUCCESS = '[Auth] Logout success';
+
+export const login = createAction(
+  LOGIN,
+  props<{ credentials: ICredentials }>()
+);
+
+export const loginSuccess = createAction(
+  LOGIN_SUCCESS,
+  props<{ identity: IIdentity }>()
+);
+
+export const loginFailure = createAction(
+  LOGIN_FAILURE,
+  props<{ error: any }>());
+
+export const logout = createAction(LOGOUT);
+
+export const logoutSuccess = createAction(LOGIN_SUCCESS);

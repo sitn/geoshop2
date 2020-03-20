@@ -1,6 +1,6 @@
 import {Component, OnInit, ChangeDetectorRef, OnDestroy, HostBinding} from '@angular/core';
 import {MediaMatcher} from '@angular/cdk/layout';
-import {MapService} from './services/map/map.service';
+import {MapService} from '../_services/map.service';
 
 @Component({
   selector: 'gs2-welcome',
