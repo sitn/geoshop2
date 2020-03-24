@@ -6,6 +6,7 @@ foreach ($line in Get-Content $PSScriptRoot\..\back\.env) {
 
 $geoshop_password = $env:PGPASSWORD
 $env:PGPASSWORD = $env:PGPOSTGRESPASSWORD
+psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$env:PGDATABASE';"
 psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS $env:PGDATABASE;"
 psql -U postgres -d postgres -c "CREATE DATABASE $env:PGDATABASE OWNER $env:PGUSER;"
 psql -U postgres -d $env:PGDATABASE -c "CREATE EXTENSION postgis;"
