@@ -6,6 +6,7 @@ import {environment} from '../../environments/environment';
 import * as fromAuth from './auth/auth.reducer';
 import {CartState} from './cart/cart.reducer';
 import * as fromCart from './cart/cart.reducer';
+import {storageMetaReducer} from './storage.reducer';
 
 export interface AppState {
   auth: AuthState;
@@ -28,8 +29,8 @@ export function logger(reducer: ActionReducer<AppState>): ActionReducer<AppState
 }
 
 export const metaReducers: MetaReducer<AppState>[] = !environment.production
-  ? [logger, storeFreeze]
-  : [];
+  ? [logger, storeFreeze, storageMetaReducer]
+  : [storageMetaReducer];
 
 // AUTH store
 export const authFeatureSelector = createFeatureSelector<fromAuth.AuthState>('auth');
