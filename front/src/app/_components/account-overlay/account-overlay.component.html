@@ -1,7 +1,7 @@
 <ng-container *ngIf="isLoggedIn$|async">
   <div class="flex-row name-container">
     <mat-icon>face</mat-icon>
-    <span>Daenerys Targaryen</span>
+    <span>{{(user$|async).first_name}} {{(user$|async).last_name}}</span>
   </div>
 
   <button mat-button color="accent">

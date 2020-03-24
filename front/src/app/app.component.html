@@ -1,5 +1,13 @@
 <mat-toolbar color="primary" class="example-toolbar">
-  <a mat-button class="header-title" [routerLink]="['welcome']">GeoShop</a>
+
+  <div class="flex-row">
+    <a mat-button class="header-title" [routerLink]="['welcome']">GeoShop</a>
+    <mat-divider *ngIf="(numberOfItemInTheCart$|async) && (isNewOrderRoute$|async)" vertical="true" color="accent"></mat-divider>
+    <span class="header-subtitle"
+      *ngIf="(numberOfItemInTheCart$|async) && (isNewOrderRoute$|async)"> Votre commande de {{numberOfItemInTheCart$|async}}
+      produits</span>
+  </div>
+
 
   <div class="right-container">
 

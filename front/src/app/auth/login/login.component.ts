@@ -4,6 +4,7 @@ import {Store} from '@ngrx/store';
 import {AppState} from '../../_store';
 import * as AuthActions from '../../_store/auth/auth.action';
 import {ICredentials} from '../../_models/IIdentity';
+import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
   selector: 'gs2-login',
@@ -27,7 +28,13 @@ export class LoginComponent implements OnInit {
     return this.form.get('password');
   }
 
-  constructor(private store: Store<AppState>) {
+  private callbackUrl: string;
+  private hasClickOnLogin = false;
+
+  constructor(private store: Store<AppState>, private route: ActivatedRoute) {
+    this.route.queryParams.subscribe(queryParams => {
+      this.callbackUrl = queryParams.callback;
+    });
   }
 
   ngOnInit(): void {
@@ -35,12 +42,14 @@ export class LoginComponent implements OnInit {
 
   submit() {
     if (this.form.valid) {
-      const payload: { credentials: ICredentials } = {
+      const payload: { credentials: ICredentials, callbackUrl: string } = {
         credentials: {
           username: this.username?.value,
           password: this.password?.value
-        }
+        },
+        callbackUrl: this.callbackUrl,
       };
+      this.hasClickOnLogin = true;
       this.store.dispatch(AuthActions.login(payload));
     }
   }

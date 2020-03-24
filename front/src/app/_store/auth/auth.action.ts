@@ -9,12 +9,12 @@ export const LOGOUT_SUCCESS = '[Auth] Logout success';
 
 export const login = createAction(
   LOGIN,
-  props<{ credentials: ICredentials }>()
+  props<{ credentials: ICredentials, callbackUrl: string }>()
 );
 
 export const loginSuccess = createAction(
   LOGIN_SUCCESS,
-  props<{ identity: IIdentity }>()
+  props<{ identity: IIdentity, callbackUrl: string }>()
 );
 
 export const loginFailure = createAction(
@@ -23,4 +23,6 @@ export const loginFailure = createAction(
 
 export const logout = createAction(LOGOUT);
 
-export const logoutSuccess = createAction(LOGIN_SUCCESS);
+export const logoutSuccess = createAction(
+  LOGOUT_SUCCESS,
+);

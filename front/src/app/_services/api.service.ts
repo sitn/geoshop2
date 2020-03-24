@@ -32,10 +32,29 @@ export class ApiService {
     return this.http.get<IApiResponse<IProduct>>(url.toString());
   }
 
-  login(authenticate: ICredentials): Observable<IIdentity> {
+  login(authenticate: ICredentials, callbackUrl: string): Observable<{ identity: IIdentity, callbackUrl: string }> {
     const url = new URL(`${this.apiUrl}/login`);
 
-    return this.http.post<IIdentity>(url.toString(), authenticate);
+    // return this.http.post<IIdentity>(url.toString(), authenticate);
+
+    const user: IIdentity = {
+      username: 'test',
+      first_name: 'Marc',
+      last_name: 'Milard',
+      url: 'test'
+    };
+
+    const obs = new Observable<{ identity: IIdentity, callbackUrl: string }>(subscriber => {
+      setTimeout(() => {
+        subscriber.next({
+          identity: user,
+          callbackUrl
+        });
+        subscriber.complete();
+      }, 2000);
+    });
+
+    return obs;
   }
 
   checkLoginNotTaken(login: string): Observable<{ result: boolean }> {

@@ -19,15 +19,18 @@ export class AuthEffects {
     this.action$.pipe(
       ofType(LoginActions.login),
       exhaustMap(action =>
-        this.apiService.login(action.credentials).pipe(
-          map(identity => LoginActions.loginSuccess({identity})),
+        this.apiService.login(action.credentials, action.callbackUrl).pipe(
+          map(payload => LoginActions.loginSuccess(payload)),
           catchError(error => of(LoginActions.loginFailure({error})))
         ))
     ));
 
   loginSuccess$ = createEffect(() =>
-    this.action$.pipe(
-      ofType(LoginActions.loginSuccess),
-      tap(() => this.router.navigate([]))
-    ));
+      this.action$.pipe(
+        ofType(LoginActions.loginSuccess),
+        tap((payload) => this.router.navigate([payload.callbackUrl || '/']))
+      ), {
+      dispatch: false
+    }
+  );
 }

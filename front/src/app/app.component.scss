@@ -9,15 +9,20 @@
     font-size: 18px;
   }
 
+  .header-subtitle {
+    font-size: 16px;
+    margin-left: 16px;
+  }
+
   .right-container {
     display: flex;
     justify-content: center;
     align-items: center;
+  }
 
-    .mat-divider {
-      height: 40px;
-      margin: 0 10px;
-      border-right-color: #69f0ae;
-    }
+  .mat-divider {
+    height: 40px;
+    margin: 0 10px;
+    border-right-color: #69f0ae;
   }
 }
