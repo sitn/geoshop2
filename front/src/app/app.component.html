@@ -20,8 +20,10 @@
     <mat-divider vertical="true" color="accent"></mat-divider>
 
     <button mat-icon-button [matMenuTriggerFor]="cartOverlay">
-      <mat-icon [matBadge]="numberOfItemInTheCart.toString()" matBadgePosition="before" matBadgeColor="accent"
-                matBadgeSize="small">shopping_cart
+      <mat-icon
+        [matBadge]="(numberOfItemInTheCart$|async) ? (numberOfItemInTheCart$|async) > 0 ? (numberOfItemInTheCart$|async)?.toString() : undefined : undefined"
+        matBadgePosition="before" matBadgeColor="accent"
+        matBadgeSize="small">shopping_cart
       </mat-icon>
     </button>
     <mat-menu #cartOverlay="matMenu" class="overlay-menu-container">

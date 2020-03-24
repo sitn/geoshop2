@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
+import {AppState, selectProductTotal} from './_store';
+import {Store} from '@ngrx/store';
 
 @Component({
   selector: 'gs2-root',
@@ -8,5 +10,8 @@ import { Component } from '@angular/core';
 export class AppComponent {
   title = 'front';
 
-  numberOfItemInTheCart = 2;
+  numberOfItemInTheCart$ = this.store.select(selectProductTotal);
+
+  constructor(private store: Store<AppState>) {
+  }
 }

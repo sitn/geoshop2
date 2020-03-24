@@ -23,6 +23,7 @@
     "@angular/router": "~9.0.5",
     "@fullcalendar/core": "^4.4.0",
     "@ngrx/effects": "^9.0.0",
+    "@ngrx/entity": "^9.0.0",
     "@ngrx/store": "^9.0.0",
     "angular-split": "^3.0.3",
     "ol": "^6.2.1",

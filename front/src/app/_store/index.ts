@@ -4,13 +4,17 @@ import {storeFreeze} from 'ngrx-store-freeze';
 import {environment} from '../../environments/environment';
 
 import * as fromAuth from './auth/auth.reducer';
+import {CartState} from './cart/cart.reducer';
+import * as fromCart from './cart/cart.reducer';
 
 export interface AppState {
   auth: AuthState;
+  cart: CartState;
 }
 
 export const reducers: ActionReducerMap<AppState> = {
-  auth: fromAuth.reducer
+  auth: fromAuth.reducer,
+  cart: fromCart.reducer,
 };
 
 // console.log all actions
@@ -27,6 +31,7 @@ export const metaReducers: MetaReducer<AppState>[] = !environment.production
   ? [logger, storeFreeze]
   : [];
 
+// AUTH store
 export const authFeatureSelector = createFeatureSelector<fromAuth.AuthState>('auth');
 export const isLoggedIn = createSelector(
   authFeatureSelector,
@@ -37,3 +42,25 @@ export const getUser = createSelector(
   (state) => state.user
 );
 
+// CART store
+export const cartFeatureSelector = createFeatureSelector<fromCart.CartState>('cart');
+export const selectProductIds = createSelector(
+  cartFeatureSelector,
+  fromCart.selectProductIds
+);
+export const selectProductEntities = createSelector(
+  cartFeatureSelector,
+  fromCart.selectProductEntities
+);
+export const selectAllProducts = createSelector(
+  cartFeatureSelector,
+  fromCart.selectAllProducts
+);
+export const selectProductTotal = createSelector(
+  cartFeatureSelector,
+  fromCart.selectProductTotal
+);
+export const selectCartTotal = createSelector(
+  cartFeatureSelector,
+  fromCart.selectCartTotal
+);
