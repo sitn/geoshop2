@@ -1,0 +1,30 @@
+<mat-card>
+  <mat-card-header>
+    <div mat-card-avatar class="card-header-image"></div>
+    <mat-card-title>GeoShop - Authentification</mat-card-title>
+    <mat-card-subtitle>Mot de passe oublié</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="flex-row info-container">
+      <mat-icon>info</mat-icon>
+      <span>
+        Veuillez saisir le courriel correspondant à votre compte et un lien vous sera envoyé
+        pour mettre à jour votre
+        mot de passe.
+      </span>
+    </div>
+    <form [formGroup]="form" (ngSubmit)="onSubmit($event)">
+      <mat-form-field>
+        <input type="email" autocorrect="off" autocapitalize="off" spellcheck="off" id="email"
+               formControlName="email" required matInput placeholder="Courriel">
+        <mat-error *ngIf="email?.hasError('required')">Requis</mat-error>
+        <mat-error *ngIf="email?.hasError('pattern')">Courriel attendu</mat-error>
+      </mat-form-field>
+
+      <button class="form-login-button" color="accent" mat-raised-button type="submit"
+              [disabled]="form.pristine || form.invalid">
+        Envoyer
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>

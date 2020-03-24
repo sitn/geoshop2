@@ -64,6 +64,12 @@ export class MapService {
   }
 
   public initialize() {
+    if (this.initialized) {
+      this.isMapLoading$.next(false);
+      this.map.dispose();
+      // @ts-ignore
+      this.map = null;
+    }
     this.initializeMap();
   }
 
@@ -179,6 +185,9 @@ export class MapService {
     this.drawingSource = new VectorSource({
       useSpatialIndex: false,
     });
+    if (this.featureFromDrawing) {
+      this.drawingSource.addFeature(this.featureFromDrawing);
+    }
     this.drawingSource.on('addfeature', (evt) => {
       console.log('addfeature');
       this.featureFromDrawing = evt.feature;

@@ -8,15 +8,19 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 import { RegisterComponent } from './register/register.component';
+import { ForgetComponent } from './forget/forget.component';
+import {MatIconModule} from '@angular/material/icon';
+import { ResetComponent } from './reset/reset.component';
 
 const MODULES = [
   MatCardModule,
   MatInputModule,
-  MatButtonModule
+  MatButtonModule,
+  MatIconModule
 ];
 
 @NgModule({
-  declarations: [AuthComponent, LoginComponent, RegisterComponent],
+  declarations: [AuthComponent, LoginComponent, RegisterComponent, ForgetComponent, ResetComponent],
   imports: [
     CommonModule,
     AuthRoutingModule,

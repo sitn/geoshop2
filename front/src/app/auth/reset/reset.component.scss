@@ -2,7 +2,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-
   .card-header-image {
     background-size: cover;
     background-image: url("../../../assets/images/logo_ne.png");
@@ -15,12 +14,6 @@
 
     .form-login-button {
       margin-top: 15px;
-    }
-
-    .forgotten-button {
-      span {
-        margin-right: 5px;
-      }
     }
   }
 }

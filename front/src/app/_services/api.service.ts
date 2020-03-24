@@ -41,4 +41,12 @@ export class ApiService {
   checkLoginNotTaken(login: string): Observable<{ result: boolean }> {
     return this.http.post<{ result: boolean }>(this.apiUrl + `/user/existsLogin`, {login});
   }
+
+  forget(email: string) {
+    return this.http.post<{ result: boolean }>(this.apiUrl + '/user/forget', {email});
+  }
+
+  resetPassword(passwordToken: string, password: string) {
+    return this.http.post(this.apiUrl + '/user/reset', {password, passwordToken});
+  }
 }

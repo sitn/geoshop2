@@ -3,6 +3,10 @@
   justify-content: center;
   align-items: center;
 
+  .info-container {
+    width: 300px;
+  }
+
   .card-header-image {
     background-size: cover;
     background-image: url("../../../assets/images/logo_ne.png");
@@ -12,15 +16,10 @@
     display: flex;
     flex-direction: column;
     width: 300px;
+    padding: 15px;
 
     .form-login-button {
       margin-top: 15px;
-    }
-
-    .forgotten-button {
-      span {
-        margin-right: 5px;
-      }
     }
   }
 }
