@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User, Group
+from rest_framework import routers
 from .models import (
     Copyright,
     Document, 
@@ -11,8 +12,9 @@ from .models import (
     Pricing,
     Product,
     ProductFormat)
-from rest_framework import viewsets
-from api.serializers import (
+from rest_framework import viewsets, permissions
+from rest_framework.views import APIView
+from .serializers import (
     CopyrightSerializer,
     DocumentSerializer, 
     FormatSerializer,
@@ -26,6 +28,16 @@ from api.serializers import (
     ProductSerializer,
     ProductFormatSerializer,
     UserSerializer, GroupSerializer)
+from .permissions import IsOwner
+
+class APIRootView(routers.APIRootView):
+    """
+    The available ressources are listed below. These are special ressources:
+
+    [/token](/token): JWT generation
+
+    [/token/refresh](/token/refresh): JWT refresh
+    """
 
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
@@ -48,6 +60,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
 
 
 class GroupViewSet(viewsets.ModelViewSet):
@@ -56,6 +69,7 @@ class GroupViewSet(viewsets.ModelViewSet):
     """
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+    permission_classes = [permissions.IsAdminUser]
 
 
 class CopyrightViewSet(viewsets.ModelViewSet):
@@ -64,6 +78,7 @@ class CopyrightViewSet(viewsets.ModelViewSet):
     """
     queryset = Copyright.objects.all()
     serializer_class = CopyrightSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class DocumentViewSet(viewsets.ModelViewSet):
@@ -72,6 +87,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
     """
     queryset = Document.objects.all()
     serializer_class = DocumentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class FormatViewSet(viewsets.ModelViewSet):
@@ -80,6 +96,7 @@ class FormatViewSet(viewsets.ModelViewSet):
     """
     queryset = Format.objects.all()
     serializer_class = FormatSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class IdentityViewSet(viewsets.ModelViewSet):
@@ -88,6 +105,7 @@ class IdentityViewSet(viewsets.ModelViewSet):
     """
     queryset = Identity.objects.all()
     serializer_class = IdentitySerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class MetadataViewSet(viewsets.ModelViewSet):
@@ -96,6 +114,7 @@ class MetadataViewSet(viewsets.ModelViewSet):
     """
     queryset = Metadata.objects.all()
     serializer_class = MetadataSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class OrderViewSet(MultiSerializerViewSet):
@@ -107,6 +126,7 @@ class OrderViewSet(MultiSerializerViewSet):
         'default':  OrderSerializer,
         'list':    OrderDigestSerializer,
     }
+    permission_classes = [IsOwner]
 
 
 class OrderItemViewSet(viewsets.ModelViewSet):
@@ -115,6 +135,7 @@ class OrderItemViewSet(viewsets.ModelViewSet):
     """
     queryset = OrderItem.objects.all()
     serializer_class = OrderItemSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class OrderTypeViewSet(viewsets.ModelViewSet):
@@ -123,6 +144,7 @@ class OrderTypeViewSet(viewsets.ModelViewSet):
     """
     queryset = OrderType.objects.all()
     serializer_class = OrderTypeSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class PricingViewSet(viewsets.ModelViewSet):
@@ -131,6 +153,7 @@ class PricingViewSet(viewsets.ModelViewSet):
     """
     queryset = Pricing.objects.all()
     serializer_class = PricingSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -139,6 +162,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     """
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class ProductFormatViewSet(viewsets.ModelViewSet):
@@ -147,3 +171,4 @@ class ProductFormatViewSet(viewsets.ModelViewSet):
     """
     queryset = ProductFormat.objects.all()
     serializer_class = ProductFormatSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
