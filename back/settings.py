@@ -150,7 +150,7 @@ REST_FRAMEWORK = {
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/geoshop2_dev/static/'
+STATIC_URL = os.environ["ROOTURL"] + '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 if os.environ["GDAL_IN_VENV"] == "True":
