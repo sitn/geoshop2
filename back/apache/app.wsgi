@@ -26,7 +26,6 @@ sys.path[:0] = new_sys_path
 
 sys.path.insert(0,PATH)
 
-print("COUCOU",list(sys.path))
 
 # Load env
 from dotenv import load_dotenv
