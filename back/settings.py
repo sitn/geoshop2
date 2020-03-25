@@ -25,7 +25,9 @@ SECRET_KEY = 'd^^+o7tg+z3uz)ar^m%xu+^0h-_sj$#ots1*d5kitdu71363x('
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    os.environ["ALLOWED_HOST"]
+]
 
 
 # Application definition
@@ -148,4 +150,10 @@ REST_FRAMEWORK = {
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = os.environ["ROOTURL"] + '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+if os.environ["GDAL_IN_VENV"] == "True":
+    GDAL_LIBRARY_PATH = os.path.join(BASE_DIR, '.venv/Lib/site-packages/osgeo/gdal204.dll')
+
+CSRF_COOKIE_DOMAIN = os.environ["ALLOWED_HOST"]
