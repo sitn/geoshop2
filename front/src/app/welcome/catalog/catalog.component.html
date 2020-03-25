@@ -1,0 +1,38 @@
+<mat-form-field color="accent">
+  <mat-label>Catalogue</mat-label>
+  <input matInput [formControl]="catalogInputControl" placeholder="Rechercher un produit">
+  <button mat-button *ngIf="catalogInputControl.value" matSuffix mat-icon-button aria-label="Clear"
+          (click)="catalogInputControl.setValue('')">
+    <mat-icon>close</mat-icon>
+  </button>
+</mat-form-field>
+
+<ng-container *ngIf="infinite|async as products">
+  <cdk-virtual-scroll-viewport class="list-container"
+                               [itemSize]="catalogItemHeight"
+                               (scrolledIndexChange)="nextBatch($event, products.length-1)">
+
+    <div [style.height]="catalogItemHeight + 'px'"
+         *cdkVirtualFor="let product of products;let i = index; trackBy: trackByIdx"
+         class="list-group-item">
+
+      <img class="item-logo rounded-image" alt="Logo du produit" aria-label="Logo du produit"
+           src="https://swisskarte.ch/fr/canton/neuchatel/neuchatel-carte.jpg">
+      <div class="item-label text-ellipsis-2" [matTooltip]="product.label">{{product.label}}</div>
+      <span class="item-price text-accent">{{product.Price}}</span>
+      <button class="item-help" matTooltip="Voir les meta données" aria-label="Voir les meta données"
+              [disabled]="!product.metadata"
+              color="primary" mat-mini-fab
+              (click)="openMetadata(product)">
+        <mat-icon>help</mat-icon>
+      </button>
+
+      <button class="item-cart" color="primary" mat-mini-fab matTooltip="Ajouter au panier"
+              aria-label="Ajouter au panier">
+        <mat-icon>add_shopping_cart</mat-icon>
+      </button>
+
+    </div>
+
+  </cdk-virtual-scroll-viewport>
+</ng-container>

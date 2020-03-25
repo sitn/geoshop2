@@ -78,6 +78,31 @@ Translations can be generated with:
 python manage.py compilemessages
 ```
 
+### Frontend
+
+Install the current LTS version of [Nodejs](https://nodejs.org/en/).
+
+Install @angular/cli and typescript globally
+
+```powershell
+npm install -g @angular/cli typescript
+```
+
+Install the dependances of the frontend
+
+```powershell
+cd front
+npm install
+```
+
+To start the debug of the frontend
+
+```powershell
+npm start
+```
+
+Then open a browser and go to [Geoshop2](http://localhost:4200)
+
 
 ## Deploy
 
@@ -97,7 +122,9 @@ Alias /back_enpoint/static "/path/to/folder/back/static/"
 
 WSGIScriptAlias /back_enpoint /path/to/file/back/apache/app.wsgi
 
-<location /back_enpoint>
-    Require all granted
-</location>
+<Directory /path/to/file/back/apache>
+    <Files app.wsgi>
+		    Require all granted
+	  </Files>
+</Directory>
 ```

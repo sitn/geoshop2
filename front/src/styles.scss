@@ -1,0 +1,81 @@
+/* You can add global styles to this file, and also import other style files */
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+.flex-row {
+  display: flex;
+  align-items: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.rounded-image {
+  border-radius: 50%;
+}
+
+.text-white {
+  color: white;
+}
+
+.text-primary {
+  color: #7b1fa2;
+}
+
+.text-accent {
+  color: #69f0ae;
+}
+
+.text-ellipsis-2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; /* number of lines to show */
+}
+
+.main-container {
+  width: 100%;
+  height: calc(100vh - 64px);
+}
+
+.basemap-button {
+  &.mat-mini-fab {
+    .mat-button-wrapper {
+      padding: 0;
+    }
+  }
+}
+
+.mat-menu-item {
+  display: flex !important;
+  align-items: center;
+
+  img {
+    margin-right: 10px;
+  }
+}
+
+.primary-container {
+  background-color: #69f0ae;
+  color: black;
+}
