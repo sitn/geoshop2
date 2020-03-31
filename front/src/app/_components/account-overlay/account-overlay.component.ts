@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {AppState, getUser, isLoggedIn} from '../../_store';
+import * as fromAuth from '../../_store/auth/auth.action';
 
 @Component({
   selector: 'gs2-account-overlay',
@@ -18,4 +19,7 @@ export class AccountOverlayComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  logout() {
+    this.store.dispatch(fromAuth.logout());
+  }
 }

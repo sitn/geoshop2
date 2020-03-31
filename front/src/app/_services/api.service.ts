@@ -5,6 +5,8 @@ import {ConfigService} from './config.service';
 import {Observable} from 'rxjs';
 import {IApiResponse} from '../_models/IApi';
 import {ICredentials, IIdentity} from '../_models/IIdentity';
+import {IOrderType} from '../_models/IOrder';
+import {map} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -32,11 +34,51 @@ export class ApiService {
     return this.http.get<IApiResponse<IProduct>>(url.toString());
   }
 
-  login(authenticate: ICredentials, callbackUrl: string): Observable<{ identity: IIdentity, callbackUrl: string }> {
-    const url = new URL(`${this.apiUrl}/login`);
+  getOrderTypes() {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
 
-    // return this.http.post<IIdentity>(url.toString(), authenticate);
+    const url = new URL(`${this.apiUrl}/ordertype`);
 
+    return this.http.get<IApiResponse<IOrderType>>(url.toString())
+      .pipe(
+        map(x => x.results)
+      );
+  }
+
+  getCustomers(userId: string = 'https://sitn.ne.ch/geoshop2_dev/identity/3') {
+    return this.http.get<IIdentity[]>(userId).pipe(
+      map(x => Array.isArray(x) ? x : [x])
+    );
+  }
+
+  login(authenticate: ICredentials, callbackUrl: string): Observable<{ identity: Partial<IIdentity>; callbackUrl: string; }> {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    const url = new URL(`${this.apiUrl}/token/`);
+
+    return this.http.post<{ access: string; refresh: string; }>(url.toString(), authenticate)
+      .pipe(
+        map(x => {
+          const identity: Partial<IIdentity> = {
+            token: x.access,
+            username: 'sub',
+            first_name: 'Super',
+            last_name: 'Bouchon',
+          };
+
+          return {
+            identity,
+            callbackUrl
+          };
+        })
+      );
+  }
+
+  getProfile() {
     const user: IIdentity = {
       username: 'test',
       first_name: 'Marc',
@@ -44,17 +86,14 @@ export class ApiService {
       url: 'test'
     };
 
-    const obs = new Observable<{ identity: IIdentity, callbackUrl: string }>(subscriber => {
+    return new Observable<{ identity: IIdentity }>(subscriber => {
       setTimeout(() => {
         subscriber.next({
           identity: user,
-          callbackUrl
         });
         subscriber.complete();
       }, 2000);
     });
-
-    return obs;
   }
 
   checkLoginNotTaken(login: string): Observable<{ result: boolean }> {

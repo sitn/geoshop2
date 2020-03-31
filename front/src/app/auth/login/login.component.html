@@ -8,10 +8,9 @@
     <form [formGroup]="form" (ngSubmit)="submit()">
       <mat-form-field color="accent">
         <input formControlName="username"
-               autocorrect="off"
                autocapitalize="off"
                autofocus
-               spellcheck="off"
+               spellcheck="false"
                required
                matInput
                placeholder="Login">
@@ -19,19 +18,19 @@
       </mat-form-field>
 
       <mat-form-field color="accent">
-        <input formControlName="password" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="off"
+        <input formControlName="password"  autocapitalize="off" autocomplete="off" spellcheck="false"
                required matInput
                placeholder="Mot de passe" type="password">
         <mat-error *ngIf="password?.hasError('required')">Required</mat-error>
       </mat-form-field>
 
-      <button mat-button color="accent" [routerLink]="'/auth/forget'" class="flex-row forgotten-button">
-        <span>Mot de passe oublié</span>
-        <mat-icon>help_outline</mat-icon>
-      </button>
-
       <button class="form-login-button" color="accent" mat-raised-button type="submit" [disabled]="form.pristine || form.invalid">
         Se connecter
+      </button>
+
+      <button mat-button color="accent" [routerLink]="'/auth/forget'" class="flex-row forgotten-button" >
+        <span>Mot de passe oublié</span>
+        <mat-icon>help_outline</mat-icon>
       </button>
     </form>
   </mat-card-content>

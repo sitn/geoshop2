@@ -25,7 +25,7 @@ export class RegisterComponent implements OnInit {
     passwords: new FormGroup({
       password: new FormControl('', Validators.required),
       passwordConfirm: new FormControl('', Validators.required),
-    }, this.passwordMatchValidator)
+    }, RegisterComponent.passwordMatchValidator)
   });
 
   get username() {
@@ -47,26 +47,28 @@ export class RegisterComponent implements OnInit {
   constructor(private store: Store<AppState>, private apiService: ApiService) {
   }
 
+  private static passwordMatchValidator(g: FormGroup) {
+    const passValue = g.get('password')?.value;
+    const passConfirmValue = g.get('passwordConfirm')?.value;
+    return passValue === passConfirmValue ? null : {mismatch: true};
+  }
+
   ngOnInit(): void {
   }
 
   submit() {
     if (this.form.valid) {
-      const payload: { credentials: ICredentials } = {
+      const payload: { credentials: ICredentials; callbackUrl: string; } = {
         credentials: {
           username: this.username?.value,
           password: this.password?.value
-        }
+        },
+        callbackUrl: 'account'
       };
       this.store.dispatch(AuthActions.login(payload));
     }
   }
 
-  private passwordMatchValidator(g: FormGroup) {
-    const passValue = g.get('password')?.value;
-    const passConfirmValue = g.get('passwordConfirm')?.value;
-    return passValue === passConfirmValue ? null : {mismatch: true};
-  }
 
   private loginMatchValidator(g: FormGroup) {
     return this.apiService.checkLoginNotTaken(g.value && g.value.length > 0 && g.value.toLowerCase())

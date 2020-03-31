@@ -1,9 +1,9 @@
 import {Action, ActionReducer} from '@ngrx/store';
 import {merge, pick} from 'lodash-es';
 
-const STATE_KEYS = ['cart'];
+const STATE_KEYS = ['cart', 'auth'];
 // the key for the local storage.
-const LOCAL_STORAGE_KEY = '__cart_storage__';
+const LOCAL_STORAGE_KEY = '__geoshop_storage__';
 
 const setSavedState = (state: any, localStorageKey: string) => {
   localStorage.setItem(localStorageKey, JSON.stringify(state));

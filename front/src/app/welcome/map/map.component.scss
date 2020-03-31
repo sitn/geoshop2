@@ -19,9 +19,11 @@
     align-items: center;
     position: absolute;
     bottom: 10px;
-    padding: 2px;
+    padding: 3px 3px 3px 10px;
+    font-size: 12px;
     margin-left: 10px;
     background-color: #7b1fa2;
+    color: white;
     transition: left 0.3s;
 
     .map-credits {

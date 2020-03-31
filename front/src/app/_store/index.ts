@@ -42,6 +42,10 @@ export const getUser = createSelector(
   authFeatureSelector,
   (state) => state.user
 );
+export const getToken = createSelector(
+  authFeatureSelector,
+  (state) => state.user ? state.user.token : null
+);
 
 // CART store
 export const cartFeatureSelector = createFeatureSelector<fromCart.CartState>('cart');

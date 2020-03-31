@@ -6,7 +6,7 @@ import {AppComponent} from './app.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MaterialModule} from './material-module';
 import {ConfigService} from './_services/config.service';
-import {HttpClientModule} from '@angular/common/http';
+import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
 import {AccountOverlayComponent} from './_components/account-overlay/account-overlay.component';
 import {HelpOverlayComponent} from './_components/help-overlay/help-overlay.component';
 import {MatRippleModule} from '@angular/material/core';
@@ -16,6 +16,7 @@ import {StoreModule} from '@ngrx/store';
 import {EffectsModule} from '@ngrx/effects';
 import {AuthEffects} from './_store/auth/auth.effects';
 import {reducers, metaReducers} from './_store';
+import {TokenInterceptor} from './_interceptors/tokenInterceptor';
 
 export function initializeApp(configService: ConfigService) {
   return () => configService.load();
@@ -46,6 +47,11 @@ export function initializeApp(configService: ConfigService) {
       deps: [ConfigService],
       multi: true
     },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: TokenInterceptor,
+      multi: true,
+    }
   ],
   bootstrap: [AppComponent]
 })

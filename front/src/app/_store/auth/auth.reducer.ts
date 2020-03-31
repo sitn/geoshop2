@@ -4,7 +4,7 @@ import {Action, createReducer, on} from '@ngrx/store';
 
 export interface AuthState {
   loggedIn: boolean;
-  user: IIdentity | null;
+  user: Partial<IIdentity> | null;
 }
 
 const initialState: AuthState = {

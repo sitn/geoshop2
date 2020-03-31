@@ -33,4 +33,13 @@ export class AuthEffects {
       dispatch: false
     }
   );
+
+  logout$ = createEffect(() =>
+      this.action$.pipe(
+        ofType(LoginActions.logout),
+        tap(() => this.router.navigate(['']))
+      ), {
+      dispatch: false
+    }
+  );
 }

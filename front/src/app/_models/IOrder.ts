@@ -16,3 +16,8 @@ export interface IOrderItem {
   format?: IFormat;
   last_download?: Date;
 }
+
+export interface IOrderType {
+  id: number;
+  name: string;
+}

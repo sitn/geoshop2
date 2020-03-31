@@ -14,7 +14,7 @@ export const login = createAction(
 
 export const loginSuccess = createAction(
   LOGIN_SUCCESS,
-  props<{ identity: IIdentity, callbackUrl: string }>()
+  props<{ identity: Partial<IIdentity>, callbackUrl: string }>()
 );
 
 export const loginFailure = createAction(

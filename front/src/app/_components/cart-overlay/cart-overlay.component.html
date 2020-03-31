@@ -22,7 +22,7 @@
 </button>
 
 <button mat-raised-button color="primary" class="button-submit"
-        [routerLink]="(isUserLoggedIn$|async) ? [''] : ['/auth/login']"
-        [queryParams]="{callback: (isUserLoggedIn$|async) ? '' : '/account/new-order'}">
+        [routerLink]="(isUserLoggedIn$|async) ? ['/account/new-order'] : ['/auth/login']"
+        [queryParams]="{callback: (isUserLoggedIn$|async) ? '/account/new-order' : '/account/new-order'}">
   Passer la commande
 </button>
