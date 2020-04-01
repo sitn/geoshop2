@@ -25,9 +25,10 @@ SECRET_KEY = 'd^^+o7tg+z3uz)ar^m%xu+^0h-_sj$#ots1*d5kitdu71363x('
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    os.environ["ALLOWED_HOST"]
-]
+ALLOWED_HOSTS = os.environ["ALLOWED_HOST"].split(",")
+
+#
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@ne.ch')
 
 
 # Application definition
@@ -39,9 +40,12 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.gis',
     'django.contrib.sessions',
+    'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'djmoney',
+    'allauth',
+    'allauth.account',
     'rest_framework',
     'rest_framework_gis',
 ]
@@ -154,10 +158,10 @@ REST_FRAMEWORK = {
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = os.environ["ROOTURL"] + '/static/'
+STATIC_URL = os.environ.get('ROOTURL', "") + '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-if os.environ["GDAL_IN_VENV"] == "True":
+if os.environ.get('GDAL_IN_VENV', None) == "True":
     GDAL_LIBRARY_PATH = os.path.join(BASE_DIR, '.venv/Lib/site-packages/osgeo/gdal204.dll')
 
 CSRF_COOKIE_DOMAIN = os.environ["ALLOWED_HOST"]

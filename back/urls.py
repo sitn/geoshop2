@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.urls import include, path
 from django.conf.urls import url
-from rest_framework import routers
+from api.routers import GeoshopRouter
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -14,10 +14,7 @@ from django.utils.translation import gettext_lazy as _
 admin.site.site_header = _("GeoShop Administration")
 admin.site.site_title = _("GeoShop Admin")
 
-router = routers.DefaultRouter()
-router.APIRootView = views.APIRootView
-router.register(r'users', views.UserViewSet)
-router.register(r'groups', views.GroupViewSet)
+router = GeoshopRouter()
 router.register(r'copyright', views.CopyrightViewSet)
 router.register(r'document', views.DocumentViewSet) 
 router.register(r'format', views.FormatViewSet)
@@ -29,14 +26,23 @@ router.register(r'ordertype', views.OrderTypeViewSet)
 router.register(r'pricing', views.PricingViewSet)
 router.register(r'product', views.ProductViewSet)
 router.register(r'productformat', views.ProductFormatViewSet)
+router.register_additional_route_to_root('token', 'token_obtain_pair')
+router.register_additional_route_to_root('token/refresh/', 'token_refresh')
+router.register_additional_route_to_root('token/verify/', 'token_verify')
+router.register_additional_route_to_root('auth/current/', 'auth_current_user')
+router.register_additional_route_to_root('auth/password/', 'auth_password')
+router.register_additional_route_to_root('auth/register/', 'auth_register')
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
+    path('auth/current/', views.CurrentUserView.as_view(), name='auth_current_user'),
+    path('auth/password/', views.PasswordResetView.as_view(), name='auth_password'),
+    path('auth/register/', views.RegisterView.as_view(), name='auth_register'),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    path('auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('session-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('admin/', admin.site.urls, name='admin'),
     path('', include(router.urls)),
 ]
