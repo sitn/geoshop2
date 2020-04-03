@@ -1,7 +1,8 @@
 
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.conf.urls import url
+from django.views.generic import TemplateView
 from api.routers import GeoshopRouter
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -31,13 +32,22 @@ router.register_additional_route_to_root('token/refresh/', 'token_refresh')
 router.register_additional_route_to_root('token/verify/', 'token_verify')
 router.register_additional_route_to_root('auth/current/', 'auth_current_user')
 router.register_additional_route_to_root('auth/password/', 'auth_password')
+router.register_additional_route_to_root('auth/password/confirm', 'auth_password_confirm')
 router.register_additional_route_to_root('auth/register/', 'auth_register')
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
+    # this url is used to generate email content
+    re_path(r'^password-reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+        TemplateView.as_view(template_name="password_reset_confirm.html"),
+        name='password_reset_confirm'),
     path('auth/current/', views.CurrentUserView.as_view(), name='auth_current_user'),
     path('auth/password/', views.PasswordResetView.as_view(), name='auth_password'),
+    path('auth/password/confirm', views.PasswordResetConfirmView.as_view(), name='auth_password_confirm'),
+    path('auth/verify-email/', views.VerifyEmailView.as_view(), name='auth_verify_email'),
+    re_path(r'^auth/account-confirm-email/(?P<key>[-:\w]+)/$', TemplateView.as_view(),
+        name='account_confirm_email'),
     path('auth/register/', views.RegisterView.as_view(), name='auth_register'),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

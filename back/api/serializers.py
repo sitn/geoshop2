@@ -1,7 +1,11 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.models import User, Group
+from django.contrib.auth.tokens import default_token_generator
 from django.utils.translation import gettext_lazy as _
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
 
 from .models import (
     Copyright, Document, Format, Identity,
@@ -9,12 +13,18 @@ from .models import (
     Pricing, Product, ProductFormat)
 
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from rest_framework_gis.serializers import GeoModelSerializer
 
 from allauth.account import app_settings as allauth_settings
+from allauth.account.adapter import get_adapter
+from allauth.account.utils import setup_user_email
 from allauth.utils import (
     email_address_exists, get_username_max_length)
-from allauth.account.adapter import get_adapter
+
+
+# Get the UserModel
+UserModel = get_user_model()
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -85,10 +95,6 @@ class PasswordResetSerializer(serializers.Serializer):
 
     password_reset_form_class = PasswordResetForm
 
-    def get_email_options(self):
-        """Override this method to change default e-mail options"""
-        return {}
-
     def validate_email(self, value):
         # Create PasswordResetForm with the serializer
         self.reset_form = self.password_reset_form_class(data=self.initial_data)
@@ -106,8 +112,43 @@ class PasswordResetSerializer(serializers.Serializer):
             'request': request,
         }
 
-        opts.update(self.get_email_options())
         self.reset_form.save(**opts)
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """
+    Serializer for requesting a password reset e-mail.
+    """
+    new_password1 = serializers.CharField(max_length=128)
+    new_password2 = serializers.CharField(max_length=128)
+    uid = serializers.CharField()
+    token = serializers.CharField()
+
+    set_password_form_class = SetPasswordForm
+
+    def validate(self, attrs):
+        self._errors = {}
+
+        # Decode the uidb64 to uid to get User object
+        try:
+            uid = force_text(urlsafe_base64_decode(attrs['uid']))
+            self.user = UserModel._default_manager.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
+            raise ValidationError({'uid': ['Invalid value']})
+
+        # Construct SetPasswordForm instance
+        self.set_password_form = self.set_password_form_class(
+            user=self.user, data=attrs
+        )
+        if not self.set_password_form.is_valid():
+            raise serializers.ValidationError(self.set_password_form.errors)
+        if not default_token_generator.check_token(self.user, attrs['token']):
+            raise ValidationError({'token': ['Invalid value']})
+
+        return attrs
+
+    def save(self):
+        return self.set_password_form.save()
 
 
 class PricingSerializer(serializers.HyperlinkedModelSerializer):
@@ -151,10 +192,21 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(_("The two password fields didn't match."))
         return data
 
+    def create(self, validated_data):
+        password = validated_data.pop('password1')
+        validated_data.pop('password2')
+        identity = Identity(**validated_data)
+        identity.set_password(password)
+        identity.save()
+        return identity
 
     class Meta:
         model = Identity
-
+        exclude = [
+            'password', 'last_login', 'date_joined',
+            'groups', 'user_permissions', 'is_staff',
+            'is_active', 'is_superuser', 'sap_id',
+            'contract_accepted']
 
 
 class VerifyEmailSerializer(serializers.Serializer):

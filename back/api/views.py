@@ -1,12 +1,16 @@
-from django.contrib.auth.models import User, Group
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.debug import sensitive_post_parameters
 from django.utils.translation import gettext_lazy as _
 
-from rest_framework import viewsets, permissions, routers
+from rest_framework import viewsets, permissions, status, routers
 from rest_framework.generics import GenericAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from allauth.account.views import ConfirmEmailView
 
 from .models import (
     Copyright, Document, Format, Identity, Metadata,
@@ -17,11 +21,20 @@ from .serializers import (
     CopyrightSerializer, DocumentSerializer, FormatSerializer,
     IdentitySerializer, MetadataSerializer, OrderDigestSerializer,
     OrderSerializer, OrderItemSerializer, OrderTypeSerializer,
-    PasswordResetSerializer, PricingSerializer, ProductSerializer,
-    ProductFormatSerializer, UserSerializer, RegisterSerializer)
+    PasswordResetSerializer, PasswordResetConfirmSerializer,
+    PricingSerializer, ProductSerializer,
+    ProductFormatSerializer, UserSerializer, RegisterSerializer,
+    VerifyEmailSerializer)
 
 from .permissions import IsOwner
 
+sensitive_post_parameters_m = method_decorator(
+    sensitive_post_parameters(
+        'password', 'old_password', 'new_password1', 'new_password2'
+    )
+)
+
+UserModel = get_user_model()
 
 class CopyrightViewSet(viewsets.ModelViewSet):
     """
@@ -119,7 +132,8 @@ class OrderViewSet(MultiSerializerViewSet):
 
 class PasswordResetView(GenericAPIView):
     """
-    NOT WORKING
+    <b>SMTP Server needs to be configured before using this route</b>
+
     Returns the success/fail message.
     """
     serializer_class = PasswordResetSerializer
@@ -135,6 +149,30 @@ class PasswordResetView(GenericAPIView):
         return Response(
             {"detail": _("Password reset e-mail has been sent.")},
             status=status.HTTP_200_OK
+        )
+
+
+class PasswordResetConfirmView(GenericAPIView):
+    """
+    Password reset e-mail link is confirmed, therefore
+    this resets the user's password.
+    Accepts the following POST parameters: token, uid,
+        new_password1, new_password2
+    Returns the success/fail message.
+    """
+    serializer_class = PasswordResetConfirmSerializer
+    permission_classes = (permissions.AllowAny)
+
+    @sensitive_post_parameters_m
+    def dispatch(self, *args, **kwargs):
+        return super(PasswordResetConfirmView, self).dispatch(*args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {"detail": _("Password has been reset with the new password.")}
         )
 
 
@@ -169,6 +207,22 @@ class RegisterView(CreateAPIView):
     """
     API endpoint that allows users to register.
     """
-    queryset = User.objects.all().order_by('-date_joined')
+    queryset = UserModel.objects.all().order_by('-date_joined')
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
+
+
+class VerifyEmailView(APIView, ConfirmEmailView):
+    permission_classes = (permissions.AllowAny,)
+    allowed_methods = ('POST', 'OPTIONS', 'HEAD')
+
+    def get_serializer(self, *args, **kwargs):
+        return VerifyEmailSerializer(*args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.kwargs['key'] = serializer.validated_data['key']
+        confirmation = self.get_object()
+        confirmation.confirm(self.request)
+        return Response({'detail': _('ok')}, status=status.HTTP_200_OK)

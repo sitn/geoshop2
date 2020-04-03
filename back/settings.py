@@ -26,10 +26,10 @@ SECRET_KEY = 'd^^+o7tg+z3uz)ar^m%xu+^0h-_sj$#ots1*d5kitdu71363x('
 DEBUG = True
 
 ALLOWED_HOSTS = os.environ["ALLOWED_HOST"].split(",")
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
 
 #
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@ne.ch')
-
 
 # Application definition
 
@@ -78,6 +78,8 @@ TEMPLATES = [
         },
     },
 ]
+
+AUTH_USER_MODEL = 'api.Identity'
 
 WSGI_APPLICATION = 'wsgi.application'
 
@@ -137,7 +139,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-
+SITE_ID = 2
 
 # Django REST specific configuration
 # https://www.django-rest-framework.org/
