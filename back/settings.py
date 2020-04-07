@@ -166,4 +166,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 if os.environ.get('GDAL_IN_VENV', None) == "True":
     GDAL_LIBRARY_PATH = os.path.join(BASE_DIR, '.venv/Lib/site-packages/osgeo/gdal204.dll')
 
-CSRF_COOKIE_DOMAIN = os.environ["ALLOWED_HOST"]
+CSRF_COOKIE_DOMAIN = os.environ["CSRF_COOKIE_DOMAIN"]
+CSRF_TRUSTED_ORIGINS = os.environ["ALLOWED_HOST"]
