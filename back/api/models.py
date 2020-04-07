@@ -68,7 +68,6 @@ class Metadata(models.Model):
     copyright = models.ForeignKey(Copyright, models.DO_NOTHING, verbose_name=_('copyright'), blank=True, null=True)
     documents = models.ManyToManyField(Document, verbose_name=_('documents'), blank=True)
     contact_persons = models.ManyToManyField(Identity, verbose_name=_('contact_persons'), blank=True)
-    validations_needed = models.ManyToManyField(OrderType, verbose_name=_('validations_needed'), blank=True)
 
     class Meta:
         db_table = 'metadata'
@@ -176,9 +175,19 @@ class ProductField(models.Model):
     field_length = models.SmallIntegerField(_('field_length'), )
     product = models.ForeignKey(Product, verbose_name=_('product'), on_delete=models.CASCADE)
 
+
     class Meta:
         db_table = 'product_field'
         verbose_name = _('product_field')
+
+
+class ProductValidation(models.Model):
+    """
+    Some products need to be validated before order is processed. The validation depends on the order type
+    """
+    product = models.ForeignKey(Product, models.DO_NOTHING, verbose_name=_('product'))
+    order_type = models.ForeignKey(OrderType, models.DO_NOTHING, verbose_name=_('order_type'))
+    validator = models.ForeignKey(Identity, models.DO_NOTHING, verbose_name=_('validator'))
 
 
 class ProductFormat(models.Model):
