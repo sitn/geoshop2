@@ -6,6 +6,7 @@ verify_ssl = true
 [dev-packages]
 pylint = "*"
 autopep8 = "*"
+pylint-django = "*"
 
 [packages]
 django = "*"
@@ -16,3 +17,4 @@ djangorestframework-gis = "*"
 psycopg2 = "*"
 django-money = "*"
 djangorestframework-simplejwt = "*"
+django-allauth = "*"

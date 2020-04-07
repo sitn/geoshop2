@@ -1,9 +1,8 @@
-import uuid
 from django.contrib.gis.db import models
-from django.contrib.auth.models import User
-from djmoney.models.fields import MoneyField
+from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.search import SearchVectorField
 from django.utils.translation import gettext_lazy as _
+from djmoney.models.fields import MoneyField
 
 
 class Copyright(models.Model):
@@ -40,14 +39,17 @@ class OrderType(models.Model):
         verbose_name_plural = _('order types')
 
 
-class Identity(User):
+class Identity(AbstractUser):
+    """
+    Extends User model. All Identities are users but all the users can login.
+    """
     street = models.CharField(_('street'), max_length=100, blank=True)
     street2 = models.CharField(_('street2'), max_length=100, blank=True)
     postcode = models.PositiveIntegerField(_('postcode'), blank=True, null=True)
     city = models.CharField(_('city'), max_length=50, blank=True)
     country = models.CharField(_('country'), max_length=50, blank=True)
     company_name = models.CharField(_('company_name'), max_length=50, blank=True)
-    phone = models.TextField(_('phone'), blank=True)
+    phone = models.CharField(_('name'), max_length=50, blank=True)
     sap_id = models.BigIntegerField(_('sap_id'), blank=True, null=True)
     contract_accepted = models.DateField(_('contract_accepted'), blank=True, null=True)
 
@@ -117,7 +119,7 @@ class Order(models.Model):
     total_cost = MoneyField(_('total_cost'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
     part_vat = MoneyField(_('part_vat'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
     geom = models.PolygonField(_('geom'), srid=2056)
-    client = models.ForeignKey(User, models.DO_NOTHING, verbose_name=_('client'), blank=True)
+    client = models.ForeignKey(Identity, models.DO_NOTHING, verbose_name=_('client'), blank=True)
     order_contact = models.ForeignKey(Identity, models.DO_NOTHING, verbose_name=_('order_contact'), blank=True, related_name='order_contact', null=True)
     invoice_contact = models.ForeignKey(Identity, models.DO_NOTHING, verbose_name=_('invoice_contact'), blank=True, related_name='invoice_contact', null=True)
     invoice_reference = models.CharField(_('invoice_reference'), max_length=255, blank=True)
