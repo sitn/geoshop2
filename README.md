@@ -9,9 +9,10 @@
 
 ### Installing GDAL on Windows
 Download the GDAL 2.4 wheel (3.X isn't supported yet by Django) on this page: https://www.lfd.uci.edu/~gohlke/pythonlibs/#gdal. For example, if you have Python 3.6 64bit, choose `GDAL‑2.4.1‑cp36‑cp36m‑win_amd64.whl`.
-Then install it:
+Then install it wether system wide or in your venv:
 
 ```
+pipenv shell
 pip install path\to\your\GDAL-2.4XXXX.whl
 ```
 
@@ -75,4 +76,55 @@ Translations can be generated with:
 
 ```powershell
 python manage.py compilemessages
+```
+
+### Frontend
+
+Install the current LTS version of [Nodejs](https://nodejs.org/en/).
+
+Install @angular/cli and typescript globally
+
+```powershell
+npm install -g @angular/cli typescript
+```
+
+Install the dependances of the frontend
+
+```powershell
+cd front
+npm install
+```
+
+To start the debug of the frontend
+
+```powershell
+npm start
+```
+
+Then open a browser and go to [Geoshop2](http://localhost:4200)
+
+
+## Deploy
+
+collect static files:
+
+```powershell
+python .\manage.py collectstatic
+```
+
+configure apache
+
+```apache
+Alias /back_enpoint/static "/path/to/folder/back/static/"
+<Directory "/path/to/folder/back/static/">
+    Require all granted
+</Directory>
+
+WSGIScriptAlias /back_enpoint /path/to/file/back/apache/app.wsgi
+
+<Directory /path/to/file/back/apache>
+    <Files app.wsgi>
+		    Require all granted
+	  </Files>
+</Directory>
 ```

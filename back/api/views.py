@@ -1,62 +1,40 @@
-from django.contrib.auth.models import User, Group
-from .models import (
-    Copyright,
-    Document, 
-    Format,
-    Identity,
-    Metadata,
-    Order,
-    OrderItem,
-    OrderType,
-    Pricing,
-    Product,
-    ProductFormat)
-from rest_framework import viewsets
-from api.serializers import (
-    CopyrightSerializer,
-    DocumentSerializer, 
-    FormatSerializer,
-    IdentitySerializer,
-    MetadataSerializer,
-    OrderDigestSerializer,
-    OrderSerializer,
-    OrderItemSerializer,
-    OrderTypeSerializer,
-    PricingSerializer,
-    ProductSerializer,
-    ProductFormatSerializer,
-    UserSerializer, GroupSerializer)
-
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
+from django.utils.decorators import method_decorator
+from django.views.decorators.debug import sensitive_post_parameters
+from django.utils.translation import gettext_lazy as _
+
+from rest_framework import viewsets, permissions, status, routers
+from rest_framework.generics import GenericAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from allauth.account.views import ConfirmEmailView
 
-class MultiSerializerViewSet(viewsets.ModelViewSet):
-    serializers = { 
-        'default': None,
-    }
+from .models import (
+    Copyright, Document, Format, Identity, Metadata,
+    Order, OrderItem, OrderType, Pricing, Product,
+    ProductFormat)
 
-    def get_serializer_class(self):
-            return self.serializers.get(self.action,
-                        self.serializers['default'])
+from .serializers import (
+    CopyrightSerializer, DocumentSerializer, FormatSerializer,
+    IdentitySerializer, MetadataSerializer, OrderDigestSerializer,
+    OrderSerializer, OrderItemSerializer, OrderTypeSerializer,
+    PasswordResetSerializer, PasswordResetConfirmSerializer,
+    PricingSerializer, ProductSerializer,
+    ProductFormatSerializer, UserSerializer, RegisterSerializer,
+    VerifyEmailSerializer)
 
+from .permissions import IsOwner
 
-class UserViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows users to be viewed or edited.
-    """
-    queryset = User.objects.all().order_by('-date_joined')
-    serializer_class = UserSerializer
+sensitive_post_parameters_m = method_decorator(
+    sensitive_post_parameters(
+        'password', 'old_password', 'new_password1', 'new_password2'
+    )
+)
 
-
-class GroupViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows groups to be viewed or edited.
-    """
-    queryset = Group.objects.all()
-    serializer_class = GroupSerializer
-
+UserModel = get_user_model()
 
 class CopyrightViewSet(viewsets.ModelViewSet):
     """
@@ -64,7 +42,17 @@ class CopyrightViewSet(viewsets.ModelViewSet):
     """
     queryset = Copyright.objects.all()
     serializer_class = CopyrightSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+
+class CurrentUserView(APIView):
+    """
+    API endpoint that allows users to register.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    def get(self, request, *args, **kwargs):
+        ser = IdentitySerializer(request.user, context={'request': request})
+        return Response(ser.data)
 
 class DocumentViewSet(viewsets.ModelViewSet):
     """
@@ -72,6 +60,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
     """
     queryset = Document.objects.all()
     serializer_class = DocumentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class FormatViewSet(viewsets.ModelViewSet):
@@ -80,6 +69,7 @@ class FormatViewSet(viewsets.ModelViewSet):
     """
     queryset = Format.objects.all()
     serializer_class = FormatSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class IdentityViewSet(viewsets.ModelViewSet):
@@ -88,6 +78,7 @@ class IdentityViewSet(viewsets.ModelViewSet):
     """
     queryset = Identity.objects.all()
     serializer_class = IdentitySerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class MetadataViewSet(viewsets.ModelViewSet):
@@ -96,6 +87,35 @@ class MetadataViewSet(viewsets.ModelViewSet):
     """
     queryset = Metadata.objects.all()
     serializer_class = MetadataSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class MultiSerializerViewSet(viewsets.ModelViewSet):
+    serializers = {
+        'default': None,
+    }
+
+    def get_serializer_class(self):
+        return self.serializers.get(self.action,
+                                    self.serializers['default'])
+
+
+class OrderItemViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows OrderItem to be viewed or edited.
+    """
+    queryset = OrderItem.objects.all()
+    serializer_class = OrderItemSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class OrderTypeViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows OrderType to be viewed or edited.
+    """
+    queryset = OrderType.objects.all()
+    serializer_class = OrderTypeSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class OrderViewSet(MultiSerializerViewSet):
@@ -107,22 +127,53 @@ class OrderViewSet(MultiSerializerViewSet):
         'default':  OrderSerializer,
         'list':    OrderDigestSerializer,
     }
+    permission_classes = [IsOwner]
 
 
-class OrderItemViewSet(viewsets.ModelViewSet):
+class PasswordResetView(GenericAPIView):
     """
-    API endpoint that allows OrderItem to be viewed or edited.
+    <b>SMTP Server needs to be configured before using this route</b>
+
+    Returns the success/fail message.
     """
-    queryset = OrderItem.objects.all()
-    serializer_class = OrderItemSerializer
+    serializer_class = PasswordResetSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        # Create a serializer with request.data
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+        # Return the success message with OK HTTP status
+        return Response(
+            {"detail": _("Password reset e-mail has been sent.")},
+            status=status.HTTP_200_OK
+        )
 
 
-class OrderTypeViewSet(viewsets.ModelViewSet):
+class PasswordResetConfirmView(GenericAPIView):
     """
-    API endpoint that allows OrderType to be viewed or edited.
+    Password reset e-mail link is confirmed, therefore
+    this resets the user's password.
+    Accepts the following POST parameters: token, uid,
+        new_password1, new_password2
+    Returns the success/fail message.
     """
-    queryset = OrderType.objects.all()
-    serializer_class = OrderTypeSerializer
+    serializer_class = PasswordResetConfirmSerializer
+    permission_classes = (permissions.AllowAny)
+
+    @sensitive_post_parameters_m
+    def dispatch(self, *args, **kwargs):
+        return super(PasswordResetConfirmView, self).dispatch(*args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {"detail": _("Password has been reset with the new password.")}
+        )
 
 
 class PricingViewSet(viewsets.ModelViewSet):
@@ -131,14 +182,7 @@ class PricingViewSet(viewsets.ModelViewSet):
     """
     queryset = Pricing.objects.all()
     serializer_class = PricingSerializer
-
-
-class ProductViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows Product to be viewed or edited.
-    """
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class ProductFormatViewSet(viewsets.ModelViewSet):
@@ -147,3 +191,38 @@ class ProductFormatViewSet(viewsets.ModelViewSet):
     """
     queryset = ProductFormat.objects.all()
     serializer_class = ProductFormatSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class ProductViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Product to be viewed or edited.
+    """
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class RegisterView(CreateAPIView):
+    """
+    API endpoint that allows users to register.
+    """
+    queryset = UserModel.objects.all().order_by('-date_joined')
+    serializer_class = RegisterSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+class VerifyEmailView(APIView, ConfirmEmailView):
+    permission_classes = (permissions.AllowAny,)
+    allowed_methods = ('POST', 'OPTIONS', 'HEAD')
+
+    def get_serializer(self, *args, **kwargs):
+        return VerifyEmailSerializer(*args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.kwargs['key'] = serializer.validated_data['key']
+        confirmation = self.get_object()
+        confirmation.confirm(self.request)
+        return Response({'detail': _('ok')}, status=status.HTTP_200_OK)

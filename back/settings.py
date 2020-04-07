@@ -25,8 +25,11 @@ SECRET_KEY = 'd^^+o7tg+z3uz)ar^m%xu+^0h-_sj$#ots1*d5kitdu71363x('
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ["ALLOWED_HOST"].split(",")
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
 
+#
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@ne.ch')
 
 # Application definition
 
@@ -37,9 +40,12 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.gis',
     'django.contrib.sessions',
+    'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'djmoney',
+    'allauth',
+    'allauth.account',
     'rest_framework',
     'rest_framework_gis',
 ]
@@ -60,7 +66,7 @@ ROOT_URLCONF = 'urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['api/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -72,6 +78,8 @@ TEMPLATES = [
         },
     },
 ]
+
+AUTH_USER_MODEL = 'api.Identity'
 
 WSGI_APPLICATION = 'wsgi.application'
 
@@ -131,13 +139,17 @@ USE_L10N = True
 
 USE_TZ = True
 
-
+SITE_ID = 2
 
 # Django REST specific configuration
 # https://www.django-rest-framework.org/
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ],
@@ -148,4 +160,10 @@ REST_FRAMEWORK = {
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = os.environ.get('ROOTURL', "") + '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+if os.environ.get('GDAL_IN_VENV', None) == "True":
+    GDAL_LIBRARY_PATH = os.path.join(BASE_DIR, '.venv/Lib/site-packages/osgeo/gdal204.dll')
+
+CSRF_COOKIE_DOMAIN = os.environ["ALLOWED_HOST"]
