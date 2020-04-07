@@ -1,9 +1,8 @@
-import uuid
 from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractUser
-from djmoney.models.fields import MoneyField
 from django.contrib.postgres.search import SearchVectorField
 from django.utils.translation import gettext_lazy as _
+from djmoney.models.fields import MoneyField
 
 
 class Copyright(models.Model):
@@ -41,6 +40,9 @@ class OrderType(models.Model):
 
 
 class Identity(AbstractUser):
+    """
+    Extends User model. All Identities are users but all the users can login.
+    """
     street = models.CharField(_('street'), max_length=100, blank=True)
     street2 = models.CharField(_('street2'), max_length=100, blank=True)
     postcode = models.PositiveIntegerField(_('postcode'), blank=True, null=True)
