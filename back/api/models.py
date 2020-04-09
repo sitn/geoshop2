@@ -48,7 +48,7 @@ class Identity(AbstractUser):
     postcode = models.CharField(_('postcode'), max_length=10, blank=True)
     city = models.CharField(_('city'), max_length=50, blank=True)
     country = models.CharField(_('country'), max_length=50, blank=True)
-    company_name = models.CharField(_('company_name'), max_length=100, blank=True)
+    company_name = models.CharField(_('company_name'), max_length=50, blank=True)
     phone = models.CharField(_('phone'), max_length=50, blank=True)
     sap_id = models.BigIntegerField(_('sap_id'), null=True)
     contract_accepted = models.DateField(_('contract_accepted'), null=True)

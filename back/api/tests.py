@@ -44,7 +44,7 @@ class AuthViewsTests(APITestCase):
         # URL using path name
         url = reverse('token_obtain_pair')
 
-        user = Identity.objects.create_user(username=self.username, email='test@example.com', password=self.password)
+        user = Identity.objects.create_user(username=self.username, email='test@example.com', password=self.password1)
         self.assertEqual(user.is_active, 1, 'Active User')
 
         # First post to get token
