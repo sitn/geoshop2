@@ -1,5 +1,6 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
 from django.utils.translation import gettext_lazy as _
@@ -35,6 +36,7 @@ sensitive_post_parameters_m = method_decorator(
 )
 
 UserModel = get_user_model()
+
 
 class CopyrightViewSet(viewsets.ModelViewSet):
     """
@@ -130,6 +132,7 @@ class OrderViewSet(MultiSerializerViewSet):
     permission_classes = [IsOwner]
 
 
+# Copy from dj-rest-auth
 class PasswordResetView(GenericAPIView):
     """
     <b>SMTP Server needs to be configured before using this route</b>
@@ -152,6 +155,7 @@ class PasswordResetView(GenericAPIView):
         )
 
 
+# Copy from dj-rest-auth
 class PasswordResetConfirmView(GenericAPIView):
     """
     Password reset e-mail link is confirmed, therefore
@@ -161,7 +165,7 @@ class PasswordResetConfirmView(GenericAPIView):
     Returns the success/fail message.
     """
     serializer_class = PasswordResetConfirmSerializer
-    permission_classes = (permissions.AllowAny)
+    permission_classes = [permissions.AllowAny]
 
     @sensitive_post_parameters_m
     def dispatch(self, *args, **kwargs):

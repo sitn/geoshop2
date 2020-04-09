@@ -45,13 +45,13 @@ class Identity(AbstractUser):
     """
     street = models.CharField(_('street'), max_length=100, blank=True)
     street2 = models.CharField(_('street2'), max_length=100, blank=True)
-    postcode = models.PositiveIntegerField(_('postcode'), blank=True, null=True)
+    postcode = models.CharField(_('postcode'), max_length=10, blank=True)
     city = models.CharField(_('city'), max_length=50, blank=True)
     country = models.CharField(_('country'), max_length=50, blank=True)
-    company_name = models.CharField(_('company_name'), max_length=50, blank=True)
-    phone = models.CharField(_('name'), max_length=50, blank=True)
-    sap_id = models.BigIntegerField(_('sap_id'), blank=True, null=True)
-    contract_accepted = models.DateField(_('contract_accepted'), blank=True, null=True)
+    company_name = models.CharField(_('company_name'), max_length=100, blank=True)
+    phone = models.CharField(_('phone'), max_length=50, blank=True)
+    sap_id = models.BigIntegerField(_('sap_id'), null=True)
+    contract_accepted = models.DateField(_('contract_accepted'), null=True)
 
     class Meta:
         db_table = 'identity'
@@ -59,9 +59,14 @@ class Identity(AbstractUser):
 
 
 class Metadata(models.Model):
-    name = models.CharField(_('name'), max_length=50, blank=True)
+    """
+    Describes one or more Products.
+    """
+    id_name = models.CharField(_('id_name'), max_length=50, blank=True)
+    name = models.CharField(_('name'), max_length=300, blank=True)
     description_short = models.CharField(_('description_short'), max_length=500, blank=True)
     description_long = models.TextField(_('description_long'), blank=True)
+    scale = models.CharField(_('scale'), max_length=500, blank=True)
     geocat_link = models.CharField(_('geocat_link'), max_length=2000, blank=True)
     legend_link = models.CharField(_('legend_link'), max_length=2000, blank=True)
     image_link = models.CharField(_('image_link'), max_length=2000, blank=True)

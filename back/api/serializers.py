@@ -107,6 +107,7 @@ class PasswordResetSerializer(serializers.Serializer):
         request = self.context.get('request')
         # Set some values to trigger the send_email method.
         opts = {
+            'domain_override': getattr(settings, 'FRONT_URL'),
             'use_https': request.is_secure(),
             'from_email': getattr(settings, 'DEFAULT_FROM_EMAIL'),
             'request': request,
@@ -117,7 +118,7 @@ class PasswordResetSerializer(serializers.Serializer):
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
     """
-    Serializer for requesting a password reset e-mail.
+    Serializer for setting a new user password.
     """
     new_password1 = serializers.CharField(max_length=128)
     new_password2 = serializers.CharField(max_length=128)

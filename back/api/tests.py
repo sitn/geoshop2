@@ -1,3 +1,4 @@
+import os
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -12,16 +13,34 @@ class AuthViewsTests(APITestCase):
 
     def setUp(self):
         self.username = 'testuser'
-        self.password1 = 'testPa$$word'
-        self.data = {
+        self.password = 'testPa$$word'
+        self.email = os.environ.get('EMAIL_TEST_TO', 'test@example.com')
+
+    def test_registration(self):
+        """
+        Tests registration
+        """
+        data = {
+            'username': self.username,
+            'password1': self.password,
+            'password2': self.password,
+            'email': self.email
+        }
+        url = reverse('auth_register')
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        user = Identity.objects.get(username=self.username)
+        self.assertEqual(user.email, self.email, 'User is registered and has an email')
+
+    def test_current_user(self):
+        """
+        Test current user view
+        """
+        data = {
             'username': self.username,
             'password': self.password
         }
 
-    def test_registration(self):
-        url = reverse('auth_register')
-
-    def test_current_user(self):
         # URL using path name
         url = reverse('token_obtain_pair')
 
@@ -29,7 +48,7 @@ class AuthViewsTests(APITestCase):
         self.assertEqual(user.is_active, 1, 'Active User')
 
         # First post to get token
-        response = self.client.post(url, self.data, format='json')
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         token = response.data['access']
 
