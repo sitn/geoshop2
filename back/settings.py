@@ -48,9 +48,11 @@ INSTALLED_APPS = [
     'allauth.account',
     'rest_framework',
     'rest_framework_gis',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -168,4 +170,7 @@ if os.environ.get('GDAL_IN_VENV', None) == "True":
 
 FRONT_URL = os.environ["FRONT_URL"]
 CSRF_COOKIE_DOMAIN = os.environ["CSRF_COOKIE_DOMAIN"]
-CSRF_TRUSTED_ORIGINS = os.environ["ALLOWED_HOST"]
+CSRF_TRUSTED_ORIGINS = os.environ["ALLOWED_HOST"].split(",")
+CORS_ORIGIN_WHITELIST = [
+    os.environ["FRONT_PROTOCOL"] + '://' + os.environ["FRONT_URL"],
+]
