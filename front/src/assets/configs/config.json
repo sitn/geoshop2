@@ -1,5 +1,6 @@
 {
   "apiUrl": "https://sitn.ne.ch/geoshop2_dev/",
+  "baseMapCapabilitiesUrl": "https://sitn.ne.ch/web_getcapabilities/WMTSGetCapabilities95.xml",
   "contact": {
     "phone": {
       "label": "+41 (0) 32 889 57 63",
@@ -7,46 +8,37 @@
     },
     "email": "chantal.monnier@ne.ch"
   },
+  "initialCenter": [
+    2660013.54, 1185171.98
+  ],
+  "initialExtent": [
+    2485071.58,
+    1075346.31,
+    2828515.82,
+    1299941.79
+  ],
+  "epsg": "EPSG:2056",
   "basemaps": [
     {
-      "id": 1,
-      "label": "Carto DB Grey",
-      "description": "Lorem ipsum",
-      "gisServiceType": "xyz",
+      "id": "plan_ville",
+      "label": "Plan de ville",
+      "description": "Plan de ville",
       "thumbUrl": "assets/images/cartodb_thumbnail.png",
-      "url": "https://cartodb-basemaps-{a-c}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
+      "matrixSet": "EPSG:2056"
     },
     {
-      "id": 2,
-      "label": "OSM",
-      "description": "Lorem ipsum",
-      "gisServiceType": "xyz",
+      "id": "plan_cadastral",
+      "label": "Plan cadastral",
+      "description": "Plan cadastral",
       "thumbUrl": "assets/images/osm_thumbnail.png",
-      "url": "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      "matrixSet": "EPSG:2056"
     },
     {
-      "id": 3,
-      "label": "Thunder forest",
-      "description": "Lorem ipsum",
-      "gisServiceType": "xyz",
+      "id": "ortho",
+      "label": "Images aériennes",
+      "description": "Images aériennes",
       "thumbUrl": "assets/images/cartodb_thumbnail.png",
-      "url": "https://{a-c}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png"
-    },
-    {
-      "id": 4,
-      "label": "Esri",
-      "description": "Lorem ipsum",
-      "gisServiceType": "xyz",
-      "thumbUrl": "assets/images/esri-sat_thumbnail.jpg",
-      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-    },
-    {
-      "id": 5,
-      "label": "Esri topo",
-      "description": "Lorem ipsum",
-      "gisServiceType": "xyz",
-      "thumbUrl": "assets/images/esri_topo_thumbnail.jpg",
-      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+      "matrixSet": "EPSG:2056"
     }
   ]
 }

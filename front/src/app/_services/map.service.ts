@@ -6,7 +6,6 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import Map from 'ol/Map';
 import View from 'ol/View';
 import BaseLayer from 'ol/layer/Base';
-import XYZ from 'ol/source/XYZ';
 import TileLayer from 'ol/layer/Tile';
 import LayerGroup from 'ol/layer/Group';
 import ScaleLine from 'ol/control/ScaleLine';
@@ -24,6 +23,16 @@ import Point from 'ol/geom/Point';
 import DragPan from 'ol/interaction/DragPan';
 import {GeoHelper} from '../_helpers/geoHelper';
 import Polygon from 'ol/geom/Polygon';
+import WMTSCapabilities from 'ol/format/WMTSCapabilities';
+import WMTS, {optionsFromCapabilities} from 'ol/source/WMTS';
+import Projection from 'ol/proj/Projection';
+import {register} from 'ol/proj/proj4';
+import proj4 from 'proj4';
+import Static from 'ol/source/ImageStatic';
+import ImageLayer from 'ol/layer/Image';
+import OSM from 'ol/source/OSM';
+import {transform} from 'ol/proj';
+import {getCenter} from 'ol/extent';
 
 @Injectable({
   providedIn: 'root'
@@ -33,6 +42,7 @@ export class MapService {
 
   private view: View;
   private map: Map;
+  private projection: Projection;
   private basemapLayers: Array<BaseLayer> = [];
   private baseMapLayerGroup: LayerGroup;
 
@@ -61,14 +71,11 @@ export class MapService {
     return this.configService.config.basemaps;
   }
 
-  constructor(private configService: ConfigService, private snackBar: MatSnackBar) {
+  public get FirstBaseMapLayer() {
+    return this.basemapLayers.length > 0 ? this.basemapLayers[0] : null;
   }
 
-  public cloneView() {
-    return new View({
-      center: [771815.10, 5942074.07],
-      zoom: 10,
-    });
+  constructor(private configService: ConfigService, private snackBar: MatSnackBar) {
   }
 
   public initialize() {
@@ -78,7 +85,17 @@ export class MapService {
       // @ts-ignore
       this.map = null;
     }
-    this.initializeMap();
+    this.initializeMap().then(() => {
+
+      this.initializeGeocoder();
+      this.initializeDrawing();
+      this.initializeGeolocation();
+      this.initializeDragInteraction();
+
+      this.initialized = true;
+    }).catch(() => {
+      this.initialized = true;
+    });
   }
 
   public toggleDrawing() {
@@ -128,51 +145,57 @@ export class MapService {
     this.map.updateSize();
   }
 
-  private initializeMap() {
-    this.initializeView();
+  private async initializeMap() {
 
-    const layers: any[] = [];
-    this.generateBasemapLayersFromConfig(layers);
+    proj4.defs(this.configService.config.epsg,
+      '+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs');
+    register(proj4);
+
+    const baseLayers = await this.generateBasemapLayersFromConfig();
+    const view = new View({
+      center: transform(this.configService.config.initialCenter, this.configService.config.epsg, 'EPSG:3857'),
+      zoom: 10,
+    });
 
     // Create the map
     this.map = new Map({
       target: 'map',
-      view: this.view,
-      layers,
+      view,
+      layers: new LayerGroup({
+        layers: baseLayers
+      }),
       controls: [
         new ScaleLine({
           target: 'ol-scaleline',
-          className: 'my-scale-line'
+          className: 'my-scale-line',
+          units: 'metric',
         })
       ]
     });
+
     this.map.on('rendercomplete', () => this.map_renderCompleteExecuted);
     this.map.on('change', () => this.isMapLoading$.next(true));
-
-    this.initializeGeocoder();
-    this.initializeDrawing();
-    this.initializeGeolocation();
-    this.initializeDragInteraction();
-
-    this.initialized = true;
   }
 
   /* Base Map Managment */
-  public generateBasemapLayersFromConfig(layers: Array<BaseLayer>) {
-
+  private async generateBasemapLayersFromConfig() {
     let isVisible = true;  // -> display the first one
 
-    for (const basemap of this.configService.config.basemaps) {
-      if (basemap.url && basemap.gisServiceType === 'xyz') {
+    try {
+      const response = await fetch(this.configService.config.baseMapCapabilitiesUrl);
+      const parser = new WMTSCapabilities();
+      const capabilities = parser.read(await response.text());
 
-        const baseMapXYZ = {url: basemap.url};
-
-        const xyzSource = new XYZ(baseMapXYZ);
+      for (const basemap of this.configService.config.basemaps) {
+        const options = optionsFromCapabilities(capabilities, {
+          layer: basemap.id,
+          matrixSet: basemap.matrixSet,
+        });
+        const source = new WMTS(options);
         const tileLayer = new TileLayer({
-          source: xyzSource,
+          source,
           visible: isVisible,
         });
-
         tileLayer.set('gsId', basemap.id);
         tileLayer.set('label', basemap.label);
         tileLayer.set('thumbnail', basemap.thumbUrl);
@@ -180,20 +203,15 @@ export class MapService {
         this.basemapLayers.push(tileLayer);
         isVisible = false;
       }
+    } catch (error) {
+      console.error(error);
+      this.snackBar.open('Impossible de charger les fonds de plans.', 'Ok', {
+        duration: 10000,
+        panelClass: 'primary-container'
+      });
     }
 
-    this.baseMapLayerGroup = new LayerGroup({
-      layers: this.basemapLayers,
-    });
-
-    layers.push(this.baseMapLayerGroup);
-  }
-
-  private initializeView() {
-    this.view = new View({
-      center: [771815.10, 5942074.07],
-      zoom: 10,
-    });
+    return this.basemapLayers;
   }
 
   private initializeGeocoder() {
