@@ -7,6 +7,9 @@ import {FormControl} from '@angular/forms';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {map, mergeMap, scan, tap, throttleTime} from 'rxjs/operators';
 import {CdkVirtualScrollViewport} from '@angular/cdk/scrolling';
+import {AppState} from '../../_store';
+import {Store} from '@ngrx/store';
+import * as fromCart from '../../_store/cart/cart.action';
 
 @Component({
   selector: 'gs2-catalog',
@@ -28,6 +31,7 @@ export class CatalogComponent implements OnInit {
   catalogInputControl = new FormControl('');
 
   constructor(private apiService: ApiService, public dialog: MatDialog,
+              private store: Store<AppState>,
               private elRef: ElementRef) {
 
     const batchMap = this.offset.pipe(
@@ -49,6 +53,11 @@ export class CatalogComponent implements OnInit {
     const half = Math.trunc(numberOfRowPossible / 2);
     this.stepToLoadData = numberOfRowPossible - half;
     this.batch = numberOfRowPossible + half;
+  }
+
+  addToCart(product: Product) {
+    console.log('add to cart', product);
+    this.store.dispatch(fromCart.addProduct({product}));
   }
 
   getBatch(offset: number) {

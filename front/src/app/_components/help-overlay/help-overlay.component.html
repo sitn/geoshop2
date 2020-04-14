@@ -1,0 +1,19 @@
+<button mat-button color="accent">
+  <div class="flex-row">
+    <mat-icon>remove_red_eye</mat-icon>
+    <span>Voir l'aide</span>
+  </div>
+</button>
+
+<span class="padding-horizontal-15 questions">Avez-vous des questions ?</span>
+
+<a [href]="'tel:' + phoneNumber" class="flex-row padding-horizontal-15">
+  <mat-icon color="accent">phone</mat-icon>
+  <span>{{phoneLabel}}</span>
+</a>
+
+<a [href]="'mailto:' + email" class="flex-row padding-horizontal-15">
+  <mat-icon color="accent">email</mat-icon>
+  <span>{{email}}</span>
+</a>
+

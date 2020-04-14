@@ -1,5 +1,12 @@
 {
   "apiUrl": "https://sitn.ne.ch/geoshop2_dev/",
+  "contact": {
+    "phone": {
+      "label": "+41 (0) 32 889 57 63",
+      "number": "+41328895763"
+    },
+    "email": "chantal.monnier@ne.ch"
+  },
   "basemaps": [
     {
       "id": 1,

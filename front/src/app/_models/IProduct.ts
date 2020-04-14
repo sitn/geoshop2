@@ -5,7 +5,7 @@ export interface IProduct {
   label: string;
   status: string;
   order: number;
-  metadata: IMetadata;
+  metadata?: IMetadata;
   group: any;
 }
 

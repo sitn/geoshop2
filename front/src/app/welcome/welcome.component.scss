@@ -1,11 +1,16 @@
 :host {
-    display: block;
+  display: block;
 
-    mat-sidenav-container {
-      height: 100%;
+  mat-sidenav-container {
+    height: 100%;
 
-      mat-sidenav {
-          width: 400px;
-      }
+    mat-sidenav {
+      width: 400px;
     }
   }
+
+  .drawer-button {
+    position: absolute;
+    top: calc(50% + 12px);
+  }
+}

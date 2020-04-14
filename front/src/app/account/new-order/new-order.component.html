@@ -1,0 +1,197 @@
+<mat-horizontal-stepper #stepper>
+  <mat-step [stepControl]="step1FormGroup" label="Détails du mandat">
+    <form [formGroup]="step1FormGroup">
+
+      <!-- Order type -->
+      <mat-form-field>
+        <mat-label>Type de mandat</mat-label>
+        <mat-select formControlName="orderType" required>
+          <mat-option *ngFor="let orderType of orderTypes$|async" [value]="orderType.id">
+            {{orderType.name}}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="step1FormGroup.get('orderType')?.hasError('required')">Requis</mat-error>
+      </mat-form-field>
+
+      <!-- title -->
+      <mat-form-field>
+        <mat-label>Titre du mandat</mat-label>
+        <input matInput type="text" required formControlName="title">
+        <mat-error *ngIf="step1FormGroup.get('title')?.hasError('required')">Requis</mat-error>
+      </mat-form-field>
+
+      <!-- Description -->
+      <mat-form-field>
+        <mat-label>Description du mandat</mat-label>
+        <textarea matInput required formControlName="description"
+                  placeholder="Renseigner une courte description du mandat..."></textarea>
+        <mat-error *ngIf="step1FormGroup.get('description')?.hasError('required')">Requis</mat-error>
+      </mat-form-field>
+
+      <!-- Contact info -->
+      <mat-form-field>
+        <mat-label>Information de contact (mandant)</mat-label>
+        <input matInput required type="text" formControlName="info">
+        <mat-error *ngIf="step1FormGroup.get('info')?.hasError('required')">Requis</mat-error>
+      </mat-form-field>
+
+      <!-- Email -->
+      <mat-form-field>
+        <mat-label>Courriel mandant</mat-label>
+        <input matInput required type="email" formControlName="email">
+        <mat-error *ngIf="step1FormGroup.get('email')?.hasError('required')">Requis</mat-error>
+        <mat-error *ngIf="step1FormGroup.get('email')?.hasError('email')">Format courriel uniquement</mat-error>
+      </mat-form-field>
+
+      <!-- Phone -->
+      <mat-form-field>
+        <mat-label>Téléphone mandant</mat-label>
+        <input matInput type="tel" formControlName="phone">
+        <mat-error *ngIf="step1FormGroup.get('phone')?.hasError('pattern')">
+          <ul>Mauvais format de téléphone, accepté :
+            <li>+41225252356</li>
+            <li>+41 22 225 25 23</li>
+            <li>0041222252523</li>
+            <li>0041 22 225 25 23</li>
+            <li>0225232523</li>
+            <li>02 25 25 25 23</li>
+          </ul>
+        </mat-error>
+      </mat-form-field>
+
+      <div class="bottom-container">
+        <button color="accent" mat-button matStepperNext> Suivant</button>
+      </div>
+    </form>
+  </mat-step>
+  <mat-step [stepControl]="step2FormGroup" label="Adresse de facturation">
+    <form [formGroup]="step2FormGroup">
+
+      <!-- Search -->
+      <mat-form-field>
+        <input matInput
+               placeholder="Rechercher un client"
+               aria-label="Rechercher un client"
+               [matAutocomplete]="auto"
+               formControlName="customer">
+        <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayCustomer">
+          <mat-option *ngFor="let identity of filteredCustomers$ | async" [value]="identity">
+            <span>{{identity.username}}</span>
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+
+      <!-- Display found customer -->
+      <mat-card *ngIf="customerCtrl && customerCtrl.value && customerCtrl.value.username">
+        <mat-card-header>
+          <div mat-card-avatar class="header-image"></div>
+          <mat-card-title>{{customerCtrl.value.company_name}}</mat-card-title>
+          <mat-card-subtitle>{{customerCtrl.value.first_name}} {{customerCtrl.value.last_name}}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="flex-row" style="padding: 0 8px;">
+            <mat-icon>house</mat-icon>
+            <ul class="padding-horizontal-15">
+              <li>{{customerCtrl.value.street}}</li>
+              <li>{{customerCtrl.value.street2}}</li>
+              <li>{{customerCtrl.value.postcode}} {{customerCtrl.value.city}}</li>
+            </ul>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <a [href]="'mailto:' + customerCtrl.value.email" class="flex-row" mat-button>
+            <mat-icon>phone</mat-icon>
+            <span class="padding-horizontal-15">{{customerCtrl.value.email}}</span>
+          </a>
+          <a [href]="'tel:' + customerCtrl.value.phone" class="flex-row" mat-button>
+            <mat-icon>email</mat-icon>
+            <span class="padding-horizontal-15">{{customerCtrl.value.phone}}</span>
+          </a>
+        </mat-card-actions>
+      </mat-card>
+
+      <div class="bottom-container">
+        <button color="accent" mat-button matStepperPrevious> Retour</button>
+        <button color="accent" mat-button matStepperNext> Suivant</button>
+      </div>
+    </form>
+  </mat-step>
+  <mat-step [stepControl]="lastStepFormGroup" label="Aperçu de la commande">
+    <form [formGroup]="lastStepFormGroup">
+
+      <mat-form-field>
+        <mat-label>Filter</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Rivo">
+      </mat-form-field>
+
+      <div class="table-container">
+        <table mat-table [dataSource]="dataSource" matSort>
+
+          <!-- Label Column -->
+          <ng-container matColumnDef="label">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header style="width: 30%;">
+              Description / Disponibilité
+            </th>
+            <td mat-cell *matCellDef="let product">
+              <div class="text-ellipsis-2">{{product.label}}</div>
+            </td>
+            <td mat-footer-cell *matFooterCellDef>
+              <ul class="text-accent padding-vertical-5">
+                <li>Montant net</li>
+                <li>TVA 7.7 %</li>
+                <li>Total TTC</li>
+              </ul>
+            </td>
+          </ng-container>
+
+          <!-- Format Column -->
+          <ng-container matColumnDef="format">
+            <th mat-header-cell *matHeaderCellDef style="width: 30%;"> Format</th>
+            <td mat-cell *matCellDef="let product"> {{product.label}} </td>
+            <td mat-footer-cell *matFooterCellDef class="text-accent"></td>
+          </ng-container>
+
+          <!-- Quantity Column -->
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef style="width: 10%; text-align: center;"> Quantité</th>
+            <td mat-cell *matCellDef="let product" style="text-align: center;"> 1</td>
+            <td mat-footer-cell *matFooterCellDef class="text-accent"></td>
+          </ng-container>
+
+          <!-- Prix Column -->
+          <ng-container matColumnDef="price">
+            <th mat-header-cell *matHeaderCellDef style="width: 10%;text-align: center;"> Prix</th>
+            <td mat-cell *matCellDef="let product" style="text-align: center;"> {{product.Price}} </td>
+            <td mat-footer-cell *matFooterCellDef class="text-accent"></td>
+          </ng-container>
+
+          <!-- Total Column -->
+          <ng-container matColumnDef="total">
+            <th mat-header-cell *matHeaderCellDef style="width: 10%;text-align: center;"> Total</th>
+            <td mat-cell *matCellDef="let product" style="text-align: center;"> 100</td>
+            <td mat-footer-cell *matFooterCellDef>
+              <ul class="text-accent padding-vertical-5">
+                <li>{{2450 | currency}}</li>
+                <li>{{2450 * 0.077 | currency}}</li>
+                <li>{{2450 * 1.077 | currency}}</li>
+              </ul>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns" class="text-accent"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="text-accent"></tr>
+          <tr mat-footer-row *matFooterRowDef="displayedColumns; sticky: true" class="text-accent"></tr>
+        </table>
+      </div>
+
+      <mat-paginator [length]="this.products.length" [pageSize]="10"
+                     [pageSizeOptions]="[5, 10, 25, 100]"></mat-paginator>
+
+      <div class="flex-row">
+        <button color="accent" mat-button (click)="stepper.reset()">Reset</button>
+        <button color="accent" mat-button matStepperPrevious>Retour</button>
+        <button color="primary" mat-raised-button> Acheter maintenant</button>
+      </div>
+    </form>
+  </mat-step>
+</mat-horizontal-stepper>

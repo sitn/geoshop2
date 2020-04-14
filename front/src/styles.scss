@@ -58,6 +58,10 @@ ul {
   height: calc(100vh - 64px);
 }
 
+.right-container {
+  margin-left: auto;
+}
+
 .basemap-button {
   &.mat-mini-fab {
     .mat-button-wrapper {
@@ -78,4 +82,41 @@ ul {
 .primary-container {
   background-color: #69f0ae;
   color: black;
+}
+
+.dark-background {
+  background-color: #302f2f;
+  color: white;
+}
+
+.info-container {
+  margin: 10px;
+  padding: 5px;
+  border: solid 1px #4177F6;
+
+  mat-icon {
+    color: #4177F6;
+    margin-right: 10px;
+  }
+}
+
+.as-split-gutter {
+  background-color: #7b1fa2 !important;
+  flex-basis: 5px !important;
+}
+
+.padding-horizontal-15 {
+  padding: 0 15px;
+}
+
+.padding-vertical-5 {
+  padding: 5px 0;
+}
+
+.padding-vertical-10 {
+  padding: 10px 0;
+}
+
+.justify-content-space-between {
+  justify-content: space-between;
 }

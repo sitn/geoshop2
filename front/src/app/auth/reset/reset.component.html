@@ -1,0 +1,36 @@
+<mat-card>
+  <mat-card-header>
+    <div mat-card-avatar class="card-header-image"></div>
+    <mat-card-title>GeoShop - Authentification</mat-card-title>
+    <mat-card-subtitle>Réinitialiser son mot de passe</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <form [formGroup]="passwords" (ngSubmit)="submit()">
+
+      <mat-form-field color="accent">
+        <input formControlName="password" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="off"
+               required matInput
+               placeholder="Mot de passe" type="password">
+        <mat-error *ngIf="password?.hasError('required')">Required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field color="accent">
+        <input formControlName="passwordConfirm" autocorrect="off" autocapitalize="off" autocomplete="off"
+               spellcheck="off"
+               required matInput
+               placeholder="Confirmation du mot de passe" type="password">
+        <mat-error *ngIf="passwordConfirm?.hasError('required')">Required</mat-error>
+      </mat-form-field>
+
+      <mat-error *ngIf="passwords?.hasError('mismatch')">
+        Mot de passe différent
+      </mat-error>
+
+      <button class="form-login-button" color="accent" mat-raised-button type="submit"
+              [disabled]="passwords.pristine || passwords.invalid">
+        Mettre à jour
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>
+
