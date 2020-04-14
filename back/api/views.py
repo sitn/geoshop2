@@ -36,6 +36,7 @@ sensitive_post_parameters_m = method_decorator(
 
 UserModel = get_user_model()
 
+
 class CopyrightViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows Copyright to be viewed or edited.
@@ -130,6 +131,7 @@ class OrderViewSet(MultiSerializerViewSet):
     permission_classes = [IsOwner]
 
 
+# Copy from dj-rest-auth
 class PasswordResetView(GenericAPIView):
     """
     <b>SMTP Server needs to be configured before using this route</b>
@@ -152,6 +154,7 @@ class PasswordResetView(GenericAPIView):
         )
 
 
+# Copy from dj-rest-auth
 class PasswordResetConfirmView(GenericAPIView):
     """
     Password reset e-mail link is confirmed, therefore
@@ -161,7 +164,7 @@ class PasswordResetConfirmView(GenericAPIView):
     Returns the success/fail message.
     """
     serializer_class = PasswordResetConfirmSerializer
-    permission_classes = (permissions.AllowAny)
+    permission_classes = [permissions.AllowAny]
 
     @sensitive_post_parameters_m
     def dispatch(self, *args, **kwargs):
