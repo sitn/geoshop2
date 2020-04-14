@@ -1,10 +1,10 @@
-import {Component, HostBinding, OnInit} from '@angular/core';
+import {Component, ElementRef, HostBinding, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {Store} from '@ngrx/store';
 import {AppState} from '../../_store';
 import * as AuthActions from '../../_store/auth/auth.action';
 import {ICredentials} from '../../_models/IIdentity';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: 'gs2-login',
@@ -31,13 +31,18 @@ export class LoginComponent implements OnInit {
   private callbackUrl: string;
   private hasClickOnLogin = false;
 
-  constructor(private store: Store<AppState>, private route: ActivatedRoute) {
+  constructor(private store: Store<AppState>, private route: ActivatedRoute,
+              private el: ElementRef) {
     this.route.queryParams.subscribe(queryParams => {
       this.callbackUrl = queryParams.callback;
     });
   }
 
   ngOnInit(): void {
+    const input = this.el.nativeElement.querySelector('[formcontrolname="username"]');
+    if (input && input instanceof HTMLInputElement) {
+      input.focus();
+    }
   }
 
   submit() {

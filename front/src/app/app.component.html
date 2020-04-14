@@ -2,10 +2,8 @@
 
   <div class="flex-row">
     <a mat-button class="header-title" [routerLink]="['welcome']">GeoShop</a>
-    <mat-divider *ngIf="(numberOfItemInTheCart$|async) && (isNewOrderRoute$|async)" vertical="true" color="accent"></mat-divider>
-    <span class="header-subtitle"
-      *ngIf="(numberOfItemInTheCart$|async) && (isNewOrderRoute$|async)"> Votre commande de {{numberOfItemInTheCart$|async}}
-      produits</span>
+    <mat-divider *ngIf="subTitle" vertical="true" color="accent"></mat-divider>
+    <span class="header-subtitle">{{subTitle}}</span>
   </div>
 
 

@@ -16,8 +16,11 @@ import {MatCardModule} from '@angular/material/card';
 import {MatTableModule} from '@angular/material/table';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatSortModule} from '@angular/material/sort';
+import {OrdersComponent} from './orders/orders.component';
+import {MatDividerModule} from '@angular/material/divider';
+import {SharedModule} from '../shared/shared.module';
 
-const COMPONENTS = [
+const MODULES = [
   ReactiveFormsModule,
   MatStepperModule,
   MatButtonModule,
@@ -29,15 +32,18 @@ const COMPONENTS = [
   MatCardModule,
   MatTableModule,
   MatPaginatorModule,
-  MatSortModule
+  MatSortModule,
+  MatDividerModule,
+  MatAutocompleteModule
 ];
 
 @NgModule({
-  declarations: [AccountComponent, NewOrderComponent],
+  declarations: [AccountComponent, NewOrderComponent, OrdersComponent],
   imports: [
     CommonModule,
     AccountRoutingModule,
-    COMPONENTS,
+    MODULES,
+    SharedModule
   ]
 })
 export class AccountModule {

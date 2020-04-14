@@ -1,0 +1,48 @@
+:host {
+  .mat-card {
+    margin: 10px;
+
+    ::ng-deep .mat-card-header-text,
+    .mat-card-title,
+    .mat-card-subtitle {
+      width: 100%;
+    }
+
+    .mat-card-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .order-item-wrapper {
+      overflow: auto;
+      max-height: 300px;
+    }
+
+    .order-item-container {
+      padding: 5px;
+      margin: 5px;
+      box-shadow: 0 2px 1px -1px rgba(255, 255, 255, 0.2), 0 1px 1px 0 rgba(255, 255, 255, 0.14), 0 1px 3px 0 rgba(255, 255, 255, 0.12);
+
+      &:nth-child(even) {
+        background-color: #444343;
+        color: white;
+      }
+
+      &:nth-child(odd) {
+        background-color: #302f2f;
+        color: white;
+      }
+    }
+
+    .mini-map {
+      width: 300px;
+      height: 250px;
+    }
+
+    .mat-card-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+  }
+}

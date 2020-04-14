@@ -4,13 +4,13 @@
     <span>{{(user$|async)?.first_name}} {{(user$|async)?.last_name}}</span>
   </div>
 
-  <button mat-button color="accent">
+  <button mat-button color="accent" [routerLink]="['/account/orders']">
     <span class="flex-row">
       <mat-icon>receipt</mat-icon>
       <span>Mes Commandes</span>
     </span>
   </button>
-  <button mat-button color="accent">
+  <button mat-button color="accent" [routerLink]="['/account/profile']">
     <span class="flex-row">
       <mat-icon>perm_identity</mat-icon>
       <span>Mon profil</span>

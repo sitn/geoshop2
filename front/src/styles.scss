@@ -37,6 +37,10 @@ ul {
   color: white;
 }
 
+.text-success {
+  color: palegreen;
+}
+
 .text-primary {
   color: #7b1fa2;
 }
@@ -45,12 +49,27 @@ ul {
   color: #69f0ae;
 }
 
+.text-error {
+  color: palevioletred;
+
+  &:visited,
+  &:focus {
+    color: palevioletred;
+  }
+}
+
 .text-ellipsis-2 {
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2; /* number of lines to show */
+}
+
+.small-icon-success {
+  font-size: 16px;
+  color: palegreen;
+  margin-right: 5px;
 }
 
 .main-container {

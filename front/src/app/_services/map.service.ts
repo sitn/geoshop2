@@ -34,6 +34,7 @@ export class MapService {
   private view: View;
   private map: Map;
   private basemapLayers: Array<BaseLayer> = [];
+  private baseMapLayerGroup: LayerGroup;
 
   // Drawing
   private isDrawModeActivated = false;
@@ -61,6 +62,13 @@ export class MapService {
   }
 
   constructor(private configService: ConfigService, private snackBar: MatSnackBar) {
+  }
+
+  public cloneView() {
+    return new View({
+      center: [771815.10, 5942074.07],
+      zoom: 10,
+    });
   }
 
   public initialize() {
@@ -147,6 +155,38 @@ export class MapService {
     this.initializeDragInteraction();
 
     this.initialized = true;
+  }
+
+  /* Base Map Managment */
+  public generateBasemapLayersFromConfig(layers: Array<BaseLayer>) {
+
+    let isVisible = true;  // -> display the first one
+
+    for (const basemap of this.configService.config.basemaps) {
+      if (basemap.url && basemap.gisServiceType === 'xyz') {
+
+        const baseMapXYZ = {url: basemap.url};
+
+        const xyzSource = new XYZ(baseMapXYZ);
+        const tileLayer = new TileLayer({
+          source: xyzSource,
+          visible: isVisible,
+        });
+
+        tileLayer.set('gsId', basemap.id);
+        tileLayer.set('label', basemap.label);
+        tileLayer.set('thumbnail', basemap.thumbUrl);
+
+        this.basemapLayers.push(tileLayer);
+        isVisible = false;
+      }
+    }
+
+    this.baseMapLayerGroup = new LayerGroup({
+      layers: this.basemapLayers,
+    });
+
+    layers.push(this.baseMapLayerGroup);
   }
 
   private initializeView() {
@@ -328,37 +368,5 @@ export class MapService {
 
   private map_renderCompleteExecuted() {
     this.isMapLoading$.next(false);
-  }
-
-  /* Base Map Managment */
-  private generateBasemapLayersFromConfig(layers: Array<BaseLayer>) {
-
-    let isVisible = true;  // -> display the first one
-
-    for (const basemap of this.configService.config.basemaps) {
-      if (basemap.url && basemap.gisServiceType === 'xyz') {
-
-        const baseMapXYZ = {url: basemap.url};
-
-        const xyzSource = new XYZ(baseMapXYZ);
-        const tileLayer = new TileLayer({
-          source: xyzSource,
-          visible: isVisible,
-        });
-
-        tileLayer.set('gsId', basemap.id);
-        tileLayer.set('label', basemap.label);
-        tileLayer.set('thumbnail', basemap.thumbUrl);
-
-        this.basemapLayers.push(tileLayer);
-        isVisible = false;
-      }
-    }
-
-    const layerGroup = new LayerGroup({
-      layers: this.basemapLayers,
-    });
-
-    layers.push(layerGroup);
   }
 }
