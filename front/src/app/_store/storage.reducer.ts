@@ -1,5 +1,6 @@
 import {Action, ActionReducer} from '@ngrx/store';
 import {merge, pick} from 'lodash-es';
+import {AppState} from './index';
 
 const STATE_KEYS = ['cart', 'auth'];
 // the key for the local storage.
@@ -22,7 +23,7 @@ export function storageMetaReducer<S, A extends Action = Action>(reducer: Action
     // init the application state.
     if (onInit) {
       onInit = false;
-      const savedState = getSavedState(LOCAL_STORAGE_KEY);
+      const savedState: AppState = getSavedState(LOCAL_STORAGE_KEY);
       return merge(nextState, savedState);
     }
     // save the next state to the application storage.

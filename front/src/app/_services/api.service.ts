@@ -2,11 +2,11 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {IProduct} from '../_models/IProduct';
 import {ConfigService} from './config.service';
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {IApiResponse} from '../_models/IApi';
 import {ICredentials, IIdentity} from '../_models/IIdentity';
-import {IOrderType} from '../_models/IOrder';
-import {map} from 'rxjs/operators';
+import {IOrder, IOrderType} from '../_models/IOrder';
+import {catchError, map} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +23,7 @@ export class ApiService {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    const url = new URL(`${this.apiUrl}/product`);
+    const url = new URL(`${this.apiUrl}/product/`);
     if (limit) {
       url.searchParams.append('limit', limit.toString());
     }
@@ -39,7 +39,7 @@ export class ApiService {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    const url = new URL(`${this.apiUrl}/ordertype`);
+    const url = new URL(`${this.apiUrl}/ordertype/`);
 
     return this.http.get<IApiResponse<IOrderType>>(url.toString())
       .pipe(
@@ -51,6 +51,30 @@ export class ApiService {
     return this.http.get<IIdentity[]>(userId).pipe(
       map(x => Array.isArray(x) ? x : [x])
     );
+  }
+
+  getOrders(offset?: number, limit?: number): Observable<IApiResponse<IOrder>> {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    const url = new URL(`${this.apiUrl}/order/`);
+    if (limit) {
+      url.searchParams.append('limit', limit.toString());
+    }
+    if (offset) {
+      url.searchParams.append('offset', offset.toString());
+    }
+
+    return this.http.get<IApiResponse<IOrder>>(url.toString());
+  }
+
+  getOrder(url: string): Observable<IOrder> {
+    return this.http.get<IOrder>(url);
+  }
+
+  getOrderType(url: string): Observable<IOrderType> {
+    return this.http.get<IOrderType>(url);
   }
 
   login(authenticate: ICredentials, callbackUrl: string): Observable<{ identity: Partial<IIdentity>; callbackUrl: string; }> {
@@ -79,7 +103,7 @@ export class ApiService {
   }
 
   getProfile() {
-    const user: IIdentity = {
+    /*const user: IIdentity = {
       username: 'test',
       first_name: 'Marc',
       last_name: 'Milard',
@@ -93,18 +117,28 @@ export class ApiService {
         });
         subscriber.complete();
       }, 2000);
-    });
+    });*/
+
+    return this.http.get<IIdentity>(this.apiUrl + '/auth/current/');
+  }
+
+  verifyToken(token: string): Observable<boolean> {
+    return this.http.post<{ detail: string; code: string; }>(this.apiUrl + `/token/verify/`, {token})
+      .pipe(
+        map(x => x && x.code == null),
+        catchError(() => of(false))
+      );
   }
 
   checkLoginNotTaken(login: string): Observable<{ result: boolean }> {
-    return this.http.post<{ result: boolean }>(this.apiUrl + `/user/existsLogin`, {login});
+    return this.http.post<{ result: boolean }>(this.apiUrl + `/user/existsLogin/`, {login});
   }
 
   forget(email: string) {
-    return this.http.post<{ result: boolean }>(this.apiUrl + '/user/forget', {email});
+    return this.http.post<{ result: boolean }>(this.apiUrl + '/user/forget/', {email});
   }
 
   resetPassword(passwordToken: string, password: string) {
-    return this.http.post(this.apiUrl + '/user/reset', {password, passwordToken});
+    return this.http.post(this.apiUrl + '/user/reset/', {password, passwordToken});
   }
 }
