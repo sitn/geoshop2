@@ -18,6 +18,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {ScrollingModule} from '@angular/cdk/scrolling';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
 
 const MODULES = [
   MatMenuModule,
@@ -30,7 +31,8 @@ const MODULES = [
   MatButtonModule,
   ScrollingModule,
   MatDialogModule,
-  MatSnackBarModule
+  MatSnackBarModule,
+  MatAutocompleteModule,
 ];
 
 @NgModule({

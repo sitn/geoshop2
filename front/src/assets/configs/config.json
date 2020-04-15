@@ -1,6 +1,7 @@
 {
   "apiUrl": "https://sitn.ne.ch/geoshop2_dev/",
   "baseMapCapabilitiesUrl": "https://sitn.ne.ch/web_getcapabilities/WMTSGetCapabilities95.xml",
+  "geocoderUrl": "https://sitn.ne.ch/production/wsgi/search",
   "contact": {
     "phone": {
       "label": "+41 (0) 32 889 57 63",
@@ -9,13 +10,10 @@
     "email": "chantal.monnier@ne.ch"
   },
   "initialCenter": [
-    2660013.54, 1185171.98
+    2551473.73, 1211195.03
   ],
   "initialExtent": [
-    2485071.58,
-    1075346.31,
-    2828515.82,
-    1299941.79
+    2420000, 1030000, 2900000, 1350000
   ],
   "epsg": "EPSG:2056",
   "basemaps": [

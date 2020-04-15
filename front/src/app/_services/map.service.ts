@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {ConfigService} from 'src/app/_services/config.service';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatSnackBar, MatSnackBarRef, SimpleSnackBar} from '@angular/material/snack-bar';
 
 // Openlayers imports
 import Map from 'ol/Map';
@@ -17,38 +17,39 @@ import {Draw, Modify} from 'ol/interaction';
 import GeometryType from 'ol/geom/GeometryType';
 import {Feature} from 'ol';
 import Geolocation from 'ol/Geolocation';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, of} from 'rxjs';
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
 import Point from 'ol/geom/Point';
 import DragPan from 'ol/interaction/DragPan';
 import {GeoHelper} from '../_helpers/geoHelper';
-import Polygon from 'ol/geom/Polygon';
+import Polygon, {fromExtent} from 'ol/geom/Polygon';
 import WMTSCapabilities from 'ol/format/WMTSCapabilities';
 import WMTS, {optionsFromCapabilities} from 'ol/source/WMTS';
-import Projection from 'ol/proj/Projection';
 import {register} from 'ol/proj/proj4';
 import proj4 from 'proj4';
-import Static from 'ol/source/ImageStatic';
-import ImageLayer from 'ol/layer/Image';
-import OSM from 'ol/source/OSM';
-import {transform} from 'ol/proj';
-import {getCenter} from 'ol/extent';
+import {fromLonLat} from 'ol/proj';
+import {HttpClient} from '@angular/common/http';
+import {map} from 'rxjs/operators';
+import GeoJSON from 'ol/format/GeoJSON';
+import Projection from 'ol/proj/Projection';
+import {boundingExtent, buffer, Extent, getArea} from 'ol/extent';
+import MultiPoint from 'ol/geom/MultiPoint';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MapService {
   private initialized = false;
+  private geoJsonFormatter = new GeoJSON();
+  private snackBarRef: MatSnackBarRef<SimpleSnackBar>;
 
-  private view: View;
   private map: Map;
-  private projection: Projection;
   private basemapLayers: Array<BaseLayer> = [];
-  private baseMapLayerGroup: LayerGroup;
 
   // Drawing
   private isDrawModeActivated = false;
   private drawingSource: VectorSource;
+  private geocoderSource: VectorSource;
   private drawingLayer: VectorLayer;
   private modifyInteraction: Modify;
   private drawInteraction: Draw;
@@ -75,7 +76,8 @@ export class MapService {
     return this.basemapLayers.length > 0 ? this.basemapLayers[0] : null;
   }
 
-  constructor(private configService: ConfigService, private snackBar: MatSnackBar) {
+  constructor(private configService: ConfigService, private snackBar: MatSnackBar,
+              private httpClient: HttpClient) {
   }
 
   public initialize() {
@@ -87,7 +89,6 @@ export class MapService {
     }
     this.initializeMap().then(() => {
 
-      this.initializeGeocoder();
       this.initializeDrawing();
       this.initializeGeolocation();
       this.initializeDragInteraction();
@@ -109,6 +110,11 @@ export class MapService {
     if (this.featureFromDrawing) {
       this.drawingSource.removeFeature(this.featureFromDrawing);
     }
+    this.geocoderSource.clear();
+
+    if (this.snackBarRef) {
+      this.snackBarRef.dismiss();
+    }
   }
 
   public toggleTracking() {
@@ -117,7 +123,7 @@ export class MapService {
     this.geolocation.setTracking(this.isTracking);
   }
 
-  public switchBaseMap(gsId: number) {
+  public switchBaseMap(gsId: string) {
 
     this.map.getLayers().forEach((layerGroup) => {
       if (layerGroup instanceof LayerGroup) {
@@ -145,16 +151,64 @@ export class MapService {
     this.map.updateSize();
   }
 
+  public geocoderSearch(inputText: string) {
+    if (!inputText || inputText.length === 0 || typeof inputText !== 'string') {
+      return of([]);
+    }
+    const url = new URL(this.configService.config.geocoderUrl);
+    url.searchParams.append('limit', '20');
+    url.searchParams.append('query', inputText);
+    return this.httpClient.get(url.toString()).pipe(
+      map(featureCollection => this.geoJsonFormatter.readFeatures(featureCollection))
+    );
+  }
+
+  public addFeatureFromGeocoderToDrawing(feature: Feature) {
+    this.geocoderSource.clear();
+    this.geocoderSource.addFeature(feature.clone());
+
+    let bufferExtent: Extent;
+    const geometry = feature.getGeometry();
+    if (geometry instanceof Point) {
+      const text = boundingExtent([geometry.getCoordinates()]);
+      const bv = 50;
+      bufferExtent = buffer(text, bv);
+    } else {
+      const originalExtent = feature.getGeometry().getExtent();
+      const area = getArea(originalExtent);
+      const bufferValue = area * 0.001;
+      bufferExtent = buffer(originalExtent, bufferValue);
+    }
+
+    const poly = fromExtent(bufferExtent);
+    feature.setGeometry(poly);
+    this.drawingSource.addFeature(feature);
+    this.modifyInteraction.setActive(true);
+
+    this.map.getView().fit(poly, {
+      padding: [100, 100, 100, 100]
+    });
+  }
+
   private async initializeMap() {
 
     proj4.defs(this.configService.config.epsg,
-      '+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs');
+      '+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333'
+      + ' +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel '
+      + '+towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs');
     register(proj4);
+
+    const projection = new Projection({
+      code: this.configService.config.epsg,
+      // @ts-ignore
+      extent: this.configService.config.initialExtent,
+    });
 
     const baseLayers = await this.generateBasemapLayersFromConfig();
     const view = new View({
-      center: transform(this.configService.config.initialCenter, this.configService.config.epsg, 'EPSG:3857'),
-      zoom: 10,
+      projection,
+      center: fromLonLat([6.80, 47.05], projection),
+      zoom: 4,
     });
 
     // Create the map
@@ -205,7 +259,7 @@ export class MapService {
       }
     } catch (error) {
       console.error(error);
-      this.snackBar.open('Impossible de charger les fonds de plans.', 'Ok', {
+      this.snackBarRef = this.snackBar.open('Impossible de charger les fonds de plans.', 'Ok', {
         duration: 10000,
         panelClass: 'primary-container'
       });
@@ -214,34 +268,12 @@ export class MapService {
     return this.basemapLayers;
   }
 
-  private initializeGeocoder() {
-    const geocoder = new Geocoder('nominatim', {
-      provider: 'osm',
-      lang: 'fr-CH',
-      placeholder: 'Rechercher une commune, etc.',
-      targetType: 'text-input',
-      limit: 5,
-      keepOpen: false,
-      autoComplete: true,
-      autoCompleteMinLength: 3,
-      preventDefault: true
-    });
-    geocoder.on('addresschosen', (event: any) => {
-      const resolutionForZoom = this.view.getResolutionForZoom(0);
-      const extent: any = [
-        event.coordinate[0] - (0.1 * resolutionForZoom),
-        event.coordinate[1] - (0.1 * resolutionForZoom),
-        event.coordinate[0] + (0.1 * resolutionForZoom),
-        event.coordinate[1] + (0.1 * resolutionForZoom),
-      ];
-      this.view.fit(extent);
-    });
-    this.map.addControl(geocoder);
-  }
-
   private initializeDrawing() {
     this.drawingSource = new VectorSource({
       useSpatialIndex: false,
+    });
+    this.geocoderSource = new VectorSource({
+      useSpatialIndex: false
     });
     if (this.featureFromDrawing) {
       this.drawingSource.addFeature(this.featureFromDrawing);
@@ -253,9 +285,54 @@ export class MapService {
       this.setAreaToCurrentFeature();
     });
     this.drawingLayer = new VectorLayer({
-      source: this.drawingSource
+      source: this.drawingSource,
+      style: [
+        new Style({
+          stroke: new Stroke({
+            color: 'rgba(123,31,162,1)',
+            width: 3
+          }),
+          fill: new Fill({
+            color: 'rgba(123,31,162,0.1)'
+          })
+        }),
+        new Style({
+          image: new CircleStyle({
+            radius: 8,
+            fill: new Fill({
+              color: 'rgba(105,240,174,1)'
+            }),
+          }),
+          geometry: (feature) => {
+            // return the coordinates of the first ring of the polygon
+            const geo = feature.getGeometry();
+            if (geo && geo instanceof Polygon) {
+              const coordinates = geo.getCoordinates()[0];
+              return new MultiPoint(coordinates);
+            }
+
+            return geo;
+          }
+        })
+      ]
     });
 
+    const geocoderLayer = new VectorLayer({
+      source: this.geocoderSource,
+      style: [
+        new Style({
+          stroke: new Stroke({width: 2, color: 'rgba(255, 235, 59, 1)'}),
+          fill: new Fill({color: 'rgba(255, 235, 59, 0.85)'})
+        }),
+        new Style({
+          image: new CircleStyle({
+            radius: 20,
+            fill: new Fill({color: 'rgba(255, 235, 59, 1)'})
+          })
+        })
+      ]
+    });
+    this.map.addLayer(geocoderLayer);
     this.map.addLayer(this.drawingLayer);
 
     this.modifyInteraction = new Modify({
@@ -310,7 +387,7 @@ export class MapService {
   }
 
   private displayAreaMessage(area: string) {
-    this.snackBar.open(`L'aire du polygone sélectionné est de ${area}`, 'Cancel', {
+    this.snackBarRef = this.snackBar.open(`L'aire du polygone sélectionné est de ${area}`, 'Cancel', {
       duration: 10000,
       panelClass: 'primary-container'
     });
@@ -356,14 +433,14 @@ export class MapService {
       trackingOptions: {
         enableHighAccuracy: true
       },
-      projection: this.view.getProjection()
+      projection: this.map.getView().getProjection()
     });
     this.geolocation.on('change:position', () => {
       const firstLoad = this.positionFeature.getGeometry() == null;
       const coordinates = this.geolocation.getPosition();
       this.positionFeature.setGeometry(coordinates ? new Point(coordinates) : undefined);
       if (firstLoad) {
-        this.view.animate(
+        this.map.getView().animate(
           {zoom: 10},
           {center: coordinates},
           {duration: 200}
@@ -379,7 +456,7 @@ export class MapService {
       }
     });
     this.geolocation.on('error', (error: Error) => {
-      this.snackBar.open(error.message, 'Fermer');
+      this.snackBarRef = this.snackBar.open(error.message, 'Fermer');
       this.isMapLoading$.next(false);
     });
   }
