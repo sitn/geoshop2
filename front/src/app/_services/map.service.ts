@@ -34,6 +34,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import Projection from 'ol/proj/Projection';
 import {boundingExtent, buffer, Extent, getArea} from 'ol/extent';
 import MultiPoint from 'ol/geom/MultiPoint';
+import {IBasemap} from '../_models/IConfig';
 
 @Injectable({
   providedIn: 'root'
@@ -45,6 +46,7 @@ export class MapService {
 
   private map: Map;
   private basemapLayers: Array<BaseLayer> = [];
+  private capabilities: any;
 
   // Drawing
   private isDrawModeActivated = false;
@@ -54,6 +56,35 @@ export class MapService {
   private modifyInteraction: Modify;
   private drawInteraction: Draw;
   private featureFromDrawing: Feature;
+  public readonly drawingStyle = [
+    new Style({
+      stroke: new Stroke({
+        color: 'rgba(123,31,162,1)',
+        width: 3
+      }),
+      fill: new Fill({
+        color: 'rgba(123,31,162,0.1)'
+      })
+    }),
+    new Style({
+      image: new CircleStyle({
+        radius: 8,
+        fill: new Fill({
+          color: 'rgba(105,240,174,1)'
+        }),
+      }),
+      geometry: (feature) => {
+        // return the coordinates of the first ring of the polygon
+        const geo = feature.getGeometry();
+        if (geo && geo instanceof Polygon) {
+          const coordinates = geo.getCoordinates()[0];
+          return new MultiPoint(coordinates);
+        }
+
+        return geo;
+      }
+    })
+  ];
 
   // Map's interactions
   private dragInteraction: DragPan;
@@ -151,6 +182,35 @@ export class MapService {
     this.map.updateSize();
   }
 
+  public async createTileLayer(baseMapConfig: IBasemap, isVisible: boolean): Promise<TileLayer> {
+    if (!this.capabilities) {
+      await this.loadCapabilities();
+    }
+
+    const options = optionsFromCapabilities(this.capabilities, {
+      layer: baseMapConfig.id,
+      matrixSet: baseMapConfig.matrixSet,
+    });
+    const source = new WMTS(options);
+    const tileLayer = new TileLayer({
+      source,
+      visible: isVisible,
+    });
+    tileLayer.set('gsId', baseMapConfig.id);
+    tileLayer.set('label', baseMapConfig.label);
+    tileLayer.set('thumbnail', baseMapConfig.thumbUrl);
+
+    return tileLayer;
+  }
+
+  private async loadCapabilities() {
+    if (!this.capabilities) {
+      const response = await fetch(this.configService.config.baseMapCapabilitiesUrl);
+      const parser = new WMTSCapabilities();
+      this.capabilities = parser.read(await response.text());
+    }
+  }
+
   public geocoderSearch(inputText: string) {
     if (!inputText || inputText.length === 0 || typeof inputText !== 'string') {
       return of([]);
@@ -191,7 +251,6 @@ export class MapService {
   }
 
   private async initializeMap() {
-
     proj4.defs(this.configService.config.epsg,
       '+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333'
       + ' +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel '
@@ -232,28 +291,12 @@ export class MapService {
   }
 
   /* Base Map Managment */
-  private async generateBasemapLayersFromConfig() {
+  public async generateBasemapLayersFromConfig() {
     let isVisible = true;  // -> display the first one
 
     try {
-      const response = await fetch(this.configService.config.baseMapCapabilitiesUrl);
-      const parser = new WMTSCapabilities();
-      const capabilities = parser.read(await response.text());
-
-      for (const basemap of this.configService.config.basemaps) {
-        const options = optionsFromCapabilities(capabilities, {
-          layer: basemap.id,
-          matrixSet: basemap.matrixSet,
-        });
-        const source = new WMTS(options);
-        const tileLayer = new TileLayer({
-          source,
-          visible: isVisible,
-        });
-        tileLayer.set('gsId', basemap.id);
-        tileLayer.set('label', basemap.label);
-        tileLayer.set('thumbnail', basemap.thumbUrl);
-
+      for (const baseMapConfig of this.configService.config.basemaps) {
+        const tileLayer = await this.createTileLayer(baseMapConfig, isVisible);
         this.basemapLayers.push(tileLayer);
         isVisible = false;
       }
@@ -283,38 +326,12 @@ export class MapService {
       this.featureFromDrawing = evt.feature;
       this.drawInteraction.setActive(false);
       this.setAreaToCurrentFeature();
+
+      console.log(this.geoJsonFormatter.writeGeometry(this.featureFromDrawing.getGeometry()));
     });
     this.drawingLayer = new VectorLayer({
       source: this.drawingSource,
-      style: [
-        new Style({
-          stroke: new Stroke({
-            color: 'rgba(123,31,162,1)',
-            width: 3
-          }),
-          fill: new Fill({
-            color: 'rgba(123,31,162,0.1)'
-          })
-        }),
-        new Style({
-          image: new CircleStyle({
-            radius: 8,
-            fill: new Fill({
-              color: 'rgba(105,240,174,1)'
-            }),
-          }),
-          geometry: (feature) => {
-            // return the coordinates of the first ring of the polygon
-            const geo = feature.getGeometry();
-            if (geo && geo instanceof Polygon) {
-              const coordinates = geo.getCoordinates()[0];
-              return new MultiPoint(coordinates);
-            }
-
-            return geo;
-          }
-        })
-      ]
+      style: this.drawingStyle
     });
 
     const geocoderLayer = new VectorLayer({

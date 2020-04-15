@@ -19,6 +19,8 @@ import {MatSortModule} from '@angular/material/sort';
 import {OrdersComponent} from './orders/orders.component';
 import {MatDividerModule} from '@angular/material/divider';
 import {SharedModule} from '../shared/shared.module';
+import { ProfileComponent } from './profile/profile.component';
+import {ScrollingModule} from '@angular/cdk/scrolling';
 
 const MODULES = [
   ReactiveFormsModule,
@@ -34,11 +36,12 @@ const MODULES = [
   MatPaginatorModule,
   MatSortModule,
   MatDividerModule,
-  MatAutocompleteModule
+  MatAutocompleteModule,
+  ScrollingModule
 ];
 
 @NgModule({
-  declarations: [AccountComponent, NewOrderComponent, OrdersComponent],
+  declarations: [AccountComponent, NewOrderComponent, OrdersComponent, ProfileComponent],
   imports: [
     CommonModule,
     AccountRoutingModule,

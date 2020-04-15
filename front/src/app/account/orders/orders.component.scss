@@ -1,5 +1,29 @@
 :host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+
+  .filter-container {
+    padding: 5px 20px;
+    margin:  10px 10px 0 10px;
+    border-radius: 4px;
+    background-color: #7b1fa2;
+    display: block;
+    align-self: flex-start;
+    min-width: 30%;
+  }
+
+  .orders-container {
+    width: 100%;
+    height: 100%;
+    margin-top: 10px;
+  }
+
   .mat-card {
+    &:first-child {
+      margin: 0 10px 10px 10px;
+    }
     margin: 10px;
 
     ::ng-deep .mat-card-header-text,
@@ -12,11 +36,15 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap-reverse;
     }
 
     .order-item-wrapper {
       overflow: auto;
+      min-width: 300px;
       max-height: 300px;
+      flex: 1;
+      margin-right: 20px;
     }
 
     .order-item-container {
@@ -36,8 +64,12 @@
     }
 
     .mini-map {
-      width: 300px;
+      width: 30%;
       height: 250px;
+
+      @media (max-width: 527px) {
+        width: 100%;
+      }
     }
 
     .mat-card-actions {

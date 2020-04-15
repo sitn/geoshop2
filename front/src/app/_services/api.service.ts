@@ -118,6 +118,9 @@ export class ApiService {
         subscriber.complete();
       }, 2000);
     });*/
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
 
     return this.http.get<IIdentity>(this.apiUrl + '/auth/current/');
   }

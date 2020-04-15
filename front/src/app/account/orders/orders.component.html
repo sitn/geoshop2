@@ -1,46 +1,61 @@
-<mat-card *ngFor="let order of order$|async">
-  <mat-card-header>
-    <mat-card-title>
-      <span>Commande </span>
-      <span>
+<mat-form-field class="filter-container" color="accent">
+  <mat-label>Rechercher une commande...</mat-label>
+  <input matInput [formControl]="orderFilterControl">
+  <button mat-button *ngIf="orderFilterControl.value" matSuffix mat-icon-button aria-label="Clear"
+          (click)="orderFilterControl.setValue('')">
+    <mat-icon>close</mat-icon>
+  </button>
+</mat-form-field>
+
+<ng-container *ngIf="infinite|async as orders">
+  <cdk-virtual-scroll-viewport class="orders-container"
+                               [itemSize]="itemHeight"
+                               (scrolledIndexChange)="nextBatch($event, orders.length-1)">
+
+    <mat-card *ngFor="let order of orders">
+      <mat-card-header>
+        <mat-card-title>
+          <span>Commande </span>
+          <span>
         <mat-icon style="transform: scaleX(-1)">format_quote</mat-icon>
-        {{order.title}}
-        <mat-icon>format_quote</mat-icon>
+            {{order.title}}
+            <mat-icon>format_quote</mat-icon>
       </span>
-      <span> du {{order.date_ordered | date}}</span>
-          </mat-card-title>
-    <mat-card-subtitle>
-      <div class="flex-row">
-        <gs2-icon-text [text]="order.statusAsReadableIconText.text"
-                       [matIconName]="order.statusAsReadableIconText.iconName"
-                       [fontColor]="order.statusAsReadableIconText.color"
-                       [fontSize]="16"></gs2-icon-text>
-        <span class="right-container">Montant total {{order.total_cost_currency}} {{order.total_cost}}</span>
-      </div>
-    </mat-card-subtitle>
-  </mat-card-header>
+          <span> du {{order.date_ordered | date}}</span>
+        </mat-card-title>
+        <mat-card-subtitle>
+          <div class="flex-row">
+            <gs2-icon-text [text]="order.statusAsReadableIconText.text"
+                           [matIconName]="order.statusAsReadableIconText.iconName"
+                           [fontColor]="order.statusAsReadableIconText.color"
+                           [fontSize]="16"></gs2-icon-text>
+            <span class="right-container">Montant total {{order.total_cost_currency}} {{order.total_cost}}</span>
+          </div>
+        </mat-card-subtitle>
+      </mat-card-header>
 
-  <mat-card-content>
-    <!-- Order items -->
-    <div class="order-item-wrapper">
-      <ng-container *ngFor="let orderItem of order.orderItems">
-        <div class="order-item-container flex-column" *ngIf="orderItem">
-          <span>{{orderItem.product.label}}</span>
-          <gs2-icon-text [text]="orderItem.statusAsReadableIconText.text"
-                         [matIconName]="orderItem.statusAsReadableIconText.iconName"
-                         [fontColor]="orderItem.statusAsReadableIconText.color"
-                         [fontSize]="16"></gs2-icon-text>
+      <mat-card-content>
+        <!-- Order items -->
+        <div class="order-item-wrapper">
+          <ng-container *ngFor="let orderItem of order.orderItems">
+            <div class="order-item-container flex-column" *ngIf="orderItem">
+              <span>{{orderItem.product.label}}</span>
+              <gs2-icon-text [text]="orderItem.statusAsReadableIconText.text"
+                             [matIconName]="orderItem.statusAsReadableIconText.iconName"
+                             [fontColor]="orderItem.statusAsReadableIconText.color"
+                             [fontSize]="16"></gs2-icon-text>
+            </div>
+          </ng-container>
         </div>
-      </ng-container>
-    </div>
 
-    <div class="mini-map" [id]="'mini-map-' + order.id"></div>
-  </mat-card-content>
+        <div class="mini-map" [id]="'mini-map-' + order.id"></div>
+      </mat-card-content>
 
-  <mat-card-actions>
-    <button mat-raised-button color="primary" *ngIf="order.status === 'PENDING'">Valider définitivement la commande</button>
-    <button mat-raised-button color="primary">Détails</button>
-  </mat-card-actions>
+      <mat-card-actions>
+        <button mat-raised-button color="primary" *ngIf="order.status === 'PENDING'">Valider définitivement la commande</button>
+        <button mat-raised-button color="primary">Détails</button>
+      </mat-card-actions>
 
-</mat-card>
-
+    </mat-card>
+  </cdk-virtual-scroll-viewport>
+</ng-container>
