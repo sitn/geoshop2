@@ -62,7 +62,7 @@ msgid "contract_accepted"
 msgstr "Date d'acceptation du contrat"
 
 msgid "identity"
-msgstr "Utilisateurs"
+msgstr "utilisateur"
 
 msgid "description_short"
 msgstr "description courte"

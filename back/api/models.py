@@ -1,6 +1,7 @@
 from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.search import SearchVectorField
+from django.contrib.postgres.indexes import GinIndex
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
 
@@ -48,7 +49,7 @@ class Identity(AbstractUser):
     postcode = models.CharField(_('postcode'), max_length=10, blank=True)
     city = models.CharField(_('city'), max_length=50, blank=True)
     country = models.CharField(_('country'), max_length=50, blank=True)
-    company_name = models.CharField(_('company_name'), max_length=50, blank=True)
+    company_name = models.CharField(_('company_name'), max_length=100, blank=True)
     phone = models.CharField(_('phone'), max_length=50, blank=True)
     sap_id = models.BigIntegerField(_('sap_id'), null=True)
     contract_accepted = models.DateField(_('contract_accepted'), null=True)
@@ -96,6 +97,8 @@ class Product(models.Model):
     class Meta:
         db_table = 'product'
         verbose_name = _('product')
+        # https://www.postgresql.org/docs/10/gin-intro.html
+        indexes = [GinIndex(fields=["ts"])]
 
 
     def __str__(self):
