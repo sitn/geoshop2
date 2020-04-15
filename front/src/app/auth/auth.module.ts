@@ -11,12 +11,14 @@ import { RegisterComponent } from './register/register.component';
 import { ForgetComponent } from './forget/forget.component';
 import {MatIconModule} from '@angular/material/icon';
 import { ResetComponent } from './reset/reset.component';
+import {MatStepperModule} from '@angular/material/stepper';
 
 const MODULES = [
   MatCardModule,
   MatInputModule,
   MatButtonModule,
-  MatIconModule
+  MatIconModule,
+  MatStepperModule
 ];
 
 @NgModule({

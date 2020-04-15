@@ -4,8 +4,9 @@ export interface ICredentials {
 }
 
 export interface IIdentity {
-  url: string;
-  password?: string;
+  url?: string;
+  password1?: string;
+  password2?: string;
   last_login?: Date;
   is_superuser?: boolean;
   username: string;

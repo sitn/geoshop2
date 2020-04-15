@@ -14,8 +14,8 @@
       </span>
     </div>
     <form [formGroup]="form" (ngSubmit)="onSubmit($event)">
-      <mat-form-field>
-        <input type="email" autocorrect="off" autocapitalize="off" spellcheck="off" id="email"
+      <mat-form-field color="accent">
+        <input type="email" autocapitalize="off" spellcheck="false" id="email"
                formControlName="email" required matInput placeholder="Courriel">
         <mat-error *ngIf="email?.hasError('required')">Requis</mat-error>
         <mat-error *ngIf="email?.hasError('pattern')">Courriel attendu</mat-error>

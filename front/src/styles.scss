@@ -81,6 +81,10 @@ ul {
   margin-left: auto;
 }
 
+.bottom-container {
+  margin-top: auto;
+}
+
 .basemap-button {
   &.mat-mini-fab {
     .mat-button-wrapper {
@@ -142,4 +146,28 @@ ul {
 
 #geocoder-container {
   background-color: #7b1fa2;
+}
+
+.notification-success {
+  &.mat-snack-bar-container {
+    background: #302f2f;
+    color: white;
+
+    .mat-button {
+      background: #69f0ae;
+      color: black;
+    }
+  }
+}
+
+.notification-error {
+  &.mat-snack-bar-container {
+    background: #302f2f;
+    color: white;
+
+    .mat-button {
+      background: palegoldenrod;
+      color: black;
+    }
+  }
 }

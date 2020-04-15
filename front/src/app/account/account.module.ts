@@ -37,7 +37,8 @@ const MODULES = [
   MatSortModule,
   MatDividerModule,
   MatAutocompleteModule,
-  ScrollingModule
+  ScrollingModule,
+  MatStepperModule
 ];
 
 @NgModule({

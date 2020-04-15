@@ -5,46 +5,199 @@
     <mat-card-subtitle>Créer un nouveau compte</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <mat-form-field color="accent">
-        <input formControlName="username"
-               autocorrect="off"
-               autocapitalize="off"
-               autofocus
-               spellcheck="off"
-               required
-               matInput
-               placeholder="Login">
-        <mat-error *ngIf="username?.hasError('required')">Required</mat-error>
-        <mat-error *ngIf="username?.hasError('duplicate')">Identifiant déjà pris</mat-error>
-      </mat-form-field>
 
-      <div class="passwords" formGroupName="passwords">
+    <mat-horizontal-stepper #stepper [linear]="true">
+      <mat-step [stepControl]="formCredentials" label="Identifiants">
+        <form [formGroup]="formCredentials" class="flex-column">
+          <mat-form-field color="accent">
+            <input formControlName="username"
+                   autocapitalize="off"
+                   autofocus
+                   spellcheck="false"
+                   required
+                   matInput
+                   placeholder="Login">
+            <mat-error *ngIf="username?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="username?.hasError('duplicate')">Identifiant déjà pris</mat-error>
+          </mat-form-field>
 
-        <mat-form-field color="accent">
-          <input formControlName="password" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="off"
-                 required matInput
-                 placeholder="Mot de passe" type="password">
-          <mat-error *ngIf="password?.hasError('required')">Required</mat-error>
-        </mat-form-field>
+          <div class="flex-column" formGroupName="passwords">
 
-        <mat-form-field color="accent">
-          <input formControlName="passwordConfirm" autocorrect="off" autocapitalize="off" autocomplete="off"
-                 spellcheck="off"
-                 required matInput
-                 placeholder="Confirmation du mot de passe" type="password">
-          <mat-error *ngIf="passwordConfirm?.hasError('required')">Required</mat-error>
-        </mat-form-field>
+            <mat-form-field color="accent">
+              <input formControlName="password"  autocapitalize="off" autocomplete="off"
+                     spellcheck="false"
+                     required matInput
+                     placeholder="Mot de passe" type="password">
+              <mat-error *ngIf="password?.hasError('required')">Required</mat-error>
+            </mat-form-field>
 
-        <mat-error *ngIf="passwords?.hasError('mismatch')">
-          Mot de passe différent
-        </mat-error>
-      </div>
+            <mat-form-field color="accent">
+              <input formControlName="passwordConfirm" autocapitalize="off" autocomplete="off"
+                     spellcheck="false"
+                     required matInput
+                     placeholder="Confirmation du mot de passe" type="password">
+              <mat-error *ngIf="passwordConfirm?.hasError('required')">Required</mat-error>
+            </mat-form-field>
 
-      <button class="form-login-button" color="accent" mat-raised-button type="submit" [disabled]="form.pristine || form.invalid">
-        Créer
-      </button>
-    </form>
+            <mat-error *ngIf="passwords?.hasError('mismatch')">
+              Mot de passe différent
+            </mat-error>
+          </div>
+        </form>
+
+        <div class="bottom-container">
+          <button color="accent" mat-button matStepperNext> Suivant</button>
+        </div>
+      </mat-step>
+
+      <mat-step [stepControl]="formContact" label="Identifiants">
+        <form [formGroup]="formContact" class="flex-column">
+          <mat-form-field color="accent">
+            <input formControlName="firstName"
+                   autocapitalize="off"
+                   autofocus
+                   spellcheck="false"
+                   required
+                   matInput
+                   placeholder="Prénom">
+            <mat-error *ngIf="firstName?.hasError('required')">Requis</mat-error>
+          </mat-form-field>
+
+          <mat-form-field color="accent">
+            <input formControlName="lastName"
+                   autocapitalize="off"
+                   autofocus
+                   spellcheck="false"
+                   required
+                   matInput
+                   placeholder="Nom">
+            <mat-error *ngIf="lastName?.hasError('required')">Requis</mat-error>
+          </mat-form-field>
+
+          <mat-form-field color="accent">
+            <input formControlName="email"
+                   autocapitalize="off"
+                   autofocus
+                   spellcheck="false"
+                   required
+                   matInput
+                   placeholder="Courriel">
+            <mat-error *ngIf="email?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="email?.hasError('email')">Format de courriel incorrect</mat-error>
+          </mat-form-field>
+
+          <mat-form-field color="accent">
+            <input formControlName="phone"
+                   autocapitalize="off"
+                   autofocus
+                   spellcheck="false"
+                   required
+                   matInput
+                   placeholder="Téléphone">
+            <mat-error *ngIf="phone?.hasError('required')">Requis</mat-error>
+          </mat-form-field>
+        </form>
+
+        <div class="bottom-container">
+          <button color="accent" mat-button matStepperPrevious> Retour</button>
+          <button color="accent" mat-button matStepperNext> Suivant</button>
+        </div>
+      </mat-step>
+
+      <mat-step [stepControl]="formAddress" label="Identifiants">
+        <form [formGroup]="formAddress" class="flex-column">
+          <mat-form-field color="accent">
+            <input formControlName="street"
+                   autocapitalize="off"
+                   autofocus
+                   spellcheck="false"
+                   required
+                   matInput
+                   placeholder="Adresse">
+            <mat-error *ngIf="street?.hasError('required')">Requis</mat-error>
+          </mat-form-field>
+
+          <mat-form-field color="accent">
+            <input formControlName="street2"
+                   autocapitalize="off"
+                   autofocus
+                   spellcheck="false"
+                   required
+                   matInput
+                   placeholder="Complément d'adresse">
+            <mat-error *ngIf="street2?.hasError('required')">Requis</mat-error>
+          </mat-form-field>
+
+          <mat-form-field color="accent">
+            <input formControlName="postcode"
+                   autocapitalize="off"
+                   autofocus
+                   spellcheck="false"
+                   required
+                   matInput
+                   placeholder="Code postal">
+            <mat-error *ngIf="postcode?.hasError('required')">Requis</mat-error>
+          </mat-form-field>
+
+          <mat-form-field color="accent">
+            <input formControlName="city"
+                   autocapitalize="off"
+                   autofocus
+                   spellcheck="false"
+                   required
+                   matInput
+                   placeholder="Ville">
+            <mat-error *ngIf="city?.hasError('required')">Requis</mat-error>
+          </mat-form-field>
+
+          <mat-form-field color="accent">
+            <input formControlName="country"
+                   autocapitalize="off"
+                   autofocus
+                   spellcheck="false"
+                   required
+                   matInput
+                   placeholder="Pays">
+            <mat-error *ngIf="country?.hasError('required')">Requis</mat-error>
+          </mat-form-field>
+        </form>
+
+        <div class="bottom-container">
+          <button color="accent" mat-button matStepperPrevious> Retour</button>
+          <button color="accent" mat-button matStepperNext> Suivant</button>
+        </div>
+      </mat-step>
+
+      <mat-step [stepControl]="formOthers" label="Identifiants">
+        <form [formGroup]="formOthers" class="flex-column">
+          <mat-form-field color="accent">
+            <input formControlName="companyName"
+                   autocapitalize="off"
+                   autofocus
+                   spellcheck="false"
+                   required
+                   matInput
+                   placeholder="Raison sociale">
+            <mat-error *ngIf="companyName?.hasError('required')">Requis</mat-error>
+          </mat-form-field>
+        </form>
+
+        <div class="bottom-container">
+          <button color="accent" mat-button matStepperPrevious> Retour</button>
+          <button mat-button (click)="stepper.reset()">Remettre à zéro</button>
+          <button class="form-login-button" color="accent" mat-button type="submit" (click)="submit()"
+                  [disabled]="
+                    formOthers.invalid || formOthers.pristine ||
+                    formAddress.invalid || formAddress.pristine ||
+                    formContact.invalid || formContact.pristine ||
+                    formCredentials.invalid || formCredentials.pristine
+                  "> Créer
+          </button>
+        </div>
+      </mat-step>
+
+    </mat-horizontal-stepper>
+
   </mat-card-content>
 </mat-card>
 

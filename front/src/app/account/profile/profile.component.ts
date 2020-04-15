@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, HostBinding, OnInit} from '@angular/core';
 import {ApiService} from '../../_services/api.service';
 
 @Component({
@@ -8,11 +8,14 @@ import {ApiService} from '../../_services/api.service';
 })
 export class ProfileComponent implements OnInit {
 
+  @HostBinding('class') class = 'main-container dark-background';
+
+  user$ = this.apiService.getProfile();
+
   constructor(private apiService: ApiService) {
   }
 
   ngOnInit(): void {
-    this.apiService.getProfile().subscribe(x => console.log(x));
   }
 
 }
