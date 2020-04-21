@@ -1,7 +1,9 @@
 foreach ($line in Get-Content $PSScriptRoot\..\back\.env) {
     $args = $line -split "="
-    $cmd = '$env:' + $args[0] + '="' + $args[1] + '"'
-    Invoke-Expression $cmd
+    If ($args[0]) {
+        $cmd = '$env:' + $args[0] + '="' + $args[1] + '"'
+        Invoke-Expression $cmd
+    }
 }
 
 $geoshop_password = $env:PGPASSWORD

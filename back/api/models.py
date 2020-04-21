@@ -13,6 +13,9 @@ class Copyright(models.Model):
         db_table = 'copyright'
         verbose_name = _('copyright')
 
+    def __str__(self):
+        return self.description
+
 
 class Document(models.Model):
     name = models.CharField(_('name'), max_length=80, blank=True)
@@ -22,6 +25,9 @@ class Document(models.Model):
         db_table = 'document'
         verbose_name = _('document')
 
+    def __str__(self):
+        return self.name
+
 
 class Format(models.Model):
     name = models.CharField(_('name'), max_length=30, blank=True)
@@ -29,6 +35,9 @@ class Format(models.Model):
     class Meta:
         db_table = 'format'
         verbose_name = _('format')
+
+    def __str__(self):
+        return self.name
 
 
 class OrderType(models.Model):
@@ -38,6 +47,9 @@ class OrderType(models.Model):
         db_table = 'order_type'
         verbose_name = _('order type')
         verbose_name_plural = _('order types')
+
+    def __str__(self):
+        return self.name
 
 
 class Identity(AbstractUser):
@@ -61,9 +73,9 @@ class Identity(AbstractUser):
 
 class Metadata(models.Model):
     """
-    Describes one or more Products.
+    Describes one or more Products. Every metadata can have one or more contact persons
     """
-    id_name = models.CharField(_('id_name'), max_length=50, blank=True)
+    id_name = models.CharField(_('id_name'), max_length=50, unique=True)
     name = models.CharField(_('name'), max_length=300, blank=True)
     description_short = models.CharField(_('description_short'), max_length=500, blank=True)
     description_long = models.TextField(_('description_long'), blank=True)
@@ -73,23 +85,66 @@ class Metadata(models.Model):
     image_link = models.CharField(_('image_link'), max_length=2000, blank=True)
     copyright = models.ForeignKey(Copyright, models.DO_NOTHING, verbose_name=_('copyright'), blank=True, null=True)
     documents = models.ManyToManyField(Document, verbose_name=_('documents'), blank=True)
-    contact_persons = models.ManyToManyField(Identity, verbose_name=_('contact_persons'), blank=True)
+    contact_persons = models.ManyToManyField(
+        Identity,
+        verbose_name=_('contact_persons'),
+        related_name='contact_persons',
+        through='MetadataContact')
+    modified_date = models.DateTimeField(auto_now=True)
+    modified_user = models.ForeignKey(
+        Identity,
+        models.DO_NOTHING,
+        verbose_name=_('modified_user'),
+        related_name='modified_user')
 
     class Meta:
         db_table = 'metadata'
         verbose_name = _('metadata')
 
+    def __str__(self):
+        return self.id_name
+
+
+class MetadataContact(models.Model):
+    """
+    Links Metadata with the persons to contact depending on the role they play for metadata.
+    """
+    metadata = models.ForeignKey(Metadata, models.DO_NOTHING, verbose_name=_('metadata'))
+    contact_person = models.ForeignKey(Identity, models.DO_NOTHING, verbose_name=_('contact_person'))
+    metadata_role = models.CharField(_('role'), max_length=150, blank=True)
+
+    class Meta:
+        db_table = 'metadata_contact_persons'
+        verbose_name = _('metadata_contact')
+
+    def __str__(self):
+        return '%s - %s (%s)' % (self.contact_person, self.metadata, self.metadata_role)
+    
+
 
 class Product(models.Model):
+    """
+    A product is mostly a table or a raster. It can also be a group of products.
+
+    Products with a PUBLISHED status are available in catalogue.
+    A product with a status PUBLISHED_ONLY_IN_GROUP cannot be found on
+    catalogue but can be ordered by the group he belongs to.
+
+    Example:
+    PFP3_categorie_1 and PFP3_categorie_2 have a PUBLISHED_ONLY_IN_GROUP status:
+    they cannot be found as is in the catalogue, but they belong to another
+    product (with group_id property): PFP3 that has a PUBLISHED status.
+    """
 
     class ProductStatus(models.TextChoices):
         DRAFT = 'DRAFT', _('Draft')
         PUBLISHED = 'PUBLISHED', _('Published')
+        PUBLISHED_ONLY_IN_GROUP = 'PUBLISHED_ONLY_IN_GROUP', _('Published only in group')
         DEPRECATED = 'DEPRECATED', _('Deprecated')
 
     metadata = models.ForeignKey(Metadata, models.DO_NOTHING, verbose_name=_('metadata'), blank=True, null=True)
     label = models.CharField(_('label'), max_length=250, blank=True)
-    status = models.CharField(_('status'), max_length=10, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
+    status = models.CharField(_('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     group = models.ForeignKey('self', models.DO_NOTHING, verbose_name=_('group'), null=True)
     order = models.BigIntegerField(_('order'), blank=True, null=True)
     ts = SearchVectorField(null=True)
@@ -127,8 +182,18 @@ class Order(models.Model):
     part_vat = MoneyField(_('part_vat'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
     geom = models.PolygonField(_('geom'), srid=2056)
     client = models.ForeignKey(Identity, models.DO_NOTHING, verbose_name=_('client'), blank=True)
-    order_contact = models.ForeignKey(Identity, models.DO_NOTHING, verbose_name=_('order_contact'), blank=True, related_name='order_contact', null=True)
-    invoice_contact = models.ForeignKey(Identity, models.DO_NOTHING, verbose_name=_('invoice_contact'), blank=True, related_name='invoice_contact', null=True)
+    order_contact = models.ForeignKey(
+        Identity,
+        models.DO_NOTHING,
+        verbose_name=_('order_contact'),
+        related_name='order_contact',
+        null=True)
+    invoice_contact = models.ForeignKey(
+        Identity,
+        models.DO_NOTHING,
+        verbose_name=_('invoice_contact'),
+        related_name='invoice_contact',
+        null=True)
     invoice_reference = models.CharField(_('invoice_reference'), max_length=255, blank=True)
     order_type = models.ForeignKey(OrderType, models.DO_NOTHING, verbose_name=_('order_type'), blank=True, null=True)
     status = models.CharField(_('status'), max_length=20, choices=OrderStatus.choices, default=OrderStatus.DRAFT)
