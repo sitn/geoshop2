@@ -11,13 +11,13 @@ from rest_framework.views import APIView
 from allauth.account.views import ConfirmEmailView
 
 from .models import (
-    Copyright, Document, Format, Identity, Metadata,
+    Copyright, Document, Format, Identity, Metadata, MetadataContact,
     Order, OrderItem, OrderType, Pricing, Product,
     ProductFormat)
 
 from .serializers import (
     CopyrightSerializer, DocumentSerializer, FormatSerializer,
-    IdentitySerializer, MetadataSerializer, OrderDigestSerializer,
+    IdentitySerializer, MetadataSerializer, MetadataContactSerializer, OrderDigestSerializer,
     OrderSerializer, OrderItemSerializer, OrderTypeSerializer,
     PasswordResetSerializer, PasswordResetConfirmSerializer,
     PricingSerializer, ProductSerializer,
@@ -88,6 +88,15 @@ class MetadataViewSet(viewsets.ModelViewSet):
     """
     queryset = Metadata.objects.all()
     serializer_class = MetadataSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class MetadataContactViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows MetadataContact to be viewed or edited.
+    """
+    queryset = MetadataContact.objects.all()
+    serializer_class = MetadataContactSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 

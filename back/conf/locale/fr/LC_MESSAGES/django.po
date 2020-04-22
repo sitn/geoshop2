@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-15 22:33+0100\n"
+"POT-Creation-Date: 2020-04-21 17:04+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,10 +17,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: .\urls.py:8
+#: .\urls.py:15
 msgid "GeoShop Administration"
 msgstr "Administration du GeoShop"
 
-#: .\urls.py:9
+#: .\urls.py:16
 msgid "GeoShop Admin"
 msgstr "Geoshop Admin"

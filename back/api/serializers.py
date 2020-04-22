@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
-from django.contrib.auth.models import User, Group
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import force_text
@@ -9,7 +8,7 @@ from django.utils.http import urlsafe_base64_decode
 
 from .models import (
     Copyright, Document, Format, Identity,
-    Metadata, Order, OrderItem, OrderType,
+    Metadata, MetadataContact, Order, OrderItem, OrderType,
     Pricing, Product, ProductFormat)
 
 from rest_framework import serializers
@@ -25,12 +24,6 @@ from allauth.utils import (
 
 # Get the UserModel
 UserModel = get_user_model()
-
-
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ['url', 'username', 'email', 'groups']
 
 
 class CopyrightSerializer(serializers.HyperlinkedModelSerializer):
@@ -63,10 +56,37 @@ class IdentitySerializer(serializers.ModelSerializer):
         exclude = ['password']
 
 
+class MetadataIdentitySerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Identity
+        fields = [
+            'first_name', 'last_name', 'email',
+            'phone', 'street', 'street2',
+            'company_name',
+            'postcode', 'city', 'country']
+
+
+class MetadataContactSerializer(serializers.HyperlinkedModelSerializer):
+    contact_person = MetadataIdentitySerializer(read_only=True)
+    class Meta:
+        model = MetadataContact
+        fields = [
+            'contact_person',
+            'metadata_role']
+
+
 class MetadataSerializer(serializers.HyperlinkedModelSerializer):
+    contact_persons = serializers.SerializerMethodField()
+    modified_user = serializers.StringRelatedField(read_only=True)
+
     class Meta:
         model = Metadata
         fields = '__all__'
+
+    def get_contact_persons(self, obj):
+        """obj is a Metadata instance. Returns list of dicts"""
+        qset = MetadataContact.objects.filter(metadata=obj)
+        return [MetadataContactSerializer(m).data for m in qset]
 
 
 class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):
