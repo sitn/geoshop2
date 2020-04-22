@@ -17,7 +17,8 @@ export class ResetComponent implements OnInit, OnDestroy {
 
   private onDestroy$ = new Subject<void>();
 
-  private resetToken: string;
+  private token: string;
+  private uid: string;
   private successMessage = 'Votre nouveau mot de passe a bien été pris en compte. Vous pouvez vous authentifier.';
 
   passwords = new FormGroup({
@@ -35,10 +36,11 @@ export class ResetComponent implements OnInit, OnDestroy {
 
   constructor(private apiService: ApiService, private snackBar: MatSnackBar,
               private router: Router, private route: ActivatedRoute) {
-    this.route.queryParams
+    this.route.params
       .pipe(takeUntil(this.onDestroy$))
       .subscribe(params => {
-        this.resetToken = params.token;
+        this.token = params.token;
+        this.uid = params.uid;
       });
   }
 
@@ -47,10 +49,19 @@ export class ResetComponent implements OnInit, OnDestroy {
 
   submit() {
     if (this.passwords.valid) {
-      this.apiService.resetPassword(this.resetToken, this.password?.value)
+      this.apiService.resetPassword(this.password?.value, this.passwordConfirm?.value, this.uid, this.token)
         .pipe(
           catchError(errorXhr => {
-            this.snackBar.open(errorXhr.error.error.message, 'Ok', {panelClass: 'notification-error'});
+            let message = '';
+            for (const attr in errorXhr.error) {
+              if (Array.isArray(errorXhr.error[attr])) {
+                message += errorXhr.error[attr].join('\n');
+              } else {
+                message += errorXhr.error[attr];
+              }
+            }
+
+            this.snackBar.open(message, 'Ok', {panelClass: 'notification-error'});
             return of(false);
           })
         )

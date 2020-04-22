@@ -1,27 +1,29 @@
 :host {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  height: calc(100vh - 64px);
+
+  .mat-card {
+    margin: 10px;
+    flex: 1;
+  }
+
   .card-header-image {
     background-size: cover;
     background-image: url("../../../assets/images/logo_ne.png");
   }
 
   form {
+    height: calc(100vh - 64px - 60px - 40px - 60px - 72px);
+  }
+
+  .bottom-container {
     display: flex;
-    flex-direction: column;
-    width: 300px;
+    justify-content: space-between;
 
-    .passwords {
-      width: 100%;
-
-      .mat-form-field {
-        width: 100%;
+    .mat-button {
+      &:only-child {
+        margin-left: auto;
       }
-    }
-
-    .form-login-button {
-      margin-top: 15px;
     }
   }
 }

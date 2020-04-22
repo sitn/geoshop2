@@ -1,30 +1,27 @@
 <img src="../../../../assets/images/logo_ne.png" alt="Logo Neuchâtel">
 
 <mat-card class="example-card">
-    <mat-card-header>
-        <div mat-card-avatar class="header-image" [style.backgroundImage]="'url(' + data.image_link + ')'"></div>
-        <mat-card-title>Métadonnée</mat-card-title>
-        <mat-card-subtitle>{{data.name}}</mat-card-subtitle>
-    </mat-card-header>
-    <img mat-card-image [src]="data.image_link" [alt]="data.name">
-    <mat-card-content>
-        <p *ngIf="!showLongDescription">
-            {{data.description_short}}
-            <button mat-button (click)="showLongDescription = true;">...voir plus</button>
-        </p>
-        <p *ngIf="showLongDescription">
-            {{data.description_long}}
-            <button mat-button (click)="showLongDescription = false;">voir moins</button>
-        </p>
-    </mat-card-content>
-    <mat-card-actions>
-        <a [href]="data.legend_link" target="_blank" mat-button>
-            Voir légende
-            <mat-icon>open_in_new</mat-icon>
-        </a>
-        <a [href]="data.geocat_link" target="_blank" mat-button>
-            Voir géocat
-            <mat-icon>open_in_new</mat-icon>
-        </a>
-    </mat-card-actions>
+  <mat-card-header>
+    <div mat-card-avatar class="header-image" [style.backgroundImage]="'url(' + data.image_link + ')'"></div>
+    <mat-card-title>Métadonnée</mat-card-title>
+    <mat-card-subtitle>{{data.name}}</mat-card-subtitle>
+  </mat-card-header>
+  <img mat-card-image [src]="data.image_link" [alt]="data.name">
+  <mat-card-content>
+    <p *ngIf="!showLongDescription">
+      {{data.description_short}}
+      <button mat-button (click)="showLongDescription = true;">...voir plus</button>
+    </p>
+    <p *ngIf="showLongDescription">
+      {{data.description_long}}
+      <img [src]="data.legend_link" alt="Légende">
+      <button mat-button (click)="showLongDescription = false;">voir moins</button>
+    </p>
+  </mat-card-content>
+  <mat-card-actions>
+    <a [href]="data.geocat_link" target="_blank" mat-button>
+      Voir géocat
+      <mat-icon>open_in_new</mat-icon>
+    </a>
+  </mat-card-actions>
 </mat-card>

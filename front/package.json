@@ -29,6 +29,7 @@
     "lodash-es": "^4.17.15",
     "ol": "^6.2.1",
     "ol-geocoder": "^4.0.0",
+    "proj4": "^2.6.1",
     "rxjs": "~6.5.4",
     "tslib": "^1.10.0",
     "zone.js": "~0.10.2"
@@ -43,6 +44,7 @@
     "@types/lodash-es": "^4.17.3",
     "@types/node": "^12.12.29",
     "@types/ol": "^6.1.0",
+    "@types/proj4": "^2.5.0",
     "codelyzer": "^5.1.2",
     "jasmine-core": "~3.5.0",
     "jasmine-spec-reporter": "~4.2.1",

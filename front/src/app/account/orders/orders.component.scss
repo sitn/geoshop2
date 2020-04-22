@@ -1,0 +1,80 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+
+  .filter-container {
+    padding: 5px 20px;
+    margin:  10px 10px 0 10px;
+    border-radius: 4px;
+    background-color: #7b1fa2;
+    display: block;
+    align-self: flex-start;
+    min-width: 30%;
+  }
+
+  .orders-container {
+    width: 100%;
+    height: 100%;
+    margin-top: 10px;
+  }
+
+  .mat-card {
+    &:first-child {
+      margin: 0 10px 10px 10px;
+    }
+    margin: 10px;
+
+    ::ng-deep .mat-card-header-text,
+    .mat-card-title,
+    .mat-card-subtitle {
+      width: 100%;
+    }
+
+    .mat-card-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap-reverse;
+    }
+
+    .order-item-wrapper {
+      overflow: auto;
+      min-width: 300px;
+      max-height: 300px;
+      flex: 1;
+      margin-right: 20px;
+    }
+
+    .order-item-container {
+      padding: 5px;
+      margin: 5px;
+      box-shadow: 0 2px 1px -1px rgba(255, 255, 255, 0.2), 0 1px 1px 0 rgba(255, 255, 255, 0.14), 0 1px 3px 0 rgba(255, 255, 255, 0.12);
+
+      &:nth-child(even) {
+        background-color: #444343;
+        color: white;
+      }
+
+      &:nth-child(odd) {
+        background-color: #302f2f;
+        color: white;
+      }
+    }
+
+    .mini-map {
+      width: 30%;
+      height: 250px;
+
+      @media (max-width: 527px) {
+        width: 100%;
+      }
+    }
+
+    .mat-card-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+  }
+}

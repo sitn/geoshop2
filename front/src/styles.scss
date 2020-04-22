@@ -37,12 +37,25 @@ ul {
   color: white;
 }
 
+.text-success {
+  color: palegreen;
+}
+
 .text-primary {
   color: #7b1fa2;
 }
 
 .text-accent {
   color: #69f0ae;
+}
+
+.text-error {
+  color: palevioletred;
+
+  &:visited,
+  &:focus {
+    color: palevioletred;
+  }
 }
 
 .text-ellipsis-2 {
@@ -53,6 +66,12 @@ ul {
   -webkit-line-clamp: 2; /* number of lines to show */
 }
 
+.small-icon-success {
+  font-size: 16px;
+  color: palegreen;
+  margin-right: 5px;
+}
+
 .main-container {
   width: 100%;
   height: calc(100vh - 64px);
@@ -60,6 +79,10 @@ ul {
 
 .right-container {
   margin-left: auto;
+}
+
+.bottom-container {
+  margin-top: auto;
 }
 
 .basemap-button {
@@ -119,4 +142,32 @@ ul {
 
 .justify-content-space-between {
   justify-content: space-between;
+}
+
+#geocoder-container {
+  background-color: #7b1fa2;
+}
+
+.notification-success {
+  &.mat-snack-bar-container {
+    background: #302f2f;
+    color: white;
+
+    .mat-button {
+      background: #69f0ae;
+      color: black;
+    }
+  }
+}
+
+.notification-error {
+  &.mat-snack-bar-container {
+    background: #302f2f;
+    color: white;
+
+    .mat-button {
+      background: palegoldenrod;
+      color: black;
+    }
+  }
 }

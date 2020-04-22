@@ -16,8 +16,13 @@ import {MatCardModule} from '@angular/material/card';
 import {MatTableModule} from '@angular/material/table';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatSortModule} from '@angular/material/sort';
+import {OrdersComponent} from './orders/orders.component';
+import {MatDividerModule} from '@angular/material/divider';
+import {SharedModule} from '../shared/shared.module';
+import { ProfileComponent } from './profile/profile.component';
+import {ScrollingModule} from '@angular/cdk/scrolling';
 
-const COMPONENTS = [
+const MODULES = [
   ReactiveFormsModule,
   MatStepperModule,
   MatButtonModule,
@@ -29,15 +34,20 @@ const COMPONENTS = [
   MatCardModule,
   MatTableModule,
   MatPaginatorModule,
-  MatSortModule
+  MatSortModule,
+  MatDividerModule,
+  MatAutocompleteModule,
+  ScrollingModule,
+  MatStepperModule
 ];
 
 @NgModule({
-  declarations: [AccountComponent, NewOrderComponent],
+  declarations: [AccountComponent, NewOrderComponent, OrdersComponent, ProfileComponent],
   imports: [
     CommonModule,
     AccountRoutingModule,
-    COMPONENTS,
+    MODULES,
+    SharedModule
   ]
 })
 export class AccountModule {

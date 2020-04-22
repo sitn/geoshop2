@@ -2,7 +2,8 @@ import {Component} from '@angular/core';
 import {AppState, selectProductTotal} from './_store';
 import {Store} from '@ngrx/store';
 import {NavigationEnd, Router} from '@angular/router';
-import {filter, map} from 'rxjs/operators';
+import {filter} from 'rxjs/operators';
+import {combineLatest} from 'rxjs';
 
 @Component({
   selector: 'gs2-root',
@@ -11,14 +12,27 @@ import {filter, map} from 'rxjs/operators';
 })
 export class AppComponent {
   title = 'front';
+  subTitle = '';
 
   numberOfItemInTheCart$ = this.store.select(selectProductTotal);
-  isNewOrderRoute$ = this.router.events.pipe(
-    filter(evt => evt instanceof NavigationEnd),
-    map((evt: NavigationEnd) => evt.url.indexOf('new-order') > -1)
-  );
 
   constructor(private store: Store<AppState>, private router: Router) {
+    const routerNavEnd$ = this.router.events.pipe(filter(x => x instanceof NavigationEnd));
 
+    combineLatest([routerNavEnd$, this.store.select(selectProductTotal)])
+      .subscribe((pair) => {
+        const navEnd = pair[0];
+        const numberOfItemInTheCart = pair[1];
+
+        if (navEnd instanceof NavigationEnd) {
+          if (navEnd.url.indexOf('orders') > -1) {
+            this.subTitle = `Mes commandes`;
+          } else if (navEnd.url.indexOf('new-order') > -1 && numberOfItemInTheCart > 0) {
+            this.subTitle = `Votre commande de ${numberOfItemInTheCart} produits`;
+          } else {
+            this.subTitle = '';
+          }
+        }
+      });
   }
 }

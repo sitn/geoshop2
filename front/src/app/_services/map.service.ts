@@ -1,12 +1,11 @@
 import {Injectable} from '@angular/core';
 import {ConfigService} from 'src/app/_services/config.service';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatSnackBar, MatSnackBarRef, SimpleSnackBar} from '@angular/material/snack-bar';
 
 // Openlayers imports
 import Map from 'ol/Map';
 import View from 'ol/View';
 import BaseLayer from 'ol/layer/Base';
-import XYZ from 'ol/source/XYZ';
 import TileLayer from 'ol/layer/Tile';
 import LayerGroup from 'ol/layer/Group';
 import ScaleLine from 'ol/control/ScaleLine';
@@ -18,30 +17,74 @@ import {Draw, Modify} from 'ol/interaction';
 import GeometryType from 'ol/geom/GeometryType';
 import {Feature} from 'ol';
 import Geolocation from 'ol/Geolocation';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, of} from 'rxjs';
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
 import Point from 'ol/geom/Point';
 import DragPan from 'ol/interaction/DragPan';
 import {GeoHelper} from '../_helpers/geoHelper';
-import Polygon from 'ol/geom/Polygon';
+import Polygon, {fromExtent} from 'ol/geom/Polygon';
+import WMTSCapabilities from 'ol/format/WMTSCapabilities';
+import WMTS, {optionsFromCapabilities} from 'ol/source/WMTS';
+import {register} from 'ol/proj/proj4';
+import proj4 from 'proj4';
+import {fromLonLat} from 'ol/proj';
+import {HttpClient} from '@angular/common/http';
+import {map} from 'rxjs/operators';
+import GeoJSON from 'ol/format/GeoJSON';
+import Projection from 'ol/proj/Projection';
+import {boundingExtent, buffer, Extent, getArea} from 'ol/extent';
+import MultiPoint from 'ol/geom/MultiPoint';
+import {IBasemap} from '../_models/IConfig';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MapService {
   private initialized = false;
+  private geoJsonFormatter = new GeoJSON();
+  private snackBarRef: MatSnackBarRef<SimpleSnackBar>;
 
-  private view: View;
   private map: Map;
   private basemapLayers: Array<BaseLayer> = [];
+  private capabilities: any;
 
   // Drawing
   private isDrawModeActivated = false;
   private drawingSource: VectorSource;
+  private geocoderSource: VectorSource;
   private drawingLayer: VectorLayer;
   private modifyInteraction: Modify;
   private drawInteraction: Draw;
   private featureFromDrawing: Feature;
+  public readonly drawingStyle = [
+    new Style({
+      stroke: new Stroke({
+        color: 'rgba(123,31,162,1)',
+        width: 3
+      }),
+      fill: new Fill({
+        color: 'rgba(123,31,162,0.1)'
+      })
+    }),
+    new Style({
+      image: new CircleStyle({
+        radius: 8,
+        fill: new Fill({
+          color: 'rgba(105,240,174,1)'
+        }),
+      }),
+      geometry: (feature) => {
+        // return the coordinates of the first ring of the polygon
+        const geo = feature.getGeometry();
+        if (geo && geo instanceof Polygon) {
+          const coordinates = geo.getCoordinates()[0];
+          return new MultiPoint(coordinates);
+        }
+
+        return geo;
+      }
+    })
+  ];
 
   // Map's interactions
   private dragInteraction: DragPan;
@@ -60,7 +103,12 @@ export class MapService {
     return this.configService.config.basemaps;
   }
 
-  constructor(private configService: ConfigService, private snackBar: MatSnackBar) {
+  public get FirstBaseMapLayer() {
+    return this.basemapLayers.length > 0 ? this.basemapLayers[0] : null;
+  }
+
+  constructor(private configService: ConfigService, private snackBar: MatSnackBar,
+              private httpClient: HttpClient) {
   }
 
   public initialize() {
@@ -70,7 +118,16 @@ export class MapService {
       // @ts-ignore
       this.map = null;
     }
-    this.initializeMap();
+    this.initializeMap().then(() => {
+
+      this.initializeDrawing();
+      this.initializeGeolocation();
+      this.initializeDragInteraction();
+
+      this.initialized = true;
+    }).catch(() => {
+      this.initialized = true;
+    });
   }
 
   public toggleDrawing() {
@@ -84,6 +141,11 @@ export class MapService {
     if (this.featureFromDrawing) {
       this.drawingSource.removeFeature(this.featureFromDrawing);
     }
+    this.geocoderSource.clear();
+
+    if (this.snackBarRef) {
+      this.snackBarRef.dismiss();
+    }
   }
 
   public toggleTracking() {
@@ -92,7 +154,7 @@ export class MapService {
     this.geolocation.setTracking(this.isTracking);
   }
 
-  public switchBaseMap(gsId: number) {
+  public switchBaseMap(gsId: string) {
 
     this.map.getLayers().forEach((layerGroup) => {
       if (layerGroup instanceof LayerGroup) {
@@ -120,70 +182,141 @@ export class MapService {
     this.map.updateSize();
   }
 
-  private initializeMap() {
-    this.initializeView();
+  public async createTileLayer(baseMapConfig: IBasemap, isVisible: boolean): Promise<TileLayer> {
+    if (!this.capabilities) {
+      await this.loadCapabilities();
+    }
 
-    const layers: any[] = [];
-    this.generateBasemapLayersFromConfig(layers);
+    const options = optionsFromCapabilities(this.capabilities, {
+      layer: baseMapConfig.id,
+      matrixSet: baseMapConfig.matrixSet,
+    });
+    const source = new WMTS(options);
+    const tileLayer = new TileLayer({
+      source,
+      visible: isVisible,
+    });
+    tileLayer.set('gsId', baseMapConfig.id);
+    tileLayer.set('label', baseMapConfig.label);
+    tileLayer.set('thumbnail', baseMapConfig.thumbUrl);
+
+    return tileLayer;
+  }
+
+  private async loadCapabilities() {
+    if (!this.capabilities) {
+      const response = await fetch(this.configService.config.baseMapCapabilitiesUrl);
+      const parser = new WMTSCapabilities();
+      this.capabilities = parser.read(await response.text());
+    }
+  }
+
+  public geocoderSearch(inputText: string) {
+    if (!inputText || inputText.length === 0 || typeof inputText !== 'string') {
+      return of([]);
+    }
+    const url = new URL(this.configService.config.geocoderUrl);
+    url.searchParams.append('limit', '20');
+    url.searchParams.append('query', inputText);
+    return this.httpClient.get(url.toString()).pipe(
+      map(featureCollection => this.geoJsonFormatter.readFeatures(featureCollection))
+    );
+  }
+
+  public addFeatureFromGeocoderToDrawing(feature: Feature) {
+    this.geocoderSource.clear();
+    this.geocoderSource.addFeature(feature.clone());
+
+    let bufferExtent: Extent;
+    const geometry = feature.getGeometry();
+    if (geometry instanceof Point) {
+      const text = boundingExtent([geometry.getCoordinates()]);
+      const bv = 50;
+      bufferExtent = buffer(text, bv);
+    } else {
+      const originalExtent = feature.getGeometry().getExtent();
+      const area = getArea(originalExtent);
+      const bufferValue = area * 0.001;
+      bufferExtent = buffer(originalExtent, bufferValue);
+    }
+
+    const poly = fromExtent(bufferExtent);
+    feature.setGeometry(poly);
+    this.drawingSource.addFeature(feature);
+    this.modifyInteraction.setActive(true);
+
+    this.map.getView().fit(poly, {
+      padding: [100, 100, 100, 100]
+    });
+  }
+
+  private async initializeMap() {
+    proj4.defs(this.configService.config.epsg,
+      '+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333'
+      + ' +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel '
+      + '+towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs');
+    register(proj4);
+
+    const projection = new Projection({
+      code: this.configService.config.epsg,
+      // @ts-ignore
+      extent: this.configService.config.initialExtent,
+    });
+
+    const baseLayers = await this.generateBasemapLayersFromConfig();
+    const view = new View({
+      projection,
+      center: fromLonLat([6.80, 47.05], projection),
+      zoom: 4,
+    });
 
     // Create the map
     this.map = new Map({
       target: 'map',
-      view: this.view,
-      layers,
+      view,
+      layers: new LayerGroup({
+        layers: baseLayers
+      }),
       controls: [
         new ScaleLine({
           target: 'ol-scaleline',
-          className: 'my-scale-line'
+          className: 'my-scale-line',
+          units: 'metric',
         })
       ]
     });
+
     this.map.on('rendercomplete', () => this.map_renderCompleteExecuted);
     this.map.on('change', () => this.isMapLoading$.next(true));
-
-    this.initializeGeocoder();
-    this.initializeDrawing();
-    this.initializeGeolocation();
-    this.initializeDragInteraction();
-
-    this.initialized = true;
   }
 
-  private initializeView() {
-    this.view = new View({
-      center: [771815.10, 5942074.07],
-      zoom: 10,
-    });
-  }
+  /* Base Map Managment */
+  public async generateBasemapLayersFromConfig() {
+    let isVisible = true;  // -> display the first one
 
-  private initializeGeocoder() {
-    const geocoder = new Geocoder('nominatim', {
-      provider: 'osm',
-      lang: 'fr-CH',
-      placeholder: 'Rechercher une commune, etc.',
-      targetType: 'text-input',
-      limit: 5,
-      keepOpen: false,
-      autoComplete: true,
-      autoCompleteMinLength: 3,
-      preventDefault: true
-    });
-    geocoder.on('addresschosen', (event: any) => {
-      const resolutionForZoom = this.view.getResolutionForZoom(0);
-      const extent: any = [
-        event.coordinate[0] - (0.1 * resolutionForZoom),
-        event.coordinate[1] - (0.1 * resolutionForZoom),
-        event.coordinate[0] + (0.1 * resolutionForZoom),
-        event.coordinate[1] + (0.1 * resolutionForZoom),
-      ];
-      this.view.fit(extent);
-    });
-    this.map.addControl(geocoder);
+    try {
+      for (const baseMapConfig of this.configService.config.basemaps) {
+        const tileLayer = await this.createTileLayer(baseMapConfig, isVisible);
+        this.basemapLayers.push(tileLayer);
+        isVisible = false;
+      }
+    } catch (error) {
+      console.error(error);
+      this.snackBarRef = this.snackBar.open('Impossible de charger les fonds de plans.', 'Ok', {
+        duration: 10000,
+        panelClass: 'primary-container'
+      });
+    }
+
+    return this.basemapLayers;
   }
 
   private initializeDrawing() {
     this.drawingSource = new VectorSource({
       useSpatialIndex: false,
+    });
+    this.geocoderSource = new VectorSource({
+      useSpatialIndex: false
     });
     if (this.featureFromDrawing) {
       this.drawingSource.addFeature(this.featureFromDrawing);
@@ -193,11 +326,30 @@ export class MapService {
       this.featureFromDrawing = evt.feature;
       this.drawInteraction.setActive(false);
       this.setAreaToCurrentFeature();
+
+      console.log(this.geoJsonFormatter.writeGeometry(this.featureFromDrawing.getGeometry()));
     });
     this.drawingLayer = new VectorLayer({
-      source: this.drawingSource
+      source: this.drawingSource,
+      style: this.drawingStyle
     });
 
+    const geocoderLayer = new VectorLayer({
+      source: this.geocoderSource,
+      style: [
+        new Style({
+          stroke: new Stroke({width: 2, color: 'rgba(255, 235, 59, 1)'}),
+          fill: new Fill({color: 'rgba(255, 235, 59, 0.85)'})
+        }),
+        new Style({
+          image: new CircleStyle({
+            radius: 20,
+            fill: new Fill({color: 'rgba(255, 235, 59, 1)'})
+          })
+        })
+      ]
+    });
+    this.map.addLayer(geocoderLayer);
     this.map.addLayer(this.drawingLayer);
 
     this.modifyInteraction = new Modify({
@@ -252,7 +404,7 @@ export class MapService {
   }
 
   private displayAreaMessage(area: string) {
-    this.snackBar.open(`L'aire du polygone sélectionné est de ${area}`, 'Cancel', {
+    this.snackBarRef = this.snackBar.open(`L'aire du polygone sélectionné est de ${area}`, 'Cancel', {
       duration: 10000,
       panelClass: 'primary-container'
     });
@@ -298,14 +450,14 @@ export class MapService {
       trackingOptions: {
         enableHighAccuracy: true
       },
-      projection: this.view.getProjection()
+      projection: this.map.getView().getProjection()
     });
     this.geolocation.on('change:position', () => {
       const firstLoad = this.positionFeature.getGeometry() == null;
       const coordinates = this.geolocation.getPosition();
       this.positionFeature.setGeometry(coordinates ? new Point(coordinates) : undefined);
       if (firstLoad) {
-        this.view.animate(
+        this.map.getView().animate(
           {zoom: 10},
           {center: coordinates},
           {duration: 200}
@@ -321,44 +473,12 @@ export class MapService {
       }
     });
     this.geolocation.on('error', (error: Error) => {
-      this.snackBar.open(error.message, 'Fermer');
+      this.snackBarRef = this.snackBar.open(error.message, 'Fermer');
       this.isMapLoading$.next(false);
     });
   }
 
   private map_renderCompleteExecuted() {
     this.isMapLoading$.next(false);
-  }
-
-  /* Base Map Managment */
-  private generateBasemapLayersFromConfig(layers: Array<BaseLayer>) {
-
-    let isVisible = true;  // -> display the first one
-
-    for (const basemap of this.configService.config.basemaps) {
-      if (basemap.url && basemap.gisServiceType === 'xyz') {
-
-        const baseMapXYZ = {url: basemap.url};
-
-        const xyzSource = new XYZ(baseMapXYZ);
-        const tileLayer = new TileLayer({
-          source: xyzSource,
-          visible: isVisible,
-        });
-
-        tileLayer.set('gsId', basemap.id);
-        tileLayer.set('label', basemap.label);
-        tileLayer.set('thumbnail', basemap.thumbUrl);
-
-        this.basemapLayers.push(tileLayer);
-        isVisible = false;
-      }
-    }
-
-    const layerGroup = new LayerGroup({
-      layers: this.basemapLayers,
-    });
-
-    layers.push(layerGroup);
   }
 }

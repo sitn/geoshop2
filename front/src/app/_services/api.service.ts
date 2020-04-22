@@ -2,11 +2,11 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {IProduct} from '../_models/IProduct';
 import {ConfigService} from './config.service';
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {IApiResponse} from '../_models/IApi';
 import {ICredentials, IIdentity} from '../_models/IIdentity';
-import {IOrderType} from '../_models/IOrder';
-import {map} from 'rxjs/operators';
+import {IOrder, IOrderType} from '../_models/IOrder';
+import {catchError, map, switchMap} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +23,7 @@ export class ApiService {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    const url = new URL(`${this.apiUrl}/product`);
+    const url = new URL(`${this.apiUrl}/product/`);
     if (limit) {
       url.searchParams.append('limit', limit.toString());
     }
@@ -39,7 +39,7 @@ export class ApiService {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    const url = new URL(`${this.apiUrl}/ordertype`);
+    const url = new URL(`${this.apiUrl}/ordertype/`);
 
     return this.http.get<IApiResponse<IOrderType>>(url.toString())
       .pipe(
@@ -48,9 +48,45 @@ export class ApiService {
   }
 
   getCustomers(userId: string = 'https://sitn.ne.ch/geoshop2_dev/identity/3') {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
     return this.http.get<IIdentity[]>(userId).pipe(
       map(x => Array.isArray(x) ? x : [x])
     );
+  }
+
+  getOrders(offset?: number, limit?: number): Observable<IApiResponse<IOrder>> {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    const url = new URL(`${this.apiUrl}/order/`);
+    if (limit) {
+      url.searchParams.append('limit', limit.toString());
+    }
+    if (offset) {
+      url.searchParams.append('offset', offset.toString());
+    }
+
+    return this.http.get<IApiResponse<IOrder>>(url.toString());
+  }
+
+  getOrder(url: string): Observable<IOrder> {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    return this.http.get<IOrder>(url);
+  }
+
+  getOrderType(url: string): Observable<IOrderType> {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    return this.http.get<IOrderType>(url);
   }
 
   login(authenticate: ICredentials, callbackUrl: string): Observable<{ identity: Partial<IIdentity>; callbackUrl: string; }> {
@@ -62,49 +98,75 @@ export class ApiService {
 
     return this.http.post<{ access: string; refresh: string; }>(url.toString(), authenticate)
       .pipe(
+        switchMap(x => {
+          return this.getProfile(x.access).pipe(map(p => Object.assign({token: x.access}, p)));
+        }),
         map(x => {
-          const identity: Partial<IIdentity> = {
-            token: x.access,
-            username: 'sub',
-            first_name: 'Super',
-            last_name: 'Bouchon',
-          };
-
           return {
-            identity,
+            identity: x,
             callbackUrl
           };
         })
       );
   }
 
-  getProfile() {
-    const user: IIdentity = {
-      username: 'test',
-      first_name: 'Marc',
-      last_name: 'Milard',
-      url: 'test'
+  getProfile(token?: string) {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    const headers = {
+      Authorization: `Bearer ${token}`
     };
 
-    return new Observable<{ identity: IIdentity }>(subscriber => {
-      setTimeout(() => {
-        subscriber.next({
-          identity: user,
-        });
-        subscriber.complete();
-      }, 2000);
-    });
+    return token ?
+      this.http.get<IIdentity>(this.apiUrl + '/auth/current/', {headers}) :
+      this.http.get<IIdentity>(this.apiUrl + '/auth/current/');
+  }
+
+  register(user: IIdentity) {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    return this.http.post(this.apiUrl + '/auth/register/', user);
+  }
+
+  verifyToken(token: string): Observable<boolean> {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    return this.http.post<{ detail: string; code: string; }>(this.apiUrl + `/token/verify/`, {token})
+      .pipe(
+        map(x => x && x.code == null),
+        catchError(() => of(false))
+      );
   }
 
   checkLoginNotTaken(login: string): Observable<{ result: boolean }> {
-    return this.http.post<{ result: boolean }>(this.apiUrl + `/user/existsLogin`, {login});
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+    return this.http.post<{ result: boolean }>(this.apiUrl + `/user/existsLogin/`, {login});
   }
 
   forget(email: string) {
-    return this.http.post<{ result: boolean }>(this.apiUrl + '/user/forget', {email});
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+    return this.http.post<{ result: boolean }>(this.apiUrl + '/auth/password/', {email});
   }
 
-  resetPassword(passwordToken: string, password: string) {
-    return this.http.post(this.apiUrl + '/user/reset', {password, passwordToken});
+  resetPassword(password1: string, password2: string, uid: string, token: string) {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+    return this.http.post(this.apiUrl + '/auth/password/confirm', {
+      new_password1: password1,
+      new_password2: password2,
+      uid,
+      token
+    });
   }
 }
