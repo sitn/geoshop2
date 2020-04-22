@@ -1,12 +1,10 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
 from django.utils.translation import gettext_lazy as _
 
-from rest_framework import viewsets, permissions, status, routers
-from rest_framework.generics import GenericAPIView, CreateAPIView, RetrieveAPIView
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework import viewsets, permissions, status
+from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -23,8 +21,10 @@ from .serializers import (
     OrderSerializer, OrderItemSerializer, OrderTypeSerializer,
     PasswordResetSerializer, PasswordResetConfirmSerializer,
     PricingSerializer, ProductSerializer,
-    ProductFormatSerializer, UserSerializer, RegisterSerializer,
+    ProductFormatSerializer, RegisterSerializer,
     VerifyEmailSerializer)
+
+from .filters import FullTextSearchFilter
 
 from .permissions import IsOwner
 
@@ -200,10 +200,14 @@ class ProductFormatViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows Product to be viewed or edited.
+    
+    You can search a product with `?search=` param.
     """
     queryset = Product.objects.all()
+    filter_backends = (FullTextSearchFilter,)
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    ts_field = 'ts'
 
 
 class RegisterView(CreateAPIView):

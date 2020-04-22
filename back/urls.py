@@ -39,7 +39,7 @@ router.register_additional_route_to_root('auth/register', 'auth_register')
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
     # this url is used to generate email content
-    re_path(r'^auth/password/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+    re_path(r'^auth/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
             TemplateView.as_view(),
             name='password_reset_confirm'),
     path('auth/current/', views.CurrentUserView.as_view(), name='auth_current_user'),
