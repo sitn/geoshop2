@@ -1,6 +1,6 @@
 foreach ($line in Get-Content $PSScriptRoot\..\back\.env) {
     $args = $line -split "="
-    If ($args[0]) {
+    If ($args[0] -And !$args[0].StartsWith("#")) {
         $cmd = '$env:' + $args[0] + '="' + $args[1] + '"'
         Invoke-Expression $cmd
     }
