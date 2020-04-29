@@ -57,3 +57,9 @@ class AuthViewsTests(APITestCase):
         response = self.client.get(reverse('auth_current_user'), data={'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertEqual(response.data['username'], self.username, 'Gets his username')
+
+
+class PricingTests(APITestCase):
+    """
+    Test Pricings
+    """

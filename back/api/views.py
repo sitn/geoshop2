@@ -188,15 +188,6 @@ class PasswordResetConfirmView(GenericAPIView):
         )
 
 
-class PricingViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows Pricing to be viewed or edited.
-    """
-    queryset = Pricing.objects.all()
-    serializer_class = PricingSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-
 class ProductFormatViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows ProductFormat to be viewed or edited.

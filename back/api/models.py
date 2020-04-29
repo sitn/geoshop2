@@ -4,6 +4,7 @@ from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
+from .pricing import ProductPriceCalculator
 
 
 class Copyright(models.Model):
@@ -119,7 +120,61 @@ class MetadataContact(models.Model):
 
     def __str__(self):
         return '%s - %s (%s)' % (self.contact_person, self.metadata, self.metadata_role)
-    
+
+
+class PricingArea(models.Model):
+    """
+    Areas defining prices must be grouped by name.
+    """
+    name = models.CharField(_('name'), max_length=300, blank=True)
+    unit_price = MoneyField(_('price'), max_digits=14, decimal_places=2, default_currency='CHF')
+    geom = models.MultiPolygonField(_('geom'), srid=2056)
+
+    class Meta:
+        db_table = 'pricing_layer'
+        verbose_name = _('pricing_layer')
+
+    def __str__(self):
+        return self.name
+
+
+class Pricing(models.Model):
+    """
+    Pricing for free products, single tax products or area priced products.
+    For free products, set base_fee and unit_price both to 0.
+    For unique price set base_fee to desired amount and unit_price to 0.
+    For price based on area, provide unit_price
+    For price base on a PricingArea, create the princing layer and link it to pricing_layer field.
+    """
+    class PricingType(models.TextChoices):
+        FREE = 'FREE', _('Free')
+        SINGLE = 'SINGLE', _('Single')
+        BY_AREA = 'BY_AREA', _('By area')
+        FROM_PRICING_LAYER = 'FROM_PRICING_LAYER', _('From a pricing layer')
+        MANUAL = 'MANUAL', _('Manual')
+
+    pricing_type = models.CharField(_('pricing_type'), max_length=30, choices=PricingType.choices)
+    base_fee = MoneyField(_('base_fee'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
+    min_price = MoneyField(_('min_price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
+    max_price = MoneyField(_('max_price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
+    unit_price = MoneyField(_('unit_price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
+
+
+    def get_price(self, polygon):
+        """
+        Returns the price of a product given a polygon
+        """
+        price = ProductPriceCalculator.get_price(
+            self.pricing_type, poylgon=polygon, unit_price=self.unit_price)
+
+        if price is None:
+            raise ValueError("Price has not been calculated")
+
+        if price < self.min_price:
+            return self.min_price
+        if price > self.max_price:
+            return self.max_price
+        return price
 
 
 class Product(models.Model):
@@ -146,6 +201,7 @@ class Product(models.Model):
     label = models.CharField(_('label'), max_length=250, blank=True)
     status = models.CharField(_('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     group = models.ForeignKey('self', models.DO_NOTHING, verbose_name=_('group'), null=True)
+    pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'), null=True)
     order = models.BigIntegerField(_('order'), blank=True, null=True)
     ts = SearchVectorField(null=True)
 
@@ -218,17 +274,6 @@ class OrderItem(models.Model):
     class Meta:
         db_table = 'order_item'
         verbose_name = _('order_item')
-
-
-class Pricing(models.Model):
-    product = models.ForeignKey(Product, models.DO_NOTHING, verbose_name=_('product'), blank=True, null=True)
-    price_type = models.CharField(_('price_type'), max_length=50, blank=True)
-    base_fee = MoneyField(_('base_fee'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
-    price = MoneyField(_('price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
-
-    class Meta:
-        db_table = 'pricing'
-        verbose_name = _('pricing')
 
 
 class ProductField(models.Model):
