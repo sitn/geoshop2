@@ -7,6 +7,7 @@ import {IApiResponse} from '../_models/IApi';
 import {ICredentials, IIdentity} from '../_models/IIdentity';
 import {IOrder, IOrderType} from '../_models/IOrder';
 import {catchError, map, switchMap} from 'rxjs/operators';
+import {IMetadata} from '../_models/IMetadata';
 
 @Injectable({
   providedIn: 'root'
@@ -16,6 +17,17 @@ export class ApiService {
   private apiUrl: string;
 
   constructor(private http: HttpClient, private configService: ConfigService) {
+  }
+
+  findProducts(textInput: string) {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    const url = new URL(`${this.apiUrl}/product/`);
+    url.searchParams.append('search', textInput);
+
+    return this.http.get<IApiResponse<IProduct>>(url.toString());
   }
 
   getProducts(offset?: number, limit?: number): Observable<IApiResponse<IProduct>> {
@@ -32,6 +44,15 @@ export class ApiService {
     }
 
     return this.http.get<IApiResponse<IProduct>>(url.toString());
+  }
+
+  loadMetadata(urlAsString: string): Observable<IMetadata | null> {
+    try {
+      const url = new URL(urlAsString);
+      return this.http.get<IMetadata>(url.toString());
+    } catch {
+      return of(null);
+    }
   }
 
   getOrderTypes() {

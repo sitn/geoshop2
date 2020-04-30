@@ -2,25 +2,23 @@
 
 <mat-card class="example-card">
   <mat-card-header>
-    <div mat-card-avatar class="header-image" [style.backgroundImage]="'url(' + data.image_link + ')'"></div>
+    <div mat-card-avatar class="header-image" *ngIf="data.image_link.indexOf('http') > -1"
+         [style.backgroundImage]="'url(' + data.image_link + ')'"></div>
     <mat-card-title>Métadonnée</mat-card-title>
     <mat-card-subtitle>{{data.name}}</mat-card-subtitle>
   </mat-card-header>
-  <img mat-card-image [src]="data.image_link" [alt]="data.name">
+  <img mat-card-image *ngIf="data.image_link.indexOf('http') > -1" [src]="data.image_link" [alt]="data.name">
   <mat-card-content>
-    <p *ngIf="!showLongDescription">
-      {{data.description_short}}
-      <button mat-button (click)="showLongDescription = true;">...voir plus</button>
-    </p>
-    <p *ngIf="showLongDescription">
-      {{data.description_long}}
-      <img [src]="data.legend_link" alt="Légende">
-      <button mat-button (click)="showLongDescription = false;">voir moins</button>
-    </p>
+    <p>{{data.description_short}}</p>
+    <p class="long-description" [style]="showLongDescription ? 'max-height:80vh;' : 'max-height:0;'">
+      {{data.description_long}}</p>
   </mat-card-content>
   <mat-card-actions>
-    <a [href]="data.geocat_link" target="_blank" mat-button>
-      Voir géocat
+    <button *ngIf="data.description_long" mat-button (click)="showLongDescription = !showLongDescription">
+      Voir {{showLongDescription ? 'moins' : 'plus'}}
+    </button>
+    <a *ngIf="data.geocat_link.indexOf('http') > -1" [href]="data.geocat_link" target="_blank" mat-button>
+      Ouvrir géocat
       <mat-icon>open_in_new</mat-icon>
     </a>
   </mat-card-actions>

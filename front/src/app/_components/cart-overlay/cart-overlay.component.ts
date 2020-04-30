@@ -5,6 +5,8 @@ import * as fromCart from '../../_store/cart/cart.action';
 import {Product} from '../../_models/IProduct';
 import {DialogMetadataComponent} from '../../welcome/catalog/dialog-metadata/dialog-metadata.component';
 import {MatDialog} from '@angular/material/dialog';
+import {ApiService} from '../../_services/api.service';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'gs2-cart-overlay',
@@ -17,7 +19,11 @@ export class CartOverlayComponent implements OnInit {
   products$ = this.store.select(selectAllProducts);
   isUserLoggedIn$ = this.store.select(isLoggedIn);
 
-  constructor(private store: Store<AppState>, private dialog: MatDialog) {
+  constructor(private store: Store<AppState>,
+              private dialog: MatDialog,
+              private apiService: ApiService,
+              private snackBar: MatSnackBar
+  ) {
   }
 
   ngOnInit(): void {
@@ -32,9 +38,24 @@ export class CartOverlayComponent implements OnInit {
   }
 
   openMetadata(product: Product) {
-    this.dialog.open(DialogMetadataComponent, {
-      width: '500px',
-      data: product.metadata
-    });
+    if (product.metadataObject) {
+      this.dialog.open(DialogMetadataComponent, {
+        width: '500px',
+        data: product.metadataObject
+      });
+    } else {
+      this.apiService.loadMetadata(product.metadata)
+        .subscribe(result => {
+          if (result) {
+            product.metadataObject = result;
+            this.dialog.open(DialogMetadataComponent, {
+              width: '60%',
+              data: product.metadataObject
+            });
+          } else {
+            this.snackBar.open('Métadonnée indisponible pour le moment.', 'Fermer', {duration: 3000});
+          }
+        });
+    }
   }
 }

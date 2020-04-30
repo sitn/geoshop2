@@ -2,4 +2,9 @@
   .header-image {
     background-size: cover;
   }
+
+  .long-description {
+    overflow: hidden;
+    transition: max-height ease 500ms;
+  }
 }
