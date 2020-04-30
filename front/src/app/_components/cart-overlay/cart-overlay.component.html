@@ -1,20 +1,16 @@
 <div class="flex-column items-container" *ngFor="let product of products$|async">
   <div class="flex-row padding-horizontal-15 justify-content-space-between">
-    <span class="text-ellipsis-2">{{product.label}}</span>
-    <button mat-icon-button (click)="removeProduct(product.url)">
+    <span class="text-ellipsis-2" [matTooltip]="product.label">{{product.label}}</span>
+
+    <button mat-icon-button (click)="openMetadata(product)">
+      <mat-icon>description</mat-icon>
+    </button>
+    <button mat-icon-button color="accent" (click)="removeProduct(product.url)">
       <mat-icon>delete</mat-icon>
     </button>
   </div>
-  <button mat-button color="accent" (click)="openMetadata(product)">
-    Voir le produit
-  </button>
 
   <mat-divider></mat-divider>
-</div>
-
-<div class="flex-row padding-horizontal-15 justify-content-space-between total-container">
-  <span>Total</span>
-  <span>{{total$|async | currency}}</span>
 </div>
 
 <button mat-raised-button color="accent" class="trash-container" (click)="emptyCart()">

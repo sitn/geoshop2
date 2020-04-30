@@ -28,6 +28,9 @@ const cartReducer = createReducer(initialState,
   on(CartActions.addProduct, (state, {product}) => {
     return adapter.addOne(product, {...state, total: state.total + 10});
   }),
+  on(CartActions.updateProduct, (state, {product}) => {
+    return adapter.updateOne(product, state);
+  }),
   on(CartActions.removeProduct, (state, {id}) => {
     return adapter.removeOne(id, {...state, total: state.total - 10});
   }),

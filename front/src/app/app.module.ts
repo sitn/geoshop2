@@ -24,6 +24,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {ErrorInterceptor} from './_interceptors/errorInterceptor';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 export function initializeApp(configService: ConfigService) {
   return () => configService.load();
@@ -38,7 +39,8 @@ const MODULES = [
   MatToolbarModule,
   MatButtonModule,
   MatDialogModule,
-  MatSnackBarModule
+  MatSnackBarModule,
+  MatTooltipModule
 ];
 
 @NgModule({
