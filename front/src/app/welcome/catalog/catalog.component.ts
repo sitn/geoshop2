@@ -32,7 +32,8 @@ export class CatalogComponent implements OnInit {
   // Filtering
   catalogInputControl = new FormControl('');
 
-  constructor(private apiService: ApiService, public dialog: MatDialog,
+  constructor(private apiService: ApiService,
+              public dialog: MatDialog,
               private store: Store<AppState>,
               private elRef: ElementRef,
               private snackBar: MatSnackBar) {
@@ -129,7 +130,9 @@ export class CatalogComponent implements OnInit {
           product.metadataObject = result;
           this.dialog.open(DialogMetadataComponent, {
             width: '60%',
-            data: product.metadataObject
+            height: '90%',
+            data: product.metadataObject,
+            autoFocus: false,
           });
         } else {
           this.snackBar.open('Métadonnée indisponible pour le moment.', 'Fermer', {duration: 3000});

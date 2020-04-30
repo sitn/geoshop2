@@ -41,7 +41,9 @@ export class CartOverlayComponent implements OnInit {
     if (product.metadataObject) {
       this.dialog.open(DialogMetadataComponent, {
         width: '60%',
-        data: product.metadataObject
+        height: '90%',
+        data: product.metadataObject,
+        autoFocus: false,
       });
     } else {
       this.apiService.loadMetadata(product.metadata)
@@ -50,7 +52,9 @@ export class CartOverlayComponent implements OnInit {
             this.store.dispatch(fromCart.updateProduct({product: {id: product.url, changes: {metadataObject: result}}}));
             this.dialog.open(DialogMetadataComponent, {
               width: '60%',
-              data: result
+              height: '90%',
+              data: result,
+              autoFocus: false,
             });
           } else {
             this.snackBar.open('Métadonnée indisponible pour le moment.', 'Fermer', {duration: 3000});
