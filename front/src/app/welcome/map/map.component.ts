@@ -40,6 +40,8 @@ export class MapComponent implements OnInit {
 
   isDrawing = false;
   isTracking = false;
+  isSearchLoading = false;
+  shouldDisplayClearButton = false;
   basemaps: Array<IBasemap>;
   isMapLoading$ = this.mapService.isMapLoading$;
 
@@ -72,9 +74,17 @@ export class MapComponent implements OnInit {
       this.searchCtrl.valueChanges
         .pipe(
           debounceTime(500),
-          switchMap(inputText => this.mapService.geocoderSearch(inputText))
+          switchMap(inputText => {
+            this.isSearchLoading = true;
+            if (inputText.length === 0) {
+              this.shouldDisplayClearButton = false;
+            }
+            return this.mapService.geocoderSearch(inputText);
+          })
         )
         .subscribe(features => {
+          this.isSearchLoading = false;
+          this.shouldDisplayClearButton = true;
           this.geocoderGroupOptions = [];
 
           for (const feature of features) {
@@ -111,6 +121,7 @@ export class MapComponent implements OnInit {
 
   displayGeocoderResultOnTheMap(evt: MatAutocompleteSelectedEvent) {
     this.mapService.addFeatureFromGeocoderToDrawing(evt.option.value.feature);
+    this.shouldDisplayClearButton = true;
   }
 
   toggleDrawing() {
