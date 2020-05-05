@@ -202,6 +202,7 @@ class Order(models.Model):
 
     class Meta:
         db_table = 'order'
+        ordering = ['-date_ordered']
         verbose_name = _('order')
 
     def __str__(self):

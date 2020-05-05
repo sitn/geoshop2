@@ -3,10 +3,9 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
 from django.utils.translation import gettext_lazy as _
 
-from rest_framework import viewsets, permissions, status
-from rest_framework.generics import GenericAPIView, CreateAPIView
+from rest_framework import generics, views, viewsets, permissions, status
 from rest_framework.response import Response
-from rest_framework.views import APIView
+
 
 from allauth.account.views import ConfirmEmailView
 
@@ -46,7 +45,7 @@ class CopyrightViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class CurrentUserView(APIView):
+class CurrentUserView(views.APIView):
     """
     API endpoint that allows users to register.
     """
@@ -73,13 +72,13 @@ class FormatViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class IdentityViewSet(viewsets.ModelViewSet):
+class IdentityView(generics.RetrieveAPIView):
     """
     API endpoint that allows Identity to be viewed or edited.
     """
     queryset = Identity.objects.all()
     serializer_class = IdentitySerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class MetadataViewSet(viewsets.ModelViewSet):
@@ -132,16 +131,19 @@ class OrderViewSet(MultiSerializerViewSet):
     """
     API endpoint that allows Orders to be viewed or edited.
     """
-    queryset = Order.objects.all()
     serializers = {
         'default':  OrderSerializer,
         'list':    OrderDigestSerializer,
     }
-    permission_classes = [IsOwner]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Order.objects.filter(client_id=user.id)
 
 
 # Copy from dj-rest-auth
-class PasswordResetView(GenericAPIView):
+class PasswordResetView(generics.GenericAPIView):
     """
     <b>SMTP Server needs to be configured before using this route</b>
 
@@ -164,7 +166,7 @@ class PasswordResetView(GenericAPIView):
 
 
 # Copy from dj-rest-auth
-class PasswordResetConfirmView(GenericAPIView):
+class PasswordResetConfirmView(generics.GenericAPIView):
     """
     Password reset e-mail link is confirmed, therefore
     this resets the user's password.
@@ -219,7 +221,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     ts_field = 'ts'
 
 
-class RegisterView(CreateAPIView):
+class RegisterView(generics.CreateAPIView):
     """
     API endpoint that allows users to register.
     """
@@ -228,7 +230,7 @@ class RegisterView(CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
 
-class VerifyEmailView(APIView, ConfirmEmailView):
+class VerifyEmailView(views.APIView, ConfirmEmailView):
     permission_classes = (permissions.AllowAny,)
     allowed_methods = ('POST', 'OPTIONS', 'HEAD')
 
