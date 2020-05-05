@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, HostBinding, OnInit} from '@angular/core';
 import {ConfigService} from '../../_services/config.service';
 
 @Component({
@@ -7,6 +7,8 @@ import {ConfigService} from '../../_services/config.service';
   styleUrls: ['./help-overlay.component.scss']
 })
 export class HelpOverlayComponent implements OnInit {
+
+  @HostBinding('class') class = 'overlay-container';
 
   phoneLabel: string;
   phoneNumber: string;

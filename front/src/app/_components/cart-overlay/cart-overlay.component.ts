@@ -1,5 +1,5 @@
-import {Component, OnInit} from '@angular/core';
-import {AppState, isLoggedIn, selectAllProducts, selectCartTotal} from '../../_store';
+import {Component, HostBinding, OnInit} from '@angular/core';
+import {AppState, isLoggedIn, selectAllProducts} from '../../_store';
 import {Store} from '@ngrx/store';
 import * as fromCart from '../../_store/cart/cart.action';
 import {Product} from '../../_models/IProduct';
@@ -15,7 +15,8 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 })
 export class CartOverlayComponent implements OnInit {
 
-  total$ = this.store.select(selectCartTotal);
+  @HostBinding('class') class = 'overlay-container';
+
   products$ = this.store.select(selectAllProducts);
   isUserLoggedIn$ = this.store.select(isLoggedIn);
 

@@ -1,5 +1,6 @@
 import {createAction, props} from '@ngrx/store';
 import {ICredentials, IIdentity} from '../../_models/IIdentity';
+import {IApiResponseError} from '../../_models/IApi';
 
 export const LOGIN = '[Auth] Login';
 export const LOGIN_SUCCESS = '[Auth] Login success';
@@ -19,7 +20,7 @@ export const loginSuccess = createAction(
 
 export const loginFailure = createAction(
   LOGIN_FAILURE,
-  props<{ error: any }>());
+  props<IApiResponseError>());
 
 export const logout = createAction(LOGOUT);
 

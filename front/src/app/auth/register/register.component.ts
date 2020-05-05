@@ -1,22 +1,24 @@
-import {Component, HostBinding, OnInit} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, HostBinding, OnInit, ViewChild} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {AppState} from '../../_store';
 import {Store} from '@ngrx/store';
-import { IIdentity} from '../../_models/IIdentity';
+import {IIdentity} from '../../_models/IIdentity';
 import {ApiService} from '../../_services/api.service';
 import {catchError, map} from 'rxjs/operators';
 import {Router} from '@angular/router';
 import {of} from 'rxjs';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {StepperSelectionEvent} from '@angular/cdk/stepper';
 
 @Component({
   selector: 'gs2-register',
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
-export class RegisterComponent implements OnInit {
+export class RegisterComponent implements OnInit, AfterViewInit {
 
-  @HostBinding('class') class = 'main-container dark-background';
+  @HostBinding('class') class = 'main-container';
+  @ViewChild('firstInput') firstInput: ElementRef;
 
   formCredentials = new FormGroup({
     passwords: new FormGroup({
@@ -117,6 +119,14 @@ export class RegisterComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  ngAfterViewInit(): void {
+    if (this.firstInput) {
+      setTimeout(() => {
+        this.firstInput.nativeElement.focus();
+      }, 50);
+    }
+  }
+
   submit() {
     if (this.formCredentials.valid && this.formContact.valid && this.formAddress.valid && this.formOthers.valid) {
       const user: IIdentity = {
@@ -171,4 +181,14 @@ export class RegisterComponent implements OnInit {
           return isAvailable.result ? {duplicate: true} : null;
         }));
   }
+
+  setFocusOn(event: StepperSelectionEvent) {
+    const input = document.getElementById(`registerInput${event.selectedIndex}`);
+    if (input) {
+      setTimeout(() => {
+        input.focus();
+      }, 400);
+    }
+  }
+
 }

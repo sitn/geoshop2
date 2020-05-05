@@ -8,12 +8,12 @@
     <div class="flex-row">
       <div *ngFor="let person of data.contact_persons" class="person-container">
         <span>{{person.contact_person.first_name}} {{person.contact_person.last_name}}</span>
-        <span style="color:rgba(255,255,255,.7);">{{person.metadata_role}}</span>
+        <span>{{person.metadata_role}}</span>
         <div class="flex-row">
-          <a [href]="'mailto:'+person.contact_person.email" mat-icon-button>
+          <a [href]="'mailto:'+person.contact_person.email" mat-icon-button color="primary">
             <mat-icon>email</mat-icon>
           </a>
-          <a [href]="'tel:'+person.contact_person.phone" mat-icon-button>
+          <a [href]="'tel:'+person.contact_person.phone" mat-icon-button color="primary">
             <mat-icon>phone</mat-icon>
           </a>
         </div>
@@ -36,15 +36,15 @@
       {{data.description_long}}</p>
   </mat-card-content>
   <mat-card-actions>
-    <button *ngIf="data.description_long" mat-button (click)="showLongDescription = !showLongDescription">
+    <button *ngIf="data.description_long" mat-button color="primary" (click)="showLongDescription = !showLongDescription">
       <mat-icon *ngIf="showLongDescription">more_horiz</mat-icon>
       Voir {{showLongDescription ? 'moins' : 'plus'}}
       <mat-icon *ngIf="!showLongDescription">more_horiz</mat-icon>
     </button>
-    <button mat-button *ngIf="data.legend_link.indexOf('http') > -1" (click)="openLegend(data.legend_link)">
+    <button mat-button color="primary" *ngIf="data.legend_link.indexOf('http') > -1" (click)="openLegend(data.legend_link)">
       Afficher la légende
     </button>
-    <a *ngIf="data.geocat_link.indexOf('http') > -1" [href]="data.geocat_link" target="_blank" mat-button>
+    <a *ngIf="data.geocat_link.indexOf('http') > -1" [href]="data.geocat_link" target="_blank" mat-button color="primary">
       Ouvrir géocat
       <mat-icon>open_in_new</mat-icon>
     </a>

@@ -2,7 +2,7 @@
   <div class="flex-row padding-horizontal-15 justify-content-space-between">
     <span class="text-ellipsis-2" [matTooltip]="product.label">{{product.label}}</span>
 
-    <button mat-icon-button (click)="openMetadata(product)">
+    <button mat-icon-button color="primary" (click)="openMetadata(product)">
       <mat-icon>description</mat-icon>
     </button>
     <button mat-icon-button color="accent" (click)="removeProduct(product.url)">

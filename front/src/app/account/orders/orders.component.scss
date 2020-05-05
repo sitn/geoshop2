@@ -8,7 +8,6 @@
     padding: 5px 20px;
     margin:  10px 10px 0 10px;
     border-radius: 4px;
-    background-color: #7b1fa2;
     display: block;
     align-self: flex-start;
     min-width: 30%;
@@ -51,16 +50,6 @@
       padding: 5px;
       margin: 5px;
       box-shadow: 0 2px 1px -1px rgba(255, 255, 255, 0.2), 0 1px 1px 0 rgba(255, 255, 255, 0.14), 0 1px 3px 0 rgba(255, 255, 255, 0.12);
-
-      &:nth-child(even) {
-        background-color: #444343;
-        color: white;
-      }
-
-      &:nth-child(odd) {
-        background-color: #302f2f;
-        color: white;
-      }
     }
 
     .mini-map {

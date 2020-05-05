@@ -19,7 +19,7 @@ import {MatTableDataSource} from '@angular/material/table';
 })
 export class NewOrderComponent implements OnInit {
 
-  @HostBinding('class') class = 'main-container dark-background';
+  @HostBinding('class') class = 'main-container';
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild(MatSort, {static: true}) sort: MatSort;
 

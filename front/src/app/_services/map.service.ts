@@ -59,18 +59,18 @@ export class MapService {
   public readonly drawingStyle = [
     new Style({
       stroke: new Stroke({
-        color: 'rgba(123,31,162,1)',
+        color: 'rgba(38,165,154,1))',
         width: 3
       }),
       fill: new Fill({
-        color: 'rgba(123,31,162,0.1)'
+        color: 'rgba(38,165,154,0.1)'
       })
     }),
     new Style({
       image: new CircleStyle({
         radius: 8,
         fill: new Fill({
-          color: 'rgba(105,240,174,1)'
+          color: 'rgba(38,165,154,1)'
         }),
       }),
       geometry: (feature) => {

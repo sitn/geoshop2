@@ -13,7 +13,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 })
 export class ResetComponent implements OnInit, OnDestroy {
 
-  @HostBinding('class') class = 'main-container dark-background';
+  @HostBinding('class') class = 'main-container';
 
   private onDestroy$ = new Subject<void>();
 
