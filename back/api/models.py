@@ -119,7 +119,6 @@ class MetadataContact(models.Model):
 
     def __str__(self):
         return '%s - %s (%s)' % (self.contact_person, self.metadata, self.metadata_role)
-    
 
 
 class Product(models.Model):
