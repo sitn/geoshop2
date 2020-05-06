@@ -4,8 +4,8 @@ from django.views.decorators.debug import sensitive_post_parameters
 from django.utils.translation import gettext_lazy as _
 
 from rest_framework import generics, views, viewsets, permissions, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
-
 
 from allauth.account.views import ConfirmEmailView
 
@@ -140,6 +140,18 @@ class OrderViewSet(MultiSerializerViewSet):
     def get_queryset(self):
         user = self.request.user
         return Order.objects.filter(client_id=user.id)
+
+    @action(detail=False, methods=['get'])
+    def last_draft(self, request):
+        """
+        Returns the last saved order having a "DRAFT" status. If there's no DRAFT, returns a 204.
+        """
+        user = self.request.user
+        last_draft = Order.objects.filter(client_id=user.id, status=Order.OrderStatus.DRAFT).first()
+        if last_draft:
+            serializer = OrderSerializer(last_draft, context={'request': request})
+            return Response(serializer.data)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # Copy from dj-rest-auth
