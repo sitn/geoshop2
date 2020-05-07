@@ -102,6 +102,11 @@ class MetadataViewSet(viewsets.ModelViewSet):
     serializer_class = MetadataSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    def get_serializer_context(self):
+        context = super(MetadataViewSet, self).get_serializer_context()
+        context.update({"request": self.request})
+        return context
+
 
 class MetadataContactViewSet(viewsets.ModelViewSet):
     """
