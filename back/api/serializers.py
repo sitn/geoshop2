@@ -60,6 +60,7 @@ class MetadataIdentitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Identity
         fields = [
+            'url',
             'first_name', 'last_name', 'email',
             'phone', 'street', 'street2',
             'company_name',

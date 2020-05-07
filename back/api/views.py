@@ -1,9 +1,10 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
 from django.utils.translation import gettext_lazy as _
 
-from rest_framework import generics, views, viewsets, permissions, status
+from rest_framework import filters, generics, views, viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -16,7 +17,8 @@ from .models import (
 
 from .serializers import (
     CopyrightSerializer, DocumentSerializer, FormatSerializer,
-    IdentitySerializer, MetadataSerializer, MetadataContactSerializer, OrderDigestSerializer,
+    IdentitySerializer, MetadataIdentitySerializer,
+    MetadataSerializer, MetadataContactSerializer, OrderDigestSerializer,
     OrderSerializer, OrderItemSerializer, OrderTypeSerializer,
     PasswordResetSerializer, PasswordResetConfirmSerializer,
     PricingSerializer, ProductSerializer,
@@ -72,13 +74,24 @@ class FormatViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class IdentityView(generics.RetrieveAPIView):
+class IdentityViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows Identity to be viewed or edited.
+    API endpoint that allows Identity to be viewed.
+    Only retrieves the current user or "public" identities.
+    Authentication is mandatory to access this ressource.
+
+    You can search an identity with `?search=` param.
+    Searchable properties are:
+     - email
     """
-    queryset = Identity.objects.all()
-    serializer_class = IdentitySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    search_fields = ['email']
+    filter_backends = [filters.SearchFilter]
+    serializer_class = MetadataIdentitySerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Identity.objects.filter(Q(id=user.id) | Q(is_public=True))
 
 
 class MetadataViewSet(viewsets.ModelViewSet):
@@ -130,7 +143,15 @@ class OrderTypeViewSet(viewsets.ModelViewSet):
 class OrderViewSet(MultiSerializerViewSet):
     """
     API endpoint that allows Orders to be viewed or edited.
+    Only orders that belong to current authenticated user are shown.
+
+    You can search an order with `?search=` param.
+    Searchable properties are:
+     - title
+     - description
     """
+    search_fields = ['title', 'description']
+    filter_backends = [filters.SearchFilter]
     serializers = {
         'default':  OrderSerializer,
         'list':    OrderDigestSerializer,
@@ -225,6 +246,8 @@ class ProductViewSet(viewsets.ModelViewSet):
     API endpoint that allows Product to be viewed or edited.
     
     You can search a product with `?search=` param.
+    Searchable properties are:
+     - label
     """
     queryset = Product.objects.all()
     filter_backends = (FullTextSearchFilter,)
