@@ -1,5 +1,5 @@
 import {Component, OnInit, ElementRef, ViewChild} from '@angular/core';
-import {Product} from 'src/app/_models/IProduct';
+import {IProduct, Product} from 'src/app/_models/IProduct';
 import {ApiService} from 'src/app/_services/api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogMetadataComponent} from './dialog-metadata/dialog-metadata.component';
@@ -64,7 +64,7 @@ export class CatalogComponent implements OnInit {
               );
           }
 
-          return this.apiService.findProducts(inputText).pipe(
+          return this.apiService.find<IProduct>(inputText, 'product').pipe(
             map(response => {
               this.isSearchLoading = false;
               console.log('products', response);

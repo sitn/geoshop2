@@ -20,15 +20,15 @@ export class ApiService {
   constructor(private http: HttpClient, private configService: ConfigService) {
   }
 
-  findProducts(textInput: string) {
+  find<T>(inputText: string, endpoint: string): Observable<IApiResponse<T>> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    const url = new URL(`${this.apiUrl}/product/`);
-    url.searchParams.append('search', textInput);
+    const url = new URL(`${this.apiUrl}/${endpoint}/`);
+    url.searchParams.append('search', inputText);
 
-    return this.http.get<IApiResponse<IProduct>>(url.toString());
+    return this.http.get<IApiResponse<T>>(url.toString());
   }
 
   getProducts(offset?: number, limit?: number): Observable<IApiResponse<IProduct>> {

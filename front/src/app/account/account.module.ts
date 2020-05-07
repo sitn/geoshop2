@@ -21,6 +21,7 @@ import {MatDividerModule} from '@angular/material/divider';
 import {SharedModule} from '../shared/shared.module';
 import { ProfileComponent } from './profile/profile.component';
 import {ScrollingModule} from '@angular/cdk/scrolling';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 
 const MODULES = [
   ReactiveFormsModule,
@@ -38,7 +39,8 @@ const MODULES = [
   MatDividerModule,
   MatAutocompleteModule,
   ScrollingModule,
-  MatStepperModule
+  MatStepperModule,
+  MatProgressSpinnerModule
 ];
 
 @NgModule({

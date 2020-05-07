@@ -1,8 +1,8 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {ApiService} from '../../_services/api.service';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {Order} from '../../_models/IOrder';
-import {map, mergeMap, scan, tap, throttleTime} from 'rxjs/operators';
+import {BehaviorSubject, forkJoin, merge, Observable} from 'rxjs';
+import {IOrder, Order} from '../../_models/IOrder';
+import {concatMap, debounceTime, map, mergeMap, scan, switchMap, tap, throttleTime} from 'rxjs/operators';
 import {MapService} from '../../_services/map.service';
 import Map from 'ol/Map';
 import VectorLayer from 'ol/layer/Vector';
@@ -39,9 +39,11 @@ export class OrdersComponent implements OnInit {
   private vectorSources: VectorSource[];
   private ordersToDisplay = {start: 0, end: 0};
   private currentIndex = 0;
+  private currentOrders: Order[] = [];
 
   // Filtering
   orderFilterControl = new FormControl('');
+  isSearchLoading = false;
 
   constructor(private apiService: ApiService, private mapService: MapService, private configService: ConfigService,
               private elRef: ElementRef
@@ -104,6 +106,7 @@ export class OrdersComponent implements OnInit {
     console.log('next batch', e);
     this.currentIndex = e;
     if (offset + 1 >= this.total) {
+      this.updateMinimaps();
       return;
     }
 
@@ -189,35 +192,68 @@ export class OrdersComponent implements OnInit {
       }, {})
     );
 
-    this.infinite = batchMap.pipe(map(x => Object.values(x)));
+    this.infinite = merge(
+      batchMap.pipe(map(v => Object.values(v))),
+      this.orderFilterControl.valueChanges.pipe(
+        debounceTime(500),
+        switchMap(inputText => {
+          this.isSearchLoading = true;
+
+          if (!inputText || inputText.length < 3) {
+            return this.apiService.getOrders(0, this.batch)
+              .pipe(
+                map((response) => {
+                  this.isSearchLoading = false;
+                  this.total = response.count;
+                  return response.results;
+                })
+              );
+          }
+
+          return this.apiService.find<IOrder>(inputText, 'order').pipe(
+            concatMap(response => {
+              this.isSearchLoading = false;
+              this.total = response.count;
+              return forkJoin(response.results.map(x => this.apiService.getFullOrder(x)));
+            }),
+          );
+        })
+      )
+    );
+
     this.infinite.subscribe(orders => {
-      if (this.viewport) {
-        const half = Math.round((this.currentIndex * this.realBatch) / 2);
-        this.ordersToDisplay.start = this.currentIndex * this.realBatch - half;
-        this.ordersToDisplay.end = (this.currentIndex * this.realBatch) + half;
-      } else {
-        this.ordersToDisplay.start = 0;
-        this.ordersToDisplay.end = this.realBatch;
-      }
-
-      if (this.ordersToDisplay.end === 0) {
-        this.ordersToDisplay.end = this.realBatch;
-      }
-
-      if ((this.ordersToDisplay.end - this.ordersToDisplay.start) > this.realBatch) {
-        this.ordersToDisplay.end = this.ordersToDisplay.start +
-          (this.ordersToDisplay.end / this.realBatch > 0 ? this.realBatch : this.realBatch - 1);
-      }
-
-      console.log('orders to display', this.ordersToDisplay);
-
-      setTimeout(() => {
-        let batchIndex = 0;
-        for (let i = this.ordersToDisplay.start; i < this.ordersToDisplay.end; i++) {
-          this.loadMinimap(batchIndex, orders[i]);
-          batchIndex++;
-        }
-      }, 50);
+      this.currentOrders = orders;
+      this.updateMinimaps();
     });
+  }
+
+  private updateMinimaps() {
+    if (this.viewport) {
+      const half = Math.round((this.currentIndex * this.realBatch) / 2);
+      this.ordersToDisplay.start = this.currentIndex * this.realBatch - half;
+      this.ordersToDisplay.end = (this.currentIndex * this.realBatch) + half;
+    } else {
+      this.ordersToDisplay.start = 0;
+      this.ordersToDisplay.end = this.realBatch;
+    }
+
+    if (this.ordersToDisplay.end === 0) {
+      this.ordersToDisplay.end = this.realBatch;
+    }
+
+    if ((this.ordersToDisplay.end - this.ordersToDisplay.start) > this.realBatch) {
+      this.ordersToDisplay.end = this.ordersToDisplay.start +
+        (this.ordersToDisplay.end / this.realBatch > 0 ? this.realBatch : this.realBatch - 1);
+    }
+
+    console.log('orders to display', this.ordersToDisplay);
+
+    setTimeout(() => {
+      let batchIndex = 0;
+      for (let i = this.ordersToDisplay.start; i < this.ordersToDisplay.end; i++) {
+        this.loadMinimap(batchIndex, this.currentOrders[i]);
+        batchIndex++;
+      }
+    }, 300);
   }
 }
