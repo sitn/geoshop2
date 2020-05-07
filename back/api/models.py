@@ -65,6 +65,7 @@ class Identity(AbstractUser):
     phone = models.CharField(_('phone'), max_length=50, blank=True)
     sap_id = models.BigIntegerField(_('sap_id'), null=True)
     contract_accepted = models.DateField(_('contract_accepted'), null=True)
+    is_public = models.BooleanField(_('is_public'), default=False)
 
     class Meta:
         db_table = 'identity'
@@ -151,6 +152,7 @@ class Product(models.Model):
     class Meta:
         db_table = 'product'
         verbose_name = _('product')
+        ordering = ['order']
         # https://www.postgresql.org/docs/10/gin-intro.html
         indexes = [GinIndex(fields=["ts"])]
 
@@ -176,9 +178,9 @@ class Order(models.Model):
 
     title = models.CharField(_('title'), max_length=255, blank=True)
     description = models.TextField(_('description'), blank=True)
-    processing_fee = MoneyField(_('processing_fee'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
-    total_cost = MoneyField(_('total_cost'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
-    part_vat = MoneyField(_('part_vat'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
+    processing_fee = MoneyField(_('processing_fee'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
+    total_cost = MoneyField(_('total_cost'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
+    part_vat = MoneyField(_('part_vat'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
     geom = models.PolygonField(_('geom'), srid=2056)
     client = models.ForeignKey(Identity, models.DO_NOTHING, verbose_name=_('client'), blank=True)
     order_contact = models.ForeignKey(
@@ -186,12 +188,14 @@ class Order(models.Model):
         models.DO_NOTHING,
         verbose_name=_('order_contact'),
         related_name='order_contact',
+        blank=True,
         null=True)
     invoice_contact = models.ForeignKey(
         Identity,
         models.DO_NOTHING,
         verbose_name=_('invoice_contact'),
         related_name='invoice_contact',
+        blank=True,
         null=True)
     invoice_reference = models.CharField(_('invoice_reference'), max_length=255, blank=True)
     order_type = models.ForeignKey(OrderType, models.DO_NOTHING, verbose_name=_('order_type'), blank=True, null=True)
