@@ -25,7 +25,7 @@ export interface IOrder {
   order_contact: string;
   invoice_contact: string;
   order_type: string;
-  geometry: any;
+  geom: any;
 }
 
 export interface IOrderItem {
@@ -66,7 +66,7 @@ export class Order {
   order_contact: string;
   invoice_contact: string;
   order_type: string;
-  geometry: Polygon;
+  geom: Polygon;
 
   orderItems: Array<IOrderItem> = new Array<IOrderItem>(3);
   statusAsReadableIconText = {
@@ -105,12 +105,9 @@ export class Order {
     }
 
     try {
-      const geo = new GeoJSON().readGeometry(
-        iOrder.geometry
-        || '{"type":"Polygon","coordinates":[[[2561024.796190677,1204805.285190677],[2561024.796190677,1204951.921809323],[2561164.990809323,1204951.921809323],[2561164.990809323,1204805.285190677],[2561024.796190677,1204805.285190677]]]}'
-      );
+      const geo = new GeoJSON().readGeometry(iOrder.geom);
       if (geo instanceof Polygon) {
-        this.geometry = geo;
+        this.geom = geo;
       }
     } catch (error) {
       console.log(error);

@@ -12,7 +12,7 @@
                                [itemSize]="itemHeight"
                                (scrolledIndexChange)="nextBatch($event, orders.length-1)">
 
-    <mat-card *ngFor="let order of orders">
+    <mat-card *ngFor="let order of orders; index as i;">
       <mat-card-header>
         <mat-card-title>
           <span>Commande </span>
@@ -52,7 +52,9 @@
       </mat-card-content>
 
       <mat-card-actions>
-        <button mat-raised-button color="primary" *ngIf="order.status === 'PENDING'">Valider définitivement la commande</button>
+        <button mat-raised-button color="primary" *ngIf="order.status === 'PENDING'">Valider définitivement la
+          commande
+        </button>
         <button mat-raised-button color="primary">Détails</button>
       </mat-card-actions>
 

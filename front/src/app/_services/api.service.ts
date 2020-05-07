@@ -5,9 +5,10 @@ import {ConfigService} from './config.service';
 import {Observable, of} from 'rxjs';
 import {IApiResponse} from '../_models/IApi';
 import {ICredentials, IIdentity} from '../_models/IIdentity';
-import {IOrder, IOrderType} from '../_models/IOrder';
+import {IOrder, IOrderType, Order} from '../_models/IOrder';
 import {map, switchMap} from 'rxjs/operators';
 import {IMetadata} from '../_models/IMetadata';
+import {fromPromise} from 'rxjs/internal-compatibility';
 
 @Injectable({
   providedIn: 'root'
@@ -98,7 +99,7 @@ export class ApiService {
     );
   }
 
-  getOrders(offset?: number, limit?: number): Observable<IApiResponse<IOrder>> {
+  getOrders(offset?: number, limit?: number): Observable<IApiResponse<Order>> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
@@ -111,7 +112,22 @@ export class ApiService {
       url.searchParams.append('offset', offset.toString());
     }
 
-    return this.http.get<IApiResponse<IOrder>>(url.toString());
+    return fromPromise(this.http.get<IApiResponse<IOrder>>(url.toString()).toPromise()
+      .then(async (resp) => {
+        const promises = resp.results.map(x => this.getFullOrder(x).toPromise());
+        const results = await Promise.all(promises);
+        const all: IApiResponse<Order> = {
+          results,
+          count: resp.count,
+          next: resp.next,
+          previous: resp.previous
+        };
+        return all;
+      }));
+  }
+
+  getFullOrder(order: IOrder): Observable<Order> {
+    return this.http.get<IOrder>(order.url).pipe(map(x => new Order(x)));
   }
 
   getOrder(url: string): Observable<IOrder> {
