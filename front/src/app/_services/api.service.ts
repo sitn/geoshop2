@@ -6,7 +6,7 @@ import {Observable, of} from 'rxjs';
 import {IApiResponse} from '../_models/IApi';
 import {ICredentials, IIdentity} from '../_models/IIdentity';
 import {IOrder, IOrderType} from '../_models/IOrder';
-import {catchError, map, switchMap} from 'rxjs/operators';
+import {map, switchMap} from 'rxjs/operators';
 import {IMetadata} from '../_models/IMetadata';
 
 @Injectable({
@@ -140,7 +140,7 @@ export class ApiService {
     return this.http.post<{ access: string; refresh: string; }>(url.toString(), authenticate)
       .pipe(
         switchMap(x => {
-          return this.getProfile(x.access).pipe(map(p => Object.assign({token: x.access}, p)));
+          return this.getProfile(x.access).pipe(map(p => Object.assign({token: x.access, tokenRefresh: x.refresh}, p)));
         }),
         map(x => {
           return {
@@ -173,16 +173,12 @@ export class ApiService {
     return this.http.post(this.apiUrl + '/auth/register/', user);
   }
 
-  verifyToken(token: string): Observable<boolean> {
+  refreshToken(token: string): Observable<{ access: string; }> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    return this.http.post<{ detail: string; code: string; }>(this.apiUrl + `/token/verify/`, {token})
-      .pipe(
-        map(x => x && x.code == null),
-        catchError(() => of(false))
-      );
+    return this.http.post<{ access: string; }>(this.apiUrl + `/token/refresh/`, {refresh: token});
   }
 
   checkLoginNotTaken(login: string): Observable<{ result: boolean }> {

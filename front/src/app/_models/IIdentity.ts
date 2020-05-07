@@ -26,4 +26,5 @@ export interface IIdentity {
   sap_id?: number;
   contract_accepted?: boolean;
   token?: string;
+  tokenRefresh?: string;
 }

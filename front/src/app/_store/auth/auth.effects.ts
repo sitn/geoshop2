@@ -29,6 +29,27 @@ export class AuthEffects {
         ))
     ));
 
+  refreshToken$ = createEffect(() =>
+    this.action$.pipe(
+      ofType(LoginActions.refreshToken),
+      exhaustMap(action => {
+          return action.token ?
+            this.apiService.refreshToken(action.token).pipe(
+              map(payload => LoginActions.refreshTokenSuccess({token: payload.access})),
+              catchError(error => of(LoginActions.loginFailure(error)))
+            ) :
+            of(LoginActions.refreshTokenFailure({
+              error: {
+                detail: 'Utilisateur non connecté'
+              },
+              message: 'Utilisateur non connecté',
+              name: '',
+              status: 401
+            }));
+        }
+      ))
+  );
+
   loginSuccess$ = createEffect(() =>
       this.action$.pipe(
         ofType(LoginActions.loginSuccess),
