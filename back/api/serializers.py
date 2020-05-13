@@ -60,6 +60,7 @@ class MetadataIdentitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Identity
         fields = [
+            'url',
             'first_name', 'last_name', 'email',
             'phone', 'street', 'street2',
             'company_name',
@@ -74,7 +75,7 @@ class MetadataContactSerializer(serializers.HyperlinkedModelSerializer):
             'contact_person',
             'metadata_role']
 
-
+# TODO: Test this, check for passing contexts ! Check public identities
 class MetadataSerializer(serializers.HyperlinkedModelSerializer):
     contact_persons = serializers.SerializerMethodField()
     modified_user = serializers.StringRelatedField(read_only=True)
@@ -86,7 +87,10 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
     def get_contact_persons(self, obj):
         """obj is a Metadata instance. Returns list of dicts"""
         qset = MetadataContact.objects.filter(metadata=obj)
-        return [MetadataContactSerializer(m).data for m in qset]
+        return [
+            MetadataContactSerializer(m, context={
+                'request': self.context['request']
+                }).data for m in qset]
 
 
 class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):

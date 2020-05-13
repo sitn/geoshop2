@@ -63,3 +63,38 @@ class PricingTests(APITestCase):
     """
     Test Pricings
     """
+    pass
+
+
+class ItentityViewsTests(APITestCase):
+    """
+    Test Identities
+    """
+
+    def setUp(self):
+        self.userPublic = Identity.objects.create_user(
+            username="public_user",
+            password="testPa$$word",
+            is_public=True
+        )
+        self.userPrivate = Identity.objects.create_user(
+            username="private_user",
+            password="testPa$$word",
+        )
+
+    def test_view_public(self):
+        """
+        Tests that only public identities are visible
+        """
+        url = reverse('identity-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(response.data['count'], 1, 'Only one public identity is visible')
+
+    def test_view_private(self):
+        self.client.login(username='private_user', password='testPa$$word')
+        url = reverse('identity-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(response.data['count'], 2, 'The two identities are visible')
+

@@ -1,12 +1,12 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
 from django.utils.translation import gettext_lazy as _
 
-from rest_framework import viewsets, permissions, status
-from rest_framework.generics import GenericAPIView, CreateAPIView
+from rest_framework import filters, generics, views, viewsets, permissions, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from allauth.account.views import ConfirmEmailView
 
@@ -17,7 +17,8 @@ from .models import (
 
 from .serializers import (
     CopyrightSerializer, DocumentSerializer, FormatSerializer,
-    IdentitySerializer, MetadataSerializer, MetadataContactSerializer, OrderDigestSerializer,
+    IdentitySerializer, MetadataIdentitySerializer,
+    MetadataSerializer, MetadataContactSerializer, OrderDigestSerializer,
     OrderSerializer, OrderItemSerializer, OrderTypeSerializer,
     PasswordResetSerializer, PasswordResetConfirmSerializer,
     PricingSerializer, ProductSerializer,
@@ -46,7 +47,7 @@ class CopyrightViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class CurrentUserView(APIView):
+class CurrentUserView(views.APIView):
     """
     API endpoint that allows users to register.
     """
@@ -75,11 +76,22 @@ class FormatViewSet(viewsets.ModelViewSet):
 
 class IdentityViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows Identity to be viewed or edited.
+    API endpoint that allows Identity to be viewed.
+    Only retrieves the current user or "public" identities.
+    Authentication is mandatory to access this ressource.
+
+    You can search an identity with `?search=` param.
+    Searchable properties are:
+     - email
     """
-    queryset = Identity.objects.all()
-    serializer_class = IdentitySerializer
+    search_fields = ['email']
+    filter_backends = [filters.SearchFilter]
+    serializer_class = MetadataIdentitySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Identity.objects.filter(Q(id=user.id) | Q(is_public=True))
 
 
 class MetadataViewSet(viewsets.ModelViewSet):
@@ -89,6 +101,11 @@ class MetadataViewSet(viewsets.ModelViewSet):
     queryset = Metadata.objects.all()
     serializer_class = MetadataSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_serializer_context(self):
+        context = super(MetadataViewSet, self).get_serializer_context()
+        context.update({"request": self.request})
+        return context
 
 
 class MetadataContactViewSet(viewsets.ModelViewSet):
@@ -131,17 +148,40 @@ class OrderTypeViewSet(viewsets.ModelViewSet):
 class OrderViewSet(MultiSerializerViewSet):
     """
     API endpoint that allows Orders to be viewed or edited.
+    Only orders that belong to current authenticated user are shown.
+
+    You can search an order with `?search=` param.
+    Searchable properties are:
+     - title
+     - description
     """
-    queryset = Order.objects.all()
+    search_fields = ['title', 'description']
+    filter_backends = [filters.SearchFilter]
     serializers = {
         'default':  OrderSerializer,
         'list':    OrderDigestSerializer,
     }
-    permission_classes = [IsOwner]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Order.objects.filter(client_id=user.id)
+
+    @action(detail=False, methods=['get'])
+    def last_draft(self, request):
+        """
+        Returns the last saved order having a "DRAFT" status. If there's no DRAFT, returns a 204.
+        """
+        user = self.request.user
+        last_draft = Order.objects.filter(client_id=user.id, status=Order.OrderStatus.DRAFT).first()
+        if last_draft:
+            serializer = OrderSerializer(last_draft, context={'request': request})
+            return Response(serializer.data)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # Copy from dj-rest-auth
-class PasswordResetView(GenericAPIView):
+class PasswordResetView(generics.GenericAPIView):
     """
     <b>SMTP Server needs to be configured before using this route</b>
 
@@ -164,7 +204,7 @@ class PasswordResetView(GenericAPIView):
 
 
 # Copy from dj-rest-auth
-class PasswordResetConfirmView(GenericAPIView):
+class PasswordResetConfirmView(generics.GenericAPIView):
     """
     Password reset e-mail link is confirmed, therefore
     this resets the user's password.
@@ -202,6 +242,8 @@ class ProductViewSet(viewsets.ModelViewSet):
     API endpoint that allows Product to be viewed or edited.
     
     You can search a product with `?search=` param.
+    Searchable properties are:
+     - label
     """
     queryset = Product.objects.all()
     filter_backends = (FullTextSearchFilter,)
@@ -210,7 +252,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     ts_field = 'ts'
 
 
-class RegisterView(CreateAPIView):
+class RegisterView(generics.CreateAPIView):
     """
     API endpoint that allows users to register.
     """
@@ -219,7 +261,7 @@ class RegisterView(CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
 
-class VerifyEmailView(APIView, ConfirmEmailView):
+class VerifyEmailView(views.APIView, ConfirmEmailView):
     permission_classes = (permissions.AllowAny,)
     allowed_methods = ('POST', 'OPTIONS', 'HEAD')
 
