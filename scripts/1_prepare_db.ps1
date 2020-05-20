@@ -23,6 +23,8 @@ If ($destConfig -eq "dev") {
     $destFile = ("{0}\{1}" -f $env:PREPUB_SERVER_PATH, $filename)
 }
 fme $env:FMEDIR\02_product_metadata.fmw
+fme $env:FMEDIR\03_order_item.fmw
+$previous_PGPASSWORD = $env:PGPASSWORD
 $env:PGPASSWORD = $env:PGPOSTGRESPASSWORD
 
 If (Test-Path $dumpFile) {
@@ -33,3 +35,4 @@ If (Test-Path $destFile) {
     Remove-Item $destFile
 }
 xcopy $dumpFile $destFolder
+$env:PGPASSWORD = $previous_PGPASSWORD

@@ -31,7 +31,7 @@ class Document(models.Model):
 
 
 class Format(models.Model):
-    name = models.CharField(_('name'), max_length=30, blank=True)
+    name = models.CharField(_('name'), max_length=100, blank=True)
 
     class Meta:
         db_table = 'format'
@@ -233,7 +233,7 @@ class Order(models.Model):
         ARCHIVED = 'ARCHIVED', _('Archived')
         REJECTED = 'REJECTED', _('Rejected')
 
-    title = models.CharField(_('title'), max_length=255, blank=True)
+    title = models.CharField(_('title'), max_length=255)
     description = models.TextField(_('description'), blank=True)
     processing_fee = MoneyField(_('processing_fee'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
     total_cost = MoneyField(_('total_cost'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
@@ -271,7 +271,7 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, models.DO_NOTHING, verbose_name=_('order'), blank=True, null=True)
+    order = models.ForeignKey(Order, models.DO_NOTHING, related_name='items', verbose_name=_('order'), blank=True, null=True)
     product = models.ForeignKey(Product, models.DO_NOTHING, verbose_name=_('product'), blank=True, null=True)
     format = models.ForeignKey(Format, models.DO_NOTHING, verbose_name=_('format'), blank=True, null=True)
     last_download = models.DateTimeField(_('last_download'), blank=True, null=True)
@@ -314,7 +314,7 @@ class ProductValidation(models.Model):
 
 
 class ProductFormat(models.Model):
-    product = models.OneToOneField(Product, models.DO_NOTHING, verbose_name=_('product'), primary_key=True)
+    product = models.ForeignKey(Product, models.DO_NOTHING, verbose_name=_('product'))
     format = models.ForeignKey(Format, models.DO_NOTHING, verbose_name=_('format'))
     is_manual = models.BooleanField(_('is_manual'), default=False) # extraction manuelle ou automatique
 

@@ -56,6 +56,7 @@ class CurrentUserView(views.APIView):
         ser = IdentitySerializer(request.user, context={'request': request})
         return Response(ser.data)
 
+
 class DocumentViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows Document to be viewed or edited.

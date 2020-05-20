@@ -15,11 +15,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework_gis.serializers import GeoModelSerializer
 
-from allauth.account import app_settings as allauth_settings
 from allauth.account.adapter import get_adapter
-from allauth.account.utils import setup_user_email
-from allauth.utils import (
-    email_address_exists, get_username_max_length)
 
 
 # Get the UserModel
@@ -94,21 +90,46 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):
+    """
+    Serializer showing a summary of an Order.
+    Always exclude geom here as it is used in lists of
+    orders and performance can be impacted.
+    """
+    order_type = serializers.StringRelatedField()
     class Meta:
         model = Order
-        exclude = ['geom']
-
-
-class OrderSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Order
-        fields = '__all__'
+        exclude = [
+            'geom', 'date_downloaded', 'client',
+            'processing_fee_currency', 'processing_fee',
+            'part_vat_currency', 'part_vat',
+            'order_contact', 'invoice_contact']
 
 
 class OrderItemSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = OrderItem
         fields = '__all__'
+
+
+class OrderSerializer(serializers.HyperlinkedModelSerializer):
+    """
+    A complete Order serializer.
+    """
+    order_type = serializers.StringRelatedField()
+    #items = serializers.HyperlinkedRelatedField(
+    #    queryset=OrderItem.objects.all(),
+    #    many=True,
+    #    view_name='order-detail')
+
+    class Meta:
+        model = Order
+        exclude = ['date_downloaded', 'client']
+        read_only_fields = [
+            'date_ordered', 'date_processed',
+            'processing_fee_currency', 'processing_fee',
+            'total_cost_currency', 'total_cost',
+            'part_vat_currency', 'part_vat',
+            'status', 'items']
 
 
 class PasswordResetSerializer(serializers.Serializer):
