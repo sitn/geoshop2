@@ -2,7 +2,7 @@ import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {ApiService} from '../../_services/api.service';
 import {BehaviorSubject, forkJoin, merge, Observable} from 'rxjs';
 import {IOrder, Order} from '../../_models/IOrder';
-import {concatMap, debounceTime, map, mergeMap, scan, switchMap, tap, throttleTime} from 'rxjs/operators';
+import {concatMap, debounceTime, map, mergeMap, scan, skip, switchMap, tap, throttleTime} from 'rxjs/operators';
 import {MapService} from '../../_services/map.service';
 import Map from 'ol/Map';
 import VectorLayer from 'ol/layer/Vector';
@@ -26,6 +26,8 @@ import {CdkVirtualScrollViewport} from '@angular/cdk/scrolling';
 })
 export class OrdersComponent implements OnInit {
 
+  private isFirstLoad = true;
+
   // Infinity scrolling
   @ViewChild(CdkVirtualScrollViewport) viewport: CdkVirtualScrollViewport;
   batch = 10;
@@ -43,7 +45,10 @@ export class OrdersComponent implements OnInit {
 
   // Filtering
   orderFilterControl = new FormControl('');
-  isSearchLoading = false;
+  isSearchLoading$ = new BehaviorSubject(false);
+
+  // Last draft
+  loadLastDraf$ = new BehaviorSubject(false);
 
   constructor(private apiService: ApiService, private mapService: MapService, private configService: ConfigService,
               private elRef: ElementRef
@@ -106,7 +111,9 @@ export class OrdersComponent implements OnInit {
     console.log('next batch', e);
     this.currentIndex = e;
     if (offset + 1 >= this.total) {
-      this.updateMinimaps();
+      if (this.orderFilterControl.value && this.orderFilterControl.value.length > 0) {
+        this.updateMinimaps();
+      }
       return;
     }
 
@@ -116,22 +123,6 @@ export class OrdersComponent implements OnInit {
     if (end === total) {
       this.offset.next(offset);
     }
-  }
-
-  loadMinimap(index: number, order: Order) {
-    const target = `mini-map-${order.id}`;
-    console.log('load mini map', index, target);
-
-    const feature = new Feature();
-    feature.setGeometry(order.geom);
-    this.vectorSources[index].clear();
-    this.vectorSources[index].addFeature(feature);
-
-    this.minimaps[index].setTarget(target);
-    this.minimaps[index].render();
-    this.minimaps[index].getView().fit(order.geom, {
-      padding: [50, 50, 50, 50]
-    });
   }
 
   private async initializeMinimap(elem: HTMLDivElement) {
@@ -144,6 +135,9 @@ export class OrdersComponent implements OnInit {
     }
 
     const vectorSource = new VectorSource();
+    vectorSource.on('addfeature', (evt) => {
+
+    });
     const layer = new VectorLayer({
       source: vectorSource,
       style: this.mapService.drawingStyle
@@ -166,7 +160,6 @@ export class OrdersComponent implements OnInit {
     const minimap = new Map({
       layers: new LayerGroup({layers: [tileLayer]}),
       view,
-      target: elem,
       interactions: defaults({
         keyboard: false,
         mouseWheelZoom: false,
@@ -184,6 +177,7 @@ export class OrdersComponent implements OnInit {
   }
 
   private initializeComponentAction() {
+
     const batchMap = this.offset.pipe(
       throttleTime(500),
       mergeMap((n: number) => this.getBatch(n)),
@@ -193,37 +187,60 @@ export class OrdersComponent implements OnInit {
     );
 
     this.infinite = merge(
-      batchMap.pipe(map(v => Object.values(v))),
-      this.orderFilterControl.valueChanges.pipe(
-        debounceTime(500),
-        switchMap(inputText => {
-          this.isSearchLoading = true;
+      batchMap.pipe(map(v => Object.values(v) as Order[])),
+      this.loadLastDraf$.pipe(
+        skip(1),
+        throttleTime(500),
+        switchMap((val) => {
+          this.isSearchLoading$.next(true);
 
-          if (!inputText || inputText.length < 3) {
+          if (val) {
+            return this.apiService.getLastDraft().pipe(map(x => x ? [x] : []));
+          } else {
             return this.apiService.getOrders(0, this.batch)
               .pipe(
                 map((response) => {
-                  this.isSearchLoading = false;
                   this.total = response.count;
                   return response.results;
                 })
               );
           }
+        })
+      ),
+      this.orderFilterControl.valueChanges.pipe(
+        skip(1),
+        debounceTime(500),
+        throttleTime(500),
+        switchMap(inputText => {
+          this.isSearchLoading$.next(true);
+
+          if (!inputText || inputText.length < 3) {
+            return this.apiService.getOrders(0, this.batch)
+              .pipe(
+                map((response) => {
+                  this.total = response.count;
+                  return response.results;
+                })
+              );
+
+          }
 
           return this.apiService.find<IOrder>(inputText, 'order').pipe(
             concatMap(response => {
-              this.isSearchLoading = false;
               this.total = response.count;
               return forkJoin(response.results.map(x => this.apiService.getFullOrder(x)));
             }),
           );
         })
       )
+    ).pipe(
+      throttleTime(500)
     );
 
     this.infinite.subscribe(orders => {
       this.currentOrders = orders;
       this.updateMinimaps();
+      this.isSearchLoading$.next(false);
     });
   }
 
@@ -248,12 +265,28 @@ export class OrdersComponent implements OnInit {
 
     console.log('orders to display', this.ordersToDisplay);
 
-    setTimeout(() => {
-      let batchIndex = 0;
-      for (let i = this.ordersToDisplay.start; i < this.ordersToDisplay.end; i++) {
-        this.loadMinimap(batchIndex, this.currentOrders[i]);
-        batchIndex++;
-      }
-    }, 300);
+    let batchIndex = 0;
+    for (let i = this.ordersToDisplay.start; i < this.ordersToDisplay.end; i++) {
+      this.loadMinimap(batchIndex, this.currentOrders[i]);
+      batchIndex++;
+    }
+  }
+
+  private loadMinimap(index: number, order: Order) {
+    if (!order) {
+      return;
+    }
+    const target = `mini-map-${order.id}`;
+    console.log('load mini map', index, target);
+    this.minimaps[index].setTarget(target);
+
+    const feature = new Feature();
+    feature.setGeometry(order.geom);
+    this.vectorSources[index].clear();
+    this.vectorSources[index].addFeature(feature);
+
+    this.minimaps[index].getView().fit(order.geom, {
+      padding: [50, 50, 50, 50]
+    });
   }
 }

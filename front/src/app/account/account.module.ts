@@ -22,6 +22,8 @@ import {SharedModule} from '../shared/shared.module';
 import { ProfileComponent } from './profile/profile.component';
 import {ScrollingModule} from '@angular/cdk/scrolling';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatRadioModule} from '@angular/material/radio';
 
 const MODULES = [
   ReactiveFormsModule,
@@ -40,7 +42,9 @@ const MODULES = [
   MatAutocompleteModule,
   ScrollingModule,
   MatStepperModule,
-  MatProgressSpinnerModule
+  MatProgressSpinnerModule,
+  MatCheckboxModule,
+  MatRadioModule
 ];
 
 @NgModule({

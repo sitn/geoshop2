@@ -4,9 +4,31 @@
   align-items: center;
   height: 100%;
 
+  .actions-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    button {
+      margin-right: 20px;
+    }
+  }
+
+  .spinner-container {
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    pointer-events: none;
+    display: block;
+  }
+
   .filter-container {
     padding: 5px 20px;
-    margin:  10px 10px 0 10px;
+    margin: 10px 10px 0 10px;
     border-radius: 4px;
     display: block;
     align-self: flex-start;
@@ -23,6 +45,7 @@
     &:first-child {
       margin: 0 10px 10px 10px;
     }
+
     margin: 10px;
 
     ::ng-deep .mat-card-header-text,

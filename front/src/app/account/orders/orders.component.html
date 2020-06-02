@@ -1,13 +1,22 @@
-<mat-form-field class="filter-container" color="primary">
-  <input matInput [formControl]="orderFilterControl" placeholder="Rechercher une commande...">
-  <div matSuffix class="flex-row">
-    <mat-spinner *ngIf="isSearchLoading" diameter="16" color="accent" style="margin-right: 10px"></mat-spinner>
-    <button mat-button *ngIf="orderFilterControl.value" mat-icon-button aria-label="Clear"
-            (click)="orderFilterControl.setValue('')">
-      <mat-icon>close</mat-icon>
-    </button>
-  </div>
-</mat-form-field>
+<div class="actions-container">
+  <mat-form-field class="filter-container" color="primary">
+    <input matInput [formControl]="orderFilterControl" placeholder="Rechercher une commande...">
+    <div matSuffix class="flex-row">
+      <mat-spinner *ngIf="isSearchLoading$|async" diameter="16" color="accent" style="margin-right: 10px"></mat-spinner>
+      <button mat-button *ngIf="orderFilterControl.value" mat-icon-button aria-label="Clear"
+              (click)="orderFilterControl.setValue('');">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </mat-form-field>
+
+  <button mat-raised-button color="primary" *ngIf="!(loadLastDraf$|async)" (click)="loadLastDraf$.next(true);">
+    Voir mon dernier brouillon
+  </button>
+  <button mat-raised-button color="primary" *ngIf="(loadLastDraf$|async)" (click)="loadLastDraf$.next(false);">
+    Voir toutes mes commandes
+  </button>
+</div>
 
 <ng-container *ngIf="infinite|async as orders">
   <cdk-virtual-scroll-viewport class="orders-container"
@@ -63,3 +72,11 @@
     </mat-card>
   </cdk-virtual-scroll-viewport>
 </ng-container>
+
+<div class="cdk-overlay-container"
+     *ngIf="!(infinite|async) || (infinite|async)?.length === 0 || (isSearchLoading$|async)">
+  <div class="cdk-overlay-backdrop cdk-overlay-dark-backdrop cdk-overlay-backdrop-showing flex-row"
+       style="align-items: center;justify-content: center;">
+    <mat-spinner diameter="64" color="accent"></mat-spinner>
+  </div>
+</div>

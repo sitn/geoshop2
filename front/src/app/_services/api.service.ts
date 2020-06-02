@@ -130,6 +130,16 @@ export class ApiService {
     return this.http.get<IOrder>(order.url).pipe(map(x => new Order(x)));
   }
 
+  getLastDraft(): Observable<Order | null> {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    const url = new URL(`${this.apiUrl}/order/last_draft/`);
+
+    return this.http.get<IOrder>(url.toString()).pipe(map(iOrder => iOrder ? new Order(iOrder) : null));
+  }
+
   getOrder(url: string): Observable<IOrder> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
