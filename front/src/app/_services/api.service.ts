@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {IProduct} from '../_models/IProduct';
 import {ConfigService} from './config.service';
-import {Observable, of} from 'rxjs';
+import {Observable, of, zip} from 'rxjs';
 import {IApiResponse} from '../_models/IApi';
 import {ICredentials, IIdentity} from '../_models/IIdentity';
 import {IOrder, IOrderType, Order} from '../_models/IOrder';
@@ -114,10 +114,10 @@ export class ApiService {
 
     return fromPromise(this.http.get<IApiResponse<IOrder>>(url.toString()).toPromise()
       .then(async (resp) => {
-        const promises = resp.results.map(x => this.getFullOrder(x).toPromise());
+        const promises = resp.results.map(x => this.getOrder(x.url).toPromise());
         const results = await Promise.all(promises);
         const all: IApiResponse<Order> = {
-          results,
+          results: results.map(x => new Order(x)),
           count: resp.count,
           next: resp.next,
           previous: resp.previous
@@ -126,8 +126,21 @@ export class ApiService {
       }));
   }
 
-  getFullOrder(order: IOrder): Observable<Order> {
-    return this.http.get<IOrder>(order.url).pipe(map(x => new Order(x)));
+  getFullOrder(iOrder: IOrder): Observable<Order> {
+    return zip(
+      this.getOrderType(iOrder.order_type),
+      this.getIdentity(iOrder.invoice_contact),
+      this.getIdentity(iOrder.order_contact),
+      this.getIdentity(iOrder.client),
+    ).pipe(
+      map(data => {
+        console.log(data);
+
+        const order = new Order(iOrder);
+        order.deepInitialize(data[0], data[1], data[2], data[3]);
+        return order;
+      })
+    );
   }
 
   getLastDraft(): Observable<Order | null> {
@@ -154,6 +167,14 @@ export class ApiService {
     }
 
     return this.http.get<IOrderType>(url);
+  }
+
+  getIdentity(url: string): Observable<IIdentity> {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    return this.http.get<IIdentity>(url);
   }
 
   login(authenticate: ICredentials, callbackUrl: string): Observable<{ identity: Partial<IIdentity>; callbackUrl: string; }> {

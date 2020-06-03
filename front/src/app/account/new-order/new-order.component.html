@@ -1,11 +1,11 @@
-<mat-horizontal-stepper #stepper [linear]="true">
+<mat-horizontal-stepper *ngIf="step1FormGroup && step2FormGroup && lastStepFormGroup" #stepper [linear]="true">
   <mat-step [stepControl]="step1FormGroup" label="Détails du mandat">
     <form [formGroup]="step1FormGroup">
 
       <!-- Order type -->
       <mat-form-field>
         <mat-label>Type de mandat</mat-label>
-        <mat-select #typeSelect formControlName="orderType" required (selectionChange)="updateForm1($event)">
+        <mat-select formControlName="orderType" required (selectionChange)="updateForm1($event.value)">
           <mat-option *ngFor="let orderType of orderTypes$|async" [value]="orderType.id">
             {{orderType.name}}
           </mat-option>
@@ -16,12 +16,12 @@
       <!-- title -->
       <mat-form-field>
         <mat-label>Titre du mandat</mat-label>
-        <input matInput type="text" required formControlName="title">
+        <textarea matInput type="text" required formControlName="title"></textarea>
         <mat-error *ngIf="step1FormGroup.get('title')?.hasError('required')">Requis</mat-error>
       </mat-form-field>
 
       <!-- Description -->
-      <mat-form-field *ngIf="typeSelect.value !== 1">
+      <mat-form-field *ngIf="step1FormGroup.get('orderType')?.value !== 1">
         <mat-label>Description du mandat</mat-label>
         <textarea matInput
                   formControlName="description"
@@ -30,6 +30,7 @@
       </mat-form-field>
 
       <div class="bottom-container">
+        <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
         <button color="primary" mat-button matStepperNext> Suivant</button>
       </div>
     </form>
@@ -37,18 +38,21 @@
   <mat-step [stepControl]="step2FormGroup" label="Adresse de facturation">
     <form [formGroup]="step2FormGroup">
 
-      <mat-radio-group *ngIf="typeSelect.value === 1" class="flex-column"
+      <mat-radio-group *ngIf="step1FormGroup?.get('orderType')?.value === 1" class="flex-column"
                        formControlName="addressChoice"
-                       (change)="updateForm2($event)"
+                       (change)="updateForm2($event.value)"
                        aria-label="Choisir une option">
         <mat-radio-button value="1">La facturation est adressé à
           l'utilisateur {{(currentUser$|async)?.email}}</mat-radio-button>
         <mat-radio-button value="2">La facturation est adressé à un mandant</mat-radio-button>
       </mat-radio-group>
 
-      <ng-container *ngIf="(typeSelect.value === 1 && step2FormGroup.get('addressChoice')?.value === '2') || typeSelect.value !== 1">
-        <div class="flex-row" >
-          <mat-checkbox formControlName="newClient" style="flex:1;" (change)="cleanCustomerForm()">Nouveau client</mat-checkbox>
+      <ng-container
+        *ngIf="(step1FormGroup?.get('orderType')?.value === 1 && step2FormGroup.get('addressChoice')?.value === '2') ||
+        step1FormGroup?.get('orderType')?.value !== 1">
+        <div class="flex-row">
+          <mat-checkbox formControlName="newClient" style="flex:1;" (change)="cleanCustomerForm()">Nouveau client
+          </mat-checkbox>
           <!-- Search -->
           <mat-form-field style="flex:1;">
             <input matInput
@@ -58,7 +62,8 @@
                    [matAutocomplete]="auto"
                    formControlName="customer">
             <div matSuffix class="flex-row">
-              <mat-spinner *ngIf="isSearchLoading" diameter="16" color="accent" style="margin-right: 10px"></mat-spinner>
+              <mat-spinner *ngIf="isSearchLoading" diameter="16" color="accent"
+                           style="margin-right: 10px"></mat-spinner>
               <button mat-button *ngIf="customerCtrl?.value" mat-icon-button aria-label="Clear"
                       (click)="customerCtrl?.setValue(''); isCustomerSelected = false">
                 <mat-icon>close</mat-icon>
@@ -192,6 +197,7 @@
 
 
       <div class="bottom-container">
+        <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
         <button color="primary" mat-button matStepperPrevious> Retour</button>
         <button color="primary" mat-button matStepperNext> Suivant</button>
       </div>
@@ -269,7 +275,7 @@
                      [pageSizeOptions]="[5, 10, 25, 100]"></mat-paginator>
 
       <div class="flex-row">
-        <button color="primary" mat-button (click)="stepper.reset(); isCustomerSelected = false;">Reset</button>
+        <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
         <button color="primary" mat-button matStepperPrevious>Retour</button>
         <button color="primary" mat-raised-button> Acheter maintenant</button>
       </div>

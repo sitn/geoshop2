@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {AppState, selectProductTotal} from './_store';
+import {AppState, selectOrder, selectProductTotal} from './_store';
 import {Store} from '@ngrx/store';
 import {NavigationEnd, Router} from '@angular/router';
 import {filter} from 'rxjs/operators';
@@ -14,6 +14,7 @@ export class AppComponent {
   title = 'front';
   subTitle = '';
 
+  order$ = this.store.select(selectOrder);
   numberOfItemInTheCart$ = this.store.select(selectProductTotal);
 
   constructor(private store: Store<AppState>, private router: Router) {

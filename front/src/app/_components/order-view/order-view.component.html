@@ -1,0 +1,51 @@
+<mat-card *ngIf="order">
+  <mat-card-header>
+    <mat-card-title>
+      <span>Commande </span>
+      <span>
+        <mat-icon style="transform: scaleX(-1)">format_quote</mat-icon>
+        {{order.title}}
+        <mat-icon>format_quote</mat-icon>
+      </span>
+      <span> du {{order.date_ordered | date}}</span>
+    </mat-card-title>
+    <mat-card-subtitle>
+      <div class="flex-row">
+        <gs2-icon-text [text]="order.statusAsReadableIconText.text"
+                       [matIconName]="order.statusAsReadableIconText.iconName"
+                       [fontColor]="order.statusAsReadableIconText.color"
+                       [fontSize]="16"></gs2-icon-text>
+        <span class="right-container">Montant total {{order.total_cost_currency}} {{order.total_cost}}</span>
+      </div>
+    </mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <!-- Order items -->
+    <div class="order-item-wrapper">
+      <ng-container *ngFor="let orderItem of order.orderItems">
+        <div class="order-item-container flex-column" *ngIf="orderItem">
+          <span>{{orderItem.product.label}}</span>
+          <gs2-icon-text [text]="orderItem.statusAsReadableIconText.text"
+                         [matIconName]="orderItem.statusAsReadableIconText.iconName"
+                         [fontColor]="orderItem.statusAsReadableIconText.color"
+                         [fontSize]="16"></gs2-icon-text>
+        </div>
+      </ng-container>
+
+      <div *ngIf="order.orderItems.length === 0">
+        Aucun produit n'est lié à cette commande.
+      </div>
+    </div>
+
+    <div class="mini-map" [id]="'mini-map-' + order.id"></div>
+  </mat-card-content>
+
+  <mat-card-actions>
+    <button mat-raised-button color="primary" *ngIf="order.status === 'PENDING'">Valider définitivement la
+      commande
+    </button>
+    <button mat-raised-button color="primary">Détails</button>
+  </mat-card-actions>
+
+</mat-card>

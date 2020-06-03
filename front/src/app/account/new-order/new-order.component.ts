@@ -1,26 +1,27 @@
-import {Component, HostBinding, OnInit, ViewChild} from '@angular/core';
+import {Component, HostBinding, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {ApiService} from '../../_services/api.service';
 import {PHONE_REGEX} from '../../_helpers/regex';
-import {Observable} from 'rxjs';
+import {Observable, Subject} from 'rxjs';
 import {IIdentity} from '../../_models/IIdentity';
-import {debounceTime, filter, map, mergeMap, startWith} from 'rxjs/operators';
+import {debounceTime, filter, map, mergeMap, startWith, switchMap, takeUntil} from 'rxjs/operators';
 import {Product} from '../../_models/IProduct';
-import {Store} from '@ngrx/store';
-import {AppState, getUser, selectAllProducts} from '../../_store';
+import {select, Store} from '@ngrx/store';
+import {AppState, getUser, selectAllProducts, selectOrder} from '../../_store';
 import {MatPaginator} from '@angular/material/paginator';
 import {MatSort} from '@angular/material/sort';
 import {MatTableDataSource} from '@angular/material/table';
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
-import {MatSelectChange} from '@angular/material/select';
-import {MatRadioChange} from '@angular/material/radio';
+import {Order} from '../../_models/IOrder';
 
 @Component({
   selector: 'gs2-new-order',
   templateUrl: './new-order.component.html',
   styleUrls: ['./new-order.component.scss']
 })
-export class NewOrderComponent implements OnInit {
+export class NewOrderComponent implements OnInit, OnDestroy {
+
+  private onDestroy$ = new Subject<boolean>();
 
   @HostBinding('class') class = 'main-container';
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
@@ -32,7 +33,7 @@ export class NewOrderComponent implements OnInit {
   isSearchLoading = false;
   isCustomerSelected = false;
 
-  addressChoice: string;
+  currentOrder: Order;
   currentUser$ = this.store.select(getUser);
   orderTypes$ = this.apiService.getOrderTypes();
   filteredCustomers$: Observable<IIdentity[]> | undefined;
@@ -48,25 +49,36 @@ export class NewOrderComponent implements OnInit {
 
   constructor(private formBuilder: FormBuilder, private apiService: ApiService,
               private store: Store<AppState>) {
-    this.createForms();
 
-    this.filteredCustomers$ = this.step2FormGroup.get('customer')?.valueChanges.pipe(
-      debounceTime(500),
-      startWith(''),
-      filter(x => typeof x === 'string' && x.length > 2),
-      mergeMap(email => {
-        this.isSearchLoading = true;
-        return this.apiService.find<IIdentity>(email, 'identity');
-      }),
-      map(x => {
-        this.isSearchLoading = false;
-        return x.results;
-      })
-    );
+    this.store.pipe(
+      takeUntil(this.onDestroy$),
+      select(selectOrder),
+      switchMap(x => this.apiService.getFullOrder(x)),
+    ).subscribe(order => {
+      this.currentOrder = order;
+      this.createForms();
+
+      this.filteredCustomers$ = this.step2FormGroup.get('customer')?.valueChanges.pipe(
+        debounceTime(500),
+        startWith(''),
+        filter(x => typeof x === 'string' && x.length > 2),
+        mergeMap(email => {
+          this.isSearchLoading = true;
+          return this.apiService.find<IIdentity>(email, 'identity');
+        }),
+        map(x => {
+          this.isSearchLoading = false;
+          return x.results;
+        })
+      );
+    });
   }
 
   ngOnInit(): void {
-    this.store.select(selectAllProducts).subscribe(x => {
+    this.store.pipe(
+      takeUntil(this.onDestroy$),
+      select(selectAllProducts),
+    ).subscribe(x => {
       this.products = x;
       this.dataSource = new MatTableDataSource<Product>(this.products);
       this.dataSource.paginator = this.paginator;
@@ -74,30 +86,38 @@ export class NewOrderComponent implements OnInit {
     });
   }
 
+  ngOnDestroy() {
+    this.onDestroy$.next(true);
+  }
+
   private createForms() {
     this.step1FormGroup = this.formBuilder.group({
-      orderType: new FormControl('', Validators.required),
-      title: new FormControl('', Validators.required),
-      description: new FormControl('', Validators.required),
+      orderType: new FormControl(this.currentOrder.getOrderTypeId, Validators.required),
+      title: new FormControl(this.currentOrder.title, Validators.required),
+      description: new FormControl(this.currentOrder.description, Validators.required),
     });
     this.step2FormGroup = this.formBuilder.group({
-      addressChoice: new FormControl(''),
+      addressChoice: new FormControl(this.currentOrder.isOwnCustomer ? '1' : '2'),
       customer: new FormControl(null),
       info: new FormControl('', Validators.required),
       newClient: new FormControl(false),
 
-      company_name: new FormControl('', Validators.required),
-      first_name: new FormControl('', Validators.required),
-      last_name: new FormControl('', Validators.required),
-      email: new FormControl('', Validators.compose([Validators.required, Validators.email])),
-      phone: new FormControl('', Validators.pattern(PHONE_REGEX)),
-      street: new FormControl('', Validators.required),
-      street2: new FormControl('', Validators.required),
-      postcode: new FormControl('', Validators.required),
-      city: new FormControl('', Validators.required),
-      country: new FormControl('', Validators.required),
+      company_name: new FormControl(this.currentOrder.orderContact.company_name, Validators.required),
+      first_name: new FormControl(this.currentOrder.orderContact.first_name, Validators.required),
+      last_name: new FormControl(this.currentOrder.orderContact.last_name, Validators.required),
+      email: new FormControl(this.currentOrder.orderContact.email, Validators.compose([Validators.required, Validators.email])),
+      phone: new FormControl(this.currentOrder.orderContact.phone, Validators.pattern(PHONE_REGEX)),
+      street: new FormControl(this.currentOrder.orderContact.street, Validators.required),
+      street2: new FormControl(this.currentOrder.orderContact.street2, Validators.required),
+      postcode: new FormControl(this.currentOrder.orderContact.postcode, Validators.required),
+      city: new FormControl(this.currentOrder.orderContact.city, Validators.required),
+      country: new FormControl(this.currentOrder.orderContact.country, Validators.required),
     });
     this.lastStepFormGroup = this.formBuilder.group({});
+
+    this.updateDescription(this.currentOrder.getOrderTypeId.toString());
+    this.updateForm2(this.currentOrder.getOrderTypeId.toString(),
+      !this.currentOrder.isOwnCustomer && this.currentOrder.orderContact != null);
   }
 
   displayCustomer(customer: IIdentity) {
@@ -147,25 +167,28 @@ export class NewOrderComponent implements OnInit {
     this.step2FormGroup.get('country')?.setValue('');
   }
 
-  updateForm1(event: MatSelectChange) {
-    if (event.value === 1) {
+  updateDescription(orderTypeValue: number | string) {
+    if (orderTypeValue.toString() === '1') {
       this.step1FormGroup.get('description')?.clearValidators();
     } else {
       this.step1FormGroup.get('description')?.setValidators(Validators.required);
     }
+    this.step1FormGroup.get('description')?.updateValueAndValidity();
+  }
+
+  updateForm1(orderTypeValue: number | string) {
+    this.updateDescription(orderTypeValue);
 
     this.step1FormGroup.get('title')?.setValue('');
     this.step1FormGroup.get('description')?.setValue('');
 
     this.step2FormGroup.reset();
     this.isCustomerSelected = false;
-
-    this.step1FormGroup.get('description')?.updateValueAndValidity();
   }
 
-  updateForm2(event: MatRadioChange) {
+  updateForm2(orderTypeValue: number | string, isNewClient = false) {
     // current user, disable required form controls
-    if (event.value === '1') {
+    if (orderTypeValue.toString() === '1') {
       this.step2FormGroup.get('info')?.clearValidators();
       this.step2FormGroup.get('info')?.updateValueAndValidity();
 
@@ -215,6 +238,36 @@ export class NewOrderComponent implements OnInit {
       this.step2FormGroup.get('country')?.updateValueAndValidity();
     }
 
-    this.step2FormGroup.get('newClient')?.setValue(false);
+    this.step2FormGroup.get('newClient')?.setValue(isNewClient);
+  }
+
+  resetForms() {
+    this.isCustomerSelected = false;
+    this.step1FormGroup.reset({
+      orderType: this.currentOrder.getOrderTypeId,
+      title: this.currentOrder.title,
+      description: this.currentOrder.description,
+    });
+    this.step2FormGroup.reset({
+      addressChoice: this.currentOrder.isOwnCustomer ? '1' : '2',
+      customer: null,
+      info: '',
+      newClient: false,
+
+      company_name: this.currentOrder.orderContact.company_name,
+      first_name: this.currentOrder.orderContact.first_name,
+      last_name: this.currentOrder.orderContact.last_name,
+      email: this.currentOrder.orderContact.email,
+      phone: this.currentOrder.orderContact.phone,
+      street: this.currentOrder.orderContact.street,
+      street2: this.currentOrder.orderContact.street2,
+      postcode: this.currentOrder.orderContact.postcode,
+      city: this.currentOrder.orderContact.city,
+      country: this.currentOrder.orderContact.country,
+    });
+
+    this.updateDescription(this.currentOrder.getOrderTypeId.toString());
+    this.updateForm2(this.currentOrder.getOrderTypeId.toString(),
+      !this.currentOrder.isOwnCustomer && this.currentOrder.orderContact != null);
   }
 }

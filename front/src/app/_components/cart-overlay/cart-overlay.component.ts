@@ -4,9 +4,10 @@ import {Store} from '@ngrx/store';
 import * as fromCart from '../../_store/cart/cart.action';
 import {Product} from '../../_models/IProduct';
 import {DialogMetadataComponent} from '../../welcome/catalog/dialog-metadata/dialog-metadata.component';
-import {MatDialog} from '@angular/material/dialog';
+import {MatDialog, MatDialogRef} from '@angular/material/dialog';
 import {ApiService} from '../../_services/api.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {ConfirmDialogComponent} from '../confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'gs2-cart-overlay',
@@ -23,7 +24,7 @@ export class CartOverlayComponent implements OnInit {
   constructor(private store: Store<AppState>,
               private dialog: MatDialog,
               private apiService: ApiService,
-              private snackBar: MatSnackBar
+              private snackBar: MatSnackBar,
   ) {
   }
 
@@ -62,5 +63,19 @@ export class CartOverlayComponent implements OnInit {
           }
         });
     }
+  }
+
+  deleteCart() {
+    let dialogRef: MatDialogRef<ConfirmDialogComponent> | null = this.dialog.open(ConfirmDialogComponent, {
+      disableClose: false,
+    });
+
+    dialogRef.componentInstance.confirmMessage = 'Voulez-vous supprimer le panier (remise à zéro) ?';
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.store.dispatch(fromCart.deleteOrder());
+      }
+      dialogRef = null;
+    });
   }
 }

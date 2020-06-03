@@ -4,6 +4,12 @@
     <span>{{(user$|async)?.first_name}} {{(user$|async)?.last_name}}</span>
   </div>
 
+  <button mat-button color="primary" [routerLink]="['/account/lastDraft']">
+    <span class="flex-row">
+      <mat-icon>shopping_cart</mat-icon>
+      <span>Mon dernier panier</span>
+    </span>
+  </button>
   <button mat-button color="primary" [routerLink]="['/account/orders']">
     <span class="flex-row">
       <mat-icon>receipt</mat-icon>

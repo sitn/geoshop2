@@ -25,7 +25,9 @@
 
     <mat-divider vertical="true" color="accent"></mat-divider>
 
-    <button mat-icon-button [matMenuTriggerFor]="cartOverlay">
+    <button mat-icon-button
+            [disabled]="(order$|async)?.url.length === 0 && (numberOfItemInTheCart$|async) === 0"
+            [matMenuTriggerFor]="cartOverlay">
       <mat-icon
         [matBadge]="(numberOfItemInTheCart$|async)  ? (numberOfItemInTheCart$|async)?.toString() : undefined"
         matBadgePosition="before" matBadgeColor="accent"

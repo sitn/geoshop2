@@ -1,32 +1,22 @@
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {Component, DoCheck, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {ApiService} from '../../_services/api.service';
 import {BehaviorSubject, forkJoin, merge, Observable} from 'rxjs';
 import {IOrder, Order} from '../../_models/IOrder';
 import {concatMap, debounceTime, map, mergeMap, scan, skip, switchMap, tap, throttleTime} from 'rxjs/operators';
 import {MapService} from '../../_services/map.service';
 import Map from 'ol/Map';
-import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import Feature from 'ol/Feature';
-import LayerGroup from 'ol/layer/Group';
-import View from 'ol/View';
-import Projection from 'ol/proj/Projection';
-import {fromLonLat} from 'ol/proj';
 import {ConfigService} from '../../_services/config.service';
-import proj4 from 'proj4';
-import {register} from 'ol/proj/proj4';
-import {defaults} from 'ol/interaction';
 import {FormControl} from '@angular/forms';
 import {CdkVirtualScrollViewport} from '@angular/cdk/scrolling';
+import {GeoHelper} from '../../_helpers/geoHelper';
 
 @Component({
   selector: 'gs2-orders',
   templateUrl: './orders.component.html',
   styleUrls: ['./orders.component.scss']
 })
-export class OrdersComponent implements OnInit {
-
-  private isFirstLoad = true;
+export class OrdersComponent implements OnInit, DoCheck {
 
   // Infinity scrolling
   @ViewChild(CdkVirtualScrollViewport) viewport: CdkVirtualScrollViewport;
@@ -40,15 +30,14 @@ export class OrdersComponent implements OnInit {
   minimaps: Map[];
   private vectorSources: VectorSource[];
   private ordersToDisplay = {start: 0, end: 0};
+  private lastOrdersToDisplay = {start: 0, end: 0};
   private currentIndex = 0;
   private currentOrders: Order[] = [];
+  private lastOrdersLength = 0;
 
   // Filtering
   orderFilterControl = new FormControl('');
   isSearchLoading$ = new BehaviorSubject(false);
-
-  // Last draft
-  loadLastDraf$ = new BehaviorSubject(false);
 
   constructor(private apiService: ApiService, private mapService: MapService, private configService: ConfigService,
               private elRef: ElementRef
@@ -76,7 +65,7 @@ export class OrdersComponent implements OnInit {
       const elem = document.createElement('div');
       elem.setAttribute('id', `minimap${i}`);
       this.elRef.nativeElement.appendChild(elem);
-      promises.push(this.initializeMinimap(elem));
+      promises.push(GeoHelper.generateMiniMap(this.configService, this.mapService));
     }
 
     Promise.all(promises).then((results) => {
@@ -88,6 +77,18 @@ export class OrdersComponent implements OnInit {
 
       this.initializeComponentAction();
     });
+  }
+
+  ngDoCheck(): void {
+    if (this.currentOrders.length !== this.lastOrdersLength) {
+      this.updateMinimaps();
+      this.lastOrdersLength = this.currentOrders.length;
+    } else if (this.lastOrdersToDisplay.start !== this.ordersToDisplay.start &&
+      this.lastOrdersToDisplay.end !== this.ordersToDisplay.end) {
+      this.updateMinimaps();
+      this.lastOrdersToDisplay.start = this.ordersToDisplay.start;
+      this.lastOrdersToDisplay.end = this.ordersToDisplay.end;
+    }
   }
 
   getBatch(offset: number) {
@@ -111,9 +112,9 @@ export class OrdersComponent implements OnInit {
     console.log('next batch', e);
     this.currentIndex = e;
     if (offset + 1 >= this.total) {
-      if (this.orderFilterControl.value && this.orderFilterControl.value.length > 0) {
+      /*if (this.orderFilterControl.value && this.orderFilterControl.value.length > 0) {
         this.updateMinimaps();
-      }
+      }*/
       return;
     }
 
@@ -123,57 +124,6 @@ export class OrdersComponent implements OnInit {
     if (end === total) {
       this.offset.next(offset);
     }
-  }
-
-  private async initializeMinimap(elem: HTMLDivElement) {
-    if (!this.mapService.FirstBaseMapLayer) {
-      proj4.defs(this.configService.config.epsg,
-        '+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333'
-        + ' +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel '
-        + '+towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs');
-      register(proj4);
-    }
-
-    const vectorSource = new VectorSource();
-    vectorSource.on('addfeature', (evt) => {
-
-    });
-    const layer = new VectorLayer({
-      source: vectorSource,
-      style: this.mapService.drawingStyle
-    });
-
-    const projection = new Projection({
-      code: this.configService.config.epsg,
-      // @ts-ignore
-      extent: this.configService.config.initialExtent,
-    });
-    const view = new View({
-      projection,
-      center: fromLonLat([6.80, 47.05], projection),
-      zoom: 4,
-    });
-
-    const baseMapConfig = this.configService.config.basemaps[0];
-    const tileLayer = await this.mapService.createTileLayer(baseMapConfig, true);
-
-    const minimap = new Map({
-      layers: new LayerGroup({layers: [tileLayer]}),
-      view,
-      interactions: defaults({
-        keyboard: false,
-        mouseWheelZoom: false,
-        dragPan: false,
-        altShiftDragRotate: false,
-        shiftDragZoom: false,
-        doubleClickZoom: false,
-        pinchZoom: false,
-      }),
-    });
-
-    minimap.addLayer(layer);
-
-    return {minimap, vectorSource};
   }
 
   private initializeComponentAction() {
@@ -188,25 +138,6 @@ export class OrdersComponent implements OnInit {
 
     this.infinite = merge(
       batchMap.pipe(map(v => Object.values(v) as Order[])),
-      this.loadLastDraf$.pipe(
-        skip(1),
-        throttleTime(500),
-        switchMap((val) => {
-          this.isSearchLoading$.next(true);
-
-          if (val) {
-            return this.apiService.getLastDraft().pipe(map(x => x ? [x] : []));
-          } else {
-            return this.apiService.getOrders(0, this.batch)
-              .pipe(
-                map((response) => {
-                  this.total = response.count;
-                  return response.results;
-                })
-              );
-          }
-        })
-      ),
       this.orderFilterControl.valueChanges.pipe(
         skip(1),
         debounceTime(500),
@@ -228,7 +159,9 @@ export class OrdersComponent implements OnInit {
           return this.apiService.find<IOrder>(inputText, 'order').pipe(
             concatMap(response => {
               this.total = response.count;
-              return forkJoin(response.results.map(x => this.apiService.getFullOrder(x)));
+              return forkJoin(response.results.map(x => this.apiService.getOrder(x.url))).pipe(
+                map(iOrders => iOrders.map(x => new Order(x)))
+              );
             }),
           );
         })
@@ -239,7 +172,6 @@ export class OrdersComponent implements OnInit {
 
     this.infinite.subscribe(orders => {
       this.currentOrders = orders;
-      this.updateMinimaps();
       this.isSearchLoading$.next(false);
     });
   }
@@ -267,26 +199,8 @@ export class OrdersComponent implements OnInit {
 
     let batchIndex = 0;
     for (let i = this.ordersToDisplay.start; i < this.ordersToDisplay.end; i++) {
-      this.loadMinimap(batchIndex, this.currentOrders[i]);
+      GeoHelper.displayMiniMap(this.currentOrders[i], this.minimaps, this.vectorSources, batchIndex);
       batchIndex++;
     }
-  }
-
-  private loadMinimap(index: number, order: Order) {
-    if (!order) {
-      return;
-    }
-    const target = `mini-map-${order.id}`;
-    console.log('load mini map', index, target);
-    this.minimaps[index].setTarget(target);
-
-    const feature = new Feature();
-    feature.setGeometry(order.geom);
-    this.vectorSources[index].clear();
-    this.vectorSources[index].addFeature(feature);
-
-    this.minimaps[index].getView().fit(order.geom, {
-      padding: [50, 50, 50, 50]
-    });
   }
 }
