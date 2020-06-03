@@ -176,7 +176,7 @@ class OrderViewSet(MultiSerializerViewSet):
         user = self.request.user
         last_draft = Order.objects.filter(client_id=user.id, status=Order.OrderStatus.DRAFT).first()
         if last_draft:
-            serializer = OrderSerializer(last_draft, context={'request': request})
+            serializer = OrderSerializer(last_draft, context={'request': request}, partial=True)
             return Response(serializer.data)
         return Response(status=status.HTTP_204_NO_CONTENT)
 

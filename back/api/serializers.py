@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.gis.geos import Polygon
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
@@ -13,7 +14,6 @@ from .models import (
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework_gis.serializers import GeoModelSerializer
 
 from allauth.account.adapter import get_adapter
 
@@ -40,7 +40,7 @@ class FormatSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class OrderTypeSerializer(GeoModelSerializer):
+class OrderTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderType
         fields = '__all__'
@@ -106,30 +106,77 @@ class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class OrderItemSerializer(serializers.HyperlinkedModelSerializer):
+    """
+    A Basic serializer for order items
+    """
     class Meta:
         model = OrderItem
         fields = '__all__'
 
 
-class OrderSerializer(serializers.HyperlinkedModelSerializer):
+class OrderItemTextualSerializer(serializers.ModelSerializer):
+    """
+    A more human-readable serializer replacing ids by labels.
+    """
+    product = serializers.SlugRelatedField(
+        queryset=Product.objects.all(),
+        slug_field='label')
+    format = serializers.SlugRelatedField(
+        queryset=Format.objects.all(),
+        slug_field='name')
+
+    class Meta:
+        model = OrderItem
+        exclude = ['order']
+
+
+class OrderSerializer(serializers.ModelSerializer):
     """
     A complete Order serializer.
     """
-    order_type = serializers.StringRelatedField()
-    #items = serializers.HyperlinkedRelatedField(
-    #    queryset=OrderItem.objects.all(),
-    #    many=True,
-    #    view_name='order-detail')
+    order_type = serializers.SlugRelatedField(
+        queryset=OrderType.objects.all(),
+        slug_field='name',
+        help_text='Input the translated string value, for example "Privé"')
+    items = OrderItemTextualSerializer(many=True)
+    client = serializers.HiddenField(
+        default=serializers.CurrentUserDefault(),
+    )
 
     class Meta:
         model = Order
-        exclude = ['date_downloaded', 'client']
+        exclude = ['date_downloaded']
         read_only_fields = [
             'date_ordered', 'date_processed',
             'processing_fee_currency', 'processing_fee',
             'total_cost_currency', 'total_cost',
             'part_vat_currency', 'part_vat',
-            'status', 'items']
+            'status']
+
+    def create(self, validated_data):
+        items_data = validated_data.pop('items')
+        geom = validated_data.pop('geom')
+        order = Order(**validated_data)
+        order.geom = Polygon(geom.coords[0], srid=2056)
+        order.save()
+        for item_data in items_data:
+            OrderItem.objects.create(order=order, **item_data)
+        return order
+
+    def update(self, instance, validated_data):
+        items_data = validated_data.pop('items')
+        geom = validated_data.pop('geom', None)
+
+        if geom:
+            instance.geom = Polygon(geom.coords[0], srid=2056)
+
+        instance.title = validated_data.get('title', instance.title)
+        instance.description = validated_data.get('description', instance.description)
+
+        instance.save()
+        for item_data in items_data:
+            OrderItem.objects.create(order=instance, **item_data)
+        return instance
 
 
 class PasswordResetSerializer(serializers.Serializer):
