@@ -2,7 +2,7 @@
   <mat-card-header>
     <div mat-card-avatar class="card-header-image"></div>
     <mat-card-title>GeoShop - Authentification</mat-card-title>
-    <mat-card-subtitle>Créer un nouveau compte</mat-card-subtitle>
+    <mat-card-subtitle>Création d'un nouveau compte</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
 
@@ -24,7 +24,7 @@
           <div class="flex-column" formGroupName="passwords">
 
             <mat-form-field color="primary">
-              <input formControlName="password"  autocapitalize="off" autocomplete="off"
+              <input formControlName="password" autocapitalize="off" autocomplete="off"
                      spellcheck="false"
                      required matInput
                      placeholder="Mot de passe" type="password">
@@ -50,7 +50,7 @@
         </div>
       </mat-step>
 
-      <mat-step [stepControl]="formContact" label="Identifiants">
+      <mat-step [stepControl]="formContact" label="Contact">
         <form [formGroup]="formContact" class="flex-column">
           <mat-form-field color="primary">
             <input id="registerInput1" formControlName="firstName"
@@ -95,6 +95,16 @@
                    matInput
                    placeholder="Téléphone">
             <mat-error *ngIf="phone?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="phone?.hasError('pattern')">
+              <ul>Mauvais format de téléphone, accepté :
+                <li>+41225252356</li>
+                <li>+41 22 225 25 23</li>
+                <li>0041222252523</li>
+                <li>0041 22 225 25 23</li>
+                <li>0225232523</li>
+                <li>02 25 25 25 23</li>
+              </ul>
+            </mat-error>
           </mat-form-field>
         </form>
 
@@ -104,7 +114,7 @@
         </div>
       </mat-step>
 
-      <mat-step [stepControl]="formAddress" label="Identifiants">
+      <mat-step [stepControl]="formAddress" label="Adresse">
         <form [formGroup]="formAddress" class="flex-column">
           <mat-form-field color="primary">
             <input id="registerInput2" formControlName="street"
@@ -168,7 +178,7 @@
         </div>
       </mat-step>
 
-      <mat-step [stepControl]="formOthers" label="Identifiants">
+      <mat-step [stepControl]="formOthers" label="Société">
         <form [formGroup]="formOthers" class="flex-column">
           <mat-form-field color="primary">
             <input id="registerInput3" formControlName="companyName"

@@ -9,6 +9,7 @@ import {Router} from '@angular/router';
 import {of} from 'rxjs';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {StepperSelectionEvent} from '@angular/cdk/stepper';
+import {PHONE_REGEX} from '../../_helpers/regex';
 
 @Component({
   selector: 'gs2-register',
@@ -35,7 +36,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     firstName: new FormControl('', Validators.required),
     lastName: new FormControl('', Validators.required),
     email: new FormControl('', Validators.compose([Validators.required, Validators.email])),
-    phone: new FormControl('', Validators.required),
+    phone: new FormControl('', Validators.compose([Validators.pattern(PHONE_REGEX), Validators.required])),
   });
   formAddress = new FormGroup({
     street: new FormControl('', Validators.required),
