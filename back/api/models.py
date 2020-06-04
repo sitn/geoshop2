@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.search import SearchVectorField
@@ -19,8 +20,12 @@ class Copyright(models.Model):
 
 
 class Document(models.Model):
-    name = models.CharField(_('name'), max_length=80, blank=True)
-    link = models.CharField(_('link'), max_length=2000, blank=True)
+    name = models.CharField(_('name'), max_length=80)
+    link = models.URLField(
+        _('link'),
+        help_text="Veuillez compléter l'URL ci-dessus",
+        default=settings.DOCUMENT_BASE_URL
+    )
 
     class Meta:
         db_table = 'document'
