@@ -285,7 +285,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ProductFormat',
             fields=[
-                ('product', models.OneToOneField(on_delete=django.db.models.deletion.DO_NOTHING, primary_key=True, serialize=False, to='api.Product', verbose_name='product')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('product', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='api.Product', verbose_name='product')),
                 ('is_manual', models.BooleanField(default=False, verbose_name='is_manual')),
                 ('format', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='api.Format', verbose_name='format')),
             ],
