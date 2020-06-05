@@ -23,7 +23,7 @@ class Document(models.Model):
     name = models.CharField(_('name'), max_length=80)
     link = models.URLField(
         _('link'),
-        help_text="Veuillez compléter l'URL ci-dessus",
+        help_text=_('Please complete the above URL'),
         default=settings.DOCUMENT_BASE_URL
     )
 
