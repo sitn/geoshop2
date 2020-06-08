@@ -76,6 +76,7 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
     contact_persons = serializers.SerializerMethodField()
     modified_user = serializers.StringRelatedField(read_only=True)
     documents = DocumentSerializer(many=True)
+    copyright = CopyrightSerializer(many=False)
 
     class Meta:
         model = Metadata
