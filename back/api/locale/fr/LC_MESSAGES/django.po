@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-05 08:33+0200\n"
+"POT-Creation-Date: 2020-06-10 15:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -54,31 +54,31 @@ msgstr "type de commande"
 msgid "order types"
 msgstr "types de commande"
 
-#: .\api\models.py:65
+#: .\api\models.py:65 .\api\models.py:336
 msgid "street"
 msgstr "adresse"
 
-#: .\api\models.py:66
+#: .\api\models.py:66 .\api\models.py:337
 msgid "street2"
 msgstr "complément d'adresse"
 
-#: .\api\models.py:67
+#: .\api\models.py:67 .\api\models.py:338
 msgid "postcode"
 msgstr "NPA"
 
-#: .\api\models.py:68
+#: .\api\models.py:68 .\api\models.py:339
 msgid "city"
 msgstr "ville"
 
-#: .\api\models.py:69
+#: .\api\models.py:69 .\api\models.py:340
 msgid "country"
 msgstr "pays"
 
-#: .\api\models.py:70
+#: .\api\models.py:70 .\api\models.py:341
 msgid "company_name"
 msgstr "raison sociale"
 
-#: .\api\models.py:71
+#: .\api\models.py:71 .\api\models.py:342
 msgid "phone"
 msgstr "téléphone"
 
@@ -379,18 +379,42 @@ msgstr "traitement manuel"
 msgid "product_format"
 msgstr "format du produit"
 
-#: .\api\serializers.py:286
+#: .\api\models.py:333
+msgid "first_name"
+msgstr "Prénom"
+
+#: .\api\models.py:334
+msgid "last_name"
+msgstr "Nom"
+
+#: .\api\models.py:335
+msgid "email"
+msgstr "Email"
+
+#: .\api\models.py:346
+msgid "user_change"
+msgstr "changement d'un utilisateur"
+
+#: .\api\serializers.py:287
 msgid "The two password fields didn't match."
 msgstr "Les deux mots de passe ne correspondent pas"
 
-#: .\api\views.py:202
+#: .\api\views.py:205
 msgid "Password reset e-mail has been sent."
 msgstr "L'email pour la réinitialisation du mot de passe a été envoyé"
 
-#: .\api\views.py:228
+#: .\api\views.py:231
 msgid "Password has been reset with the new password."
 msgstr "Votre nouveau mot de passe est sauvegardé"
 
-#: .\api\views.py:278
+#: .\api\views.py:296
+msgid "Geoshop - User change request"
+msgstr "Geoshop - Demande de modifications de la part d'un utilisateur"
+
+#: .\api\views.py:302
+msgid "Your data was successfully submitted"
+msgstr "Vos données ont été correctement soumises"
+
+#: .\api\views.py:318
 msgid "ok"
 msgstr "ok"

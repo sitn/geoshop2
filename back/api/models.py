@@ -327,3 +327,20 @@ class ProductFormat(models.Model):
         db_table = 'product_format'
         unique_together = (('product', 'format'),)
         verbose_name = _('product_format')
+
+
+class UserChange(models.Model):
+    first_name = models.CharField(_('first_name'), max_length=30, blank=True)
+    last_name = models.CharField(_('last_name'), max_length=150, blank=True)
+    email = models.EmailField(_('email'), max_length=254, blank=True)
+    street = models.CharField(_('street'), max_length=100, blank=True)
+    street2 = models.CharField(_('street2'), max_length=100, blank=True)
+    postcode = models.CharField(_('postcode'), max_length=10, blank=True)
+    city = models.CharField(_('city'), max_length=50, blank=True)
+    country = models.CharField(_('country'), max_length=50, blank=True)
+    company_name = models.CharField(_('company_name'), max_length=100, blank=True)
+    phone = models.CharField(_('phone'), max_length=50, blank=True)
+
+    class Meta:
+        db_table = 'user_change'
+        verbose_name = _('user_change')

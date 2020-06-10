@@ -29,6 +29,7 @@ router.register(r'productformat', views.ProductFormatViewSet)
 router.register_additional_route_to_root('token', 'token_obtain_pair')
 router.register_additional_route_to_root('token/refresh', 'token_refresh')
 router.register_additional_route_to_root('token/verify', 'token_verify')
+router.register_additional_route_to_root('auth/change', 'auth_change_user')
 router.register_additional_route_to_root('auth/current', 'auth_current_user')
 router.register_additional_route_to_root('auth/password', 'auth_password')
 router.register_additional_route_to_root('auth/password/confirm', 'auth_password_confirm')
@@ -41,6 +42,7 @@ urlpatterns = [
     re_path(r'^auth/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
             TemplateView.as_view(),
             name='password_reset_confirm'),
+    path('auth/change/', views.UserChangeView.as_view(), name='auth_change_user'),
     path('auth/current/', views.CurrentUserView.as_view(), name='auth_current_user'),
     path('auth/password/', views.PasswordResetView.as_view(), name='auth_password'),
     path('auth/password/confirm', views.PasswordResetConfirmView.as_view(), name='auth_password_confirm'),

@@ -10,7 +10,7 @@ from django.utils.http import urlsafe_base64_decode
 from .models import (
     Copyright, Document, Format, Identity,
     Metadata, MetadataContact, Order, OrderItem, OrderType,
-    Pricing, Product, ProductFormat)
+    Pricing, Product, ProductFormat, UserChange)
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -302,6 +302,12 @@ class RegisterSerializer(serializers.ModelSerializer):
             'groups', 'user_permissions', 'is_staff',
             'is_active', 'is_superuser', 'sap_id',
             'contract_accepted']
+
+
+class UserChangeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserChange
+        fields = '__all__'
 
 
 class VerifyEmailSerializer(serializers.Serializer):
