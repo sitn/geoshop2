@@ -23,6 +23,8 @@ class MetadataAdmin(admin.ModelAdmin):
     inlines = [MetadataContactInline]
     search_fields = ['name', 'id_name']
 
+class OrderAdmin(admin.OSMGeoAdmin):
+    ordering = ['-id']
 
 class ProductAdmin(admin.ModelAdmin):
     search_fields = ['label']
@@ -38,7 +40,7 @@ admin.site.register(Format)
 admin.site.register(Identity, IdentityAdmin)
 admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(MetadataContact)
-admin.site.register(Order, admin.OSMGeoAdmin)
+admin.site.register(Order, OrderAdmin)
 admin.site.register(OrderItem)
 admin.site.register(Pricing)
 admin.site.register(Product, ProductAdmin)
