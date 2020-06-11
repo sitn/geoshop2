@@ -1,0 +1,10 @@
+Dear admins,
+
+The user {{username}} has requested some changes for his user profile.
+
+Please verify these ones directly in the DB. The entry (id) number of
+this request is {{id}}.
+
+Thanks a lot
+
+This is an automated email please do not reply.

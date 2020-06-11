@@ -1,5 +1,8 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
 from django.db.models import Q
+from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
 from django.utils.translation import gettext_lazy as _
@@ -13,7 +16,7 @@ from allauth.account.views import ConfirmEmailView
 from .models import (
     Copyright, Document, Format, Identity, Metadata, MetadataContact,
     Order, OrderItem, OrderType, Pricing, Product,
-    ProductFormat)
+    ProductFormat, UserChange)
 
 from .serializers import (
     CopyrightSerializer, DocumentSerializer, FormatSerializer,
@@ -22,7 +25,7 @@ from .serializers import (
     OrderSerializer, OrderItemSerializer, OrderTypeSerializer,
     PasswordResetSerializer, PasswordResetConfirmSerializer,
     PricingSerializer, ProductSerializer,
-    ProductFormatSerializer, RegisterSerializer,
+    ProductFormatSerializer, RegisterSerializer, UserChangeSerializer,
     VerifyEmailSerializer)
 
 from .filters import FullTextSearchFilter
@@ -260,6 +263,40 @@ class RegisterView(generics.CreateAPIView):
     queryset = UserModel.objects.all().order_by('-date_joined')
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
+
+
+class UserChangeView(generics.CreateAPIView):
+    """
+    API endpoint that allows users to submit profile changes.
+    The changes are stored in a DB table and an email is
+    sent to the admins.
+    """
+    queryset = UserChange.objects.all()
+    serializer_class = UserChangeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        emails = UserModel.objects.filter(is_staff=True).values_list('email', flat=True)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
+        id_ = obj.id
+
+        context = ({
+            'id': id_,
+            'username': request.user.username
+        })
+        lang = getattr(settings, 'LANGUAGE_CODE')
+        text_content = render_to_string('change_user_email_'+lang+'.txt', context, request=request)
+        send_mail(
+            _('Geoshop - User change request'),
+            text_content,
+            getattr(settings, 'DEFAULT_FROM_EMAIL'),
+            emails
+        )
+
+        return Response({'detail': _('Your data was successfully submitted')}, status=status.HTTP_200_OK)
 
 
 class VerifyEmailView(views.APIView, ConfirmEmailView):
