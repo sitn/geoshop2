@@ -276,10 +276,7 @@ class UserChangeView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        emails = []
-        staff = UserModel.objects.filter(is_staff=True)
-        for person in staff:
-            emails.append(person.email)
+        emails = UserModel.objects.filter(is_staff=True).values_list('email', flat=True)
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
