@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { LastDraftComponent } from './last-draft.component';
+import { OrderItemViewComponent } from './order-item-view.component';
 
-describe('LastDraftComponent', () => {
-  let component: LastDraftComponent;
-  let fixture: ComponentFixture<LastDraftComponent>;
+describe('OrderItemViewComponent', () => {
+  let component: OrderItemViewComponent;
+  let fixture: ComponentFixture<OrderItemViewComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ LastDraftComponent ]
+      declarations: [ OrderItemViewComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(LastDraftComponent);
+    fixture = TestBed.createComponent(OrderItemViewComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

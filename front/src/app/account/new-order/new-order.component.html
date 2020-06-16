@@ -5,8 +5,8 @@
       <!-- Order type -->
       <mat-form-field>
         <mat-label>Type de mandat</mat-label>
-        <mat-select formControlName="orderType" required (selectionChange)="updateForm1($event.value)">
-          <mat-option *ngFor="let orderType of orderTypes$|async" [value]="orderType.id">
+        <mat-select formControlName="orderType" required (selectionChange)="updateForm1()" [compareWith]="orderTypeCompareWith">
+          <mat-option *ngFor="let orderType of orderTypes" [value]="orderType">
             {{orderType.name}}
           </mat-option>
         </mat-select>
@@ -21,7 +21,7 @@
       </mat-form-field>
 
       <!-- Description -->
-      <mat-form-field *ngIf="step1FormGroup.get('orderType')?.value !== 1">
+      <mat-form-field *ngIf="step1FormGroup.get('orderType')?.value?.id !== 1">
         <mat-label>Description du mandat</mat-label>
         <textarea matInput
                   formControlName="description"

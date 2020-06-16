@@ -2,7 +2,7 @@ import {Component, HostBinding, OnDestroy, OnInit, ViewChild} from '@angular/cor
 import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {ApiService} from '../../_services/api.service';
 import {PHONE_REGEX} from '../../_helpers/regex';
-import {Observable, Subject} from 'rxjs';
+import {Observable, of, Subject} from 'rxjs';
 import {IIdentity} from '../../_models/IIdentity';
 import {debounceTime, filter, map, mergeMap, startWith, switchMap, takeUntil} from 'rxjs/operators';
 import {Product} from '../../_models/IProduct';
@@ -12,7 +12,8 @@ import {MatPaginator} from '@angular/material/paginator';
 import {MatSort} from '@angular/material/sort';
 import {MatTableDataSource} from '@angular/material/table';
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
-import {Order} from '../../_models/IOrder';
+import {IOrderType, Order} from '../../_models/IOrder';
+import {ApiOrderService} from '../../_services/api-order.service';
 
 @Component({
   selector: 'gs2-new-order',
@@ -35,7 +36,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   currentOrder: Order;
   currentUser$ = this.store.select(getUser);
-  orderTypes$ = this.apiService.getOrderTypes();
+  orderTypes: IOrderType[] = [];
   filteredCustomers$: Observable<IIdentity[]> | undefined;
 
   // last step table attributes
@@ -47,31 +48,38 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     return this.step2FormGroup.get('customer');
   }
 
-  constructor(private formBuilder: FormBuilder, private apiService: ApiService,
+  constructor(private formBuilder: FormBuilder,
+              private apiOrderService: ApiOrderService,
+              private apiService: ApiService,
               private store: Store<AppState>) {
 
     this.store.pipe(
       takeUntil(this.onDestroy$),
       select(selectOrder),
-      switchMap(x => this.apiService.getFullOrder(x)),
+      switchMap(x => !x.id || x.id > -1 ? of(x) : this.apiOrderService.getFullOrder(x)),
     ).subscribe(order => {
-      this.currentOrder = order;
-      this.createForms();
+      this.currentOrder = order instanceof Order ? order : new Order(order);
+      this.apiOrderService.getOrderTypes().subscribe(orderTypes => {
+        this.orderTypes = orderTypes;
 
-      this.filteredCustomers$ = this.step2FormGroup.get('customer')?.valueChanges.pipe(
-        debounceTime(500),
-        startWith(''),
-        filter(x => typeof x === 'string' && x.length > 2),
-        mergeMap(email => {
-          this.isSearchLoading = true;
-          return this.apiService.find<IIdentity>(email, 'identity');
-        }),
-        map(x => {
-          this.isSearchLoading = false;
-          return x.results;
-        })
-      );
+        this.createForms();
+
+        this.filteredCustomers$ = this.step2FormGroup.get('customer')?.valueChanges.pipe(
+          debounceTime(500),
+          startWith(''),
+          filter(x => typeof x === 'string' && x.length > 2),
+          mergeMap(email => {
+            this.isSearchLoading = true;
+            return this.apiService.find<IIdentity>(email, 'identity');
+          }),
+          map(x => {
+            this.isSearchLoading = false;
+            return x.results;
+          })
+        );
+      });
     });
+
   }
 
   ngOnInit(): void {
@@ -90,9 +98,14 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.onDestroy$.next(true);
   }
 
+  private getOrderType(id: string | number) {
+    return this.orderTypes.find(x => typeof id === 'number' ?
+      id === x.id : id === x.name);
+  }
+
   private createForms() {
     this.step1FormGroup = this.formBuilder.group({
-      orderType: new FormControl(this.currentOrder.getOrderTypeId, Validators.required),
+      orderType: new FormControl(this.getOrderType(this.currentOrder.getOrderTypeId), Validators.required),
       title: new FormControl(this.currentOrder.title, Validators.required),
       description: new FormControl(this.currentOrder.description, Validators.required),
     });
@@ -102,21 +115,21 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       info: new FormControl('', Validators.required),
       newClient: new FormControl(false),
 
-      company_name: new FormControl(this.currentOrder.orderContact.company_name, Validators.required),
-      first_name: new FormControl(this.currentOrder.orderContact.first_name, Validators.required),
-      last_name: new FormControl(this.currentOrder.orderContact.last_name, Validators.required),
-      email: new FormControl(this.currentOrder.orderContact.email, Validators.compose([Validators.required, Validators.email])),
-      phone: new FormControl(this.currentOrder.orderContact.phone, Validators.pattern(PHONE_REGEX)),
-      street: new FormControl(this.currentOrder.orderContact.street, Validators.required),
-      street2: new FormControl(this.currentOrder.orderContact.street2, Validators.required),
-      postcode: new FormControl(this.currentOrder.orderContact.postcode, Validators.required),
-      city: new FormControl(this.currentOrder.orderContact.city, Validators.required),
-      country: new FormControl(this.currentOrder.orderContact.country, Validators.required),
+      company_name: new FormControl(this.currentOrder.orderContact?.company_name, Validators.required),
+      first_name: new FormControl(this.currentOrder.orderContact?.first_name, Validators.required),
+      last_name: new FormControl(this.currentOrder.orderContact?.last_name, Validators.required),
+      email: new FormControl(this.currentOrder.orderContact?.email, Validators.compose([Validators.required, Validators.email])),
+      phone: new FormControl(this.currentOrder.orderContact?.phone, Validators.pattern(PHONE_REGEX)),
+      street: new FormControl(this.currentOrder.orderContact?.street, Validators.required),
+      street2: new FormControl(this.currentOrder.orderContact?.street2, Validators.required),
+      postcode: new FormControl(this.currentOrder.orderContact?.postcode, Validators.required),
+      city: new FormControl(this.currentOrder.orderContact?.city, Validators.required),
+      country: new FormControl(this.currentOrder.orderContact?.country, Validators.required),
     });
     this.lastStepFormGroup = this.formBuilder.group({});
 
-    this.updateDescription(this.currentOrder.getOrderTypeId.toString());
-    this.updateForm2(this.currentOrder.getOrderTypeId.toString(),
+    this.updateDescription(this.step1FormGroup?.get('orderType')?.value);
+    this.updateForm2(this.step1FormGroup?.get('orderType')?.value,
       !this.currentOrder.isOwnCustomer && this.currentOrder.orderContact != null);
   }
 
@@ -167,8 +180,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.step2FormGroup.get('country')?.setValue('');
   }
 
-  updateDescription(orderTypeValue: number | string) {
-    if (orderTypeValue.toString() === '1') {
+  updateDescription(orderType: IOrderType) {
+    if (orderType && orderType.id === 1) {
       this.step1FormGroup.get('description')?.clearValidators();
     } else {
       this.step1FormGroup.get('description')?.setValidators(Validators.required);
@@ -176,8 +189,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.step1FormGroup.get('description')?.updateValueAndValidity();
   }
 
-  updateForm1(orderTypeValue: number | string) {
-    this.updateDescription(orderTypeValue);
+  updateForm1() {
+    this.updateDescription(this.step1FormGroup?.get('orderType')?.value);
 
     this.step1FormGroup.get('title')?.setValue('');
     this.step1FormGroup.get('description')?.setValue('');
@@ -186,9 +199,9 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.isCustomerSelected = false;
   }
 
-  updateForm2(orderTypeValue: number | string, isNewClient = false) {
+  updateForm2(orderType: IOrderType, isNewClient = false) {
     // current user, disable required form controls
-    if (orderTypeValue.toString() === '1') {
+    if (orderType.id === 1) {
       this.step2FormGroup.get('info')?.clearValidators();
       this.step2FormGroup.get('info')?.updateValueAndValidity();
 
@@ -244,7 +257,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   resetForms() {
     this.isCustomerSelected = false;
     this.step1FormGroup.reset({
-      orderType: this.currentOrder.getOrderTypeId,
+      orderType: this.getOrderType(this.currentOrder.getOrderTypeId),
       title: this.currentOrder.title,
       description: this.currentOrder.description,
     });
@@ -254,20 +267,24 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       info: '',
       newClient: false,
 
-      company_name: this.currentOrder.orderContact.company_name,
-      first_name: this.currentOrder.orderContact.first_name,
-      last_name: this.currentOrder.orderContact.last_name,
-      email: this.currentOrder.orderContact.email,
-      phone: this.currentOrder.orderContact.phone,
-      street: this.currentOrder.orderContact.street,
-      street2: this.currentOrder.orderContact.street2,
-      postcode: this.currentOrder.orderContact.postcode,
-      city: this.currentOrder.orderContact.city,
-      country: this.currentOrder.orderContact.country,
+      company_name: this.currentOrder.orderContact?.company_name,
+      first_name: this.currentOrder.orderContact?.first_name,
+      last_name: this.currentOrder.orderContact?.last_name,
+      email: this.currentOrder.orderContact?.email,
+      phone: this.currentOrder.orderContact?.phone,
+      street: this.currentOrder.orderContact?.street,
+      street2: this.currentOrder.orderContact?.street2,
+      postcode: this.currentOrder.orderContact?.postcode,
+      city: this.currentOrder.orderContact?.city,
+      country: this.currentOrder.orderContact?.country,
     });
 
-    this.updateDescription(this.currentOrder.getOrderTypeId.toString());
-    this.updateForm2(this.currentOrder.getOrderTypeId.toString(),
+    this.updateDescription(this.step1FormGroup?.get('orderType')?.value);
+    this.updateForm2(this.step1FormGroup?.get('orderType')?.value,
       !this.currentOrder.isOwnCustomer && this.currentOrder.orderContact != null);
+  }
+
+  orderTypeCompareWith(a: IOrderType, b: IOrderType) {
+    return a && b && a.id === b.id;
   }
 }

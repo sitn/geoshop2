@@ -1,8 +1,7 @@
-import {Component, DoCheck, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {ApiService} from '../../_services/api.service';
-import {BehaviorSubject, forkJoin, merge, Observable} from 'rxjs';
+import {Component, ComponentFactoryResolver, ElementRef, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
+import {BehaviorSubject, forkJoin, merge, of, zip} from 'rxjs';
 import {IOrder, Order} from '../../_models/IOrder';
-import {concatMap, debounceTime, map, mergeMap, scan, skip, switchMap, tap, throttleTime} from 'rxjs/operators';
+import {concatMap, debounceTime, filter, map, mergeMap, scan, skip, switchMap, tap} from 'rxjs/operators';
 import {MapService} from '../../_services/map.service';
 import Map from 'ol/Map';
 import VectorSource from 'ol/source/Vector';
@@ -10,42 +9,59 @@ import {ConfigService} from '../../_services/config.service';
 import {FormControl} from '@angular/forms';
 import {CdkVirtualScrollViewport} from '@angular/cdk/scrolling';
 import {GeoHelper} from '../../_helpers/geoHelper';
+import {ApiOrderService} from '../../_services/api-order.service';
+import {ApiService} from '../../_services/api.service';
+import {OrderItemViewComponent} from '../../_components/order-item-view/order-item-view.component';
+import {WidgetHostDirective} from '../../_directives/widget-host.directive';
+import {AppState} from '../../_store';
+import {Store} from '@ngrx/store';
+import {reloadOrder} from '../../_store/cart/cart.action';
+import {IProduct, Product} from '../../_models/IProduct';
 
 @Component({
   selector: 'gs2-orders',
   templateUrl: './orders.component.html',
-  styleUrls: ['./orders.component.scss']
+  styleUrls: ['./orders.component.scss'],
 })
-export class OrdersComponent implements OnInit, DoCheck {
+export class OrdersComponent implements OnInit {
+
+  private currentIndex = 0;
 
   // Infinity scrolling
   @ViewChild(CdkVirtualScrollViewport) viewport: CdkVirtualScrollViewport;
   batch = 10;
   realBatch = 10;
-  offset = new BehaviorSubject<number | null>(null);
-  infinite: Observable<Order[]>;
+  offset = new BehaviorSubject<number | null>(0);
+  currentOrders: Order[] = [];
   total = 0;
   stepToLoadData = 0;
-  readonly itemHeight = 502.4;
-  minimaps: Map[];
-  private vectorSources: VectorSource[];
-  private ordersToDisplay = {start: 0, end: 0};
-  private lastOrdersToDisplay = {start: 0, end: 0};
-  private currentIndex = 0;
-  private currentOrders: Order[] = [];
-  private lastOrdersLength = 0;
+  readonly itemHeight = 48;
+
+  // Order items
+  @ViewChildren(WidgetHostDirective) orderItemTemplates: QueryList<WidgetHostDirective>;
+  selectedOrder: Order;
+
+  // Map
+  private minimap: Map;
+  private vectorSource: VectorSource;
 
   // Filtering
   orderFilterControl = new FormControl('');
   isSearchLoading$ = new BehaviorSubject(false);
 
-  constructor(private apiService: ApiService, private mapService: MapService, private configService: ConfigService,
-              private elRef: ElementRef
+  constructor(private apiOrderService: ApiOrderService,
+              private apiService: ApiService,
+              private mapService: MapService,
+              private configService: ConfigService,
+              private elRef: ElementRef,
+              private cfr: ComponentFactoryResolver,
+              private store: Store<AppState>,
   ) {
-
+    console.log('constructor');
   }
 
   ngOnInit(): void {
+    console.log('ngOnInit');
     const firstElement = this.elRef.nativeElement.children[0].clientHeight;
     const heightAvailable = this.elRef.nativeElement.clientHeight - firstElement;
 
@@ -56,44 +72,18 @@ export class OrdersComponent implements OnInit, DoCheck {
     this.stepToLoadData = numberOfRowPossible - half;
     this.realBatch = numberOfRowPossible;
     this.batch = numberOfRowPossible + 1;
-    console.log('batch', this.batch);
-    this.minimaps = new Array(this.batch);
-    this.vectorSources = new Array(this.batch);
 
-    const promises = [];
-    for (let i = 0; i < this.batch; i++) {
-      const elem = document.createElement('div');
-      elem.setAttribute('id', `minimap${i}`);
-      this.elRef.nativeElement.appendChild(elem);
-      promises.push(GeoHelper.generateMiniMap(this.configService, this.mapService));
-    }
-
-    Promise.all(promises).then((results) => {
-      for (let i = 0; i < results.length; i++) {
-        const result = results[i];
-        this.minimaps[i] = result.minimap;
-        this.vectorSources[i] = result.vectorSource;
-      }
+    GeoHelper.generateMiniMap(this.configService, this.mapService).then(result => {
+      this.minimap = result.minimap;
+      this.vectorSource = result.vectorSource;
 
       this.initializeComponentAction();
     });
   }
 
-  ngDoCheck(): void {
-    if (this.currentOrders.length !== this.lastOrdersLength) {
-      this.updateMinimaps();
-      this.lastOrdersLength = this.currentOrders.length;
-    } else if (this.lastOrdersToDisplay.start !== this.ordersToDisplay.start &&
-      this.lastOrdersToDisplay.end !== this.ordersToDisplay.end) {
-      this.updateMinimaps();
-      this.lastOrdersToDisplay.start = this.ordersToDisplay.start;
-      this.lastOrdersToDisplay.end = this.ordersToDisplay.end;
-    }
-  }
-
   getBatch(offset: number) {
     console.log(`get batch: offset : ${offset}, number : ${this.batch}`);
-    return this.apiService.getOrders(offset, this.batch)
+    return this.apiOrderService.getOrders(offset, this.batch)
       .pipe(
         tap(response => this.total = response.count),
         map((response) =>
@@ -109,12 +99,11 @@ export class OrdersComponent implements OnInit, DoCheck {
   }
 
   nextBatch(e: number, offset: number) {
-    console.log('next batch', e);
+    if (this.currentIndex === e) {
+      return;
+    }
     this.currentIndex = e;
     if (offset + 1 >= this.total) {
-      /*if (this.orderFilterControl.value && this.orderFilterControl.value.length > 0) {
-        this.updateMinimaps();
-      }*/
       return;
     }
 
@@ -128,79 +117,87 @@ export class OrdersComponent implements OnInit, DoCheck {
 
   private initializeComponentAction() {
 
+    console.log('initializeComponentAction');
+
     const batchMap = this.offset.pipe(
-      throttleTime(500),
+      filter((x) => x != null && x >= 0),
       mergeMap((n: number) => this.getBatch(n)),
       scan((acc, batch) => {
         return {...acc, ...batch};
-      }, {})
+      }, {}),
+      map(v => Object.values(v).map((x: IOrder) => new Order(x)))
     );
 
-    this.infinite = merge(
-      batchMap.pipe(map(v => Object.values(v) as Order[])),
+    merge(
+      batchMap,
       this.orderFilterControl.valueChanges.pipe(
         skip(1),
         debounceTime(500),
-        throttleTime(500),
         switchMap(inputText => {
           this.isSearchLoading$.next(true);
 
           if (!inputText || inputText.length < 3) {
-            return this.apiService.getOrders(0, this.batch)
-              .pipe(
-                map((response) => {
-                  this.total = response.count;
-                  return response.results;
-                })
-              );
-
+            this.offset.next(0);
+            return of([]);
           }
 
           return this.apiService.find<IOrder>(inputText, 'order').pipe(
             concatMap(response => {
               this.total = response.count;
-              return forkJoin(response.results.map(x => this.apiService.getOrder(x.url))).pipe(
+              return forkJoin(response.results.map(x => this.apiOrderService.getOrder(x.url))).pipe(
                 map(iOrders => iOrders.map(x => new Order(x)))
               );
             }),
           );
         })
       )
-    ).pipe(
-      throttleTime(500)
-    );
-
-    this.infinite.subscribe(orders => {
+    ).subscribe(orders => {
+      console.log('Get orders result', orders.length);
       this.currentOrders = orders;
       this.isSearchLoading$.next(false);
     });
   }
 
-  private updateMinimaps() {
-    if (this.viewport) {
-      const half = Math.round((this.currentIndex * this.realBatch) / 2);
-      this.ordersToDisplay.start = this.currentIndex * this.realBatch - half;
-      this.ordersToDisplay.end = (this.currentIndex * this.realBatch) + half;
-    } else {
-      this.ordersToDisplay.start = 0;
-      this.ordersToDisplay.end = this.realBatch;
-    }
+  private generateOrderItemsElements(order: Order, index: number) {
+    const componentFac = this.cfr.resolveComponentFactory(OrderItemViewComponent);
+    this.orderItemTemplates.forEach((item, i) => {
+      if (index === i && item.viewContainerRef.length === 0) {
+        const component = item.viewContainerRef.createComponent(componentFac);
+        component.instance.dataSource = order.items;
+        component.changeDetectorRef.detectChanges();
+        return;
+      }
+    });
+  }
 
-    if (this.ordersToDisplay.end === 0) {
-      this.ordersToDisplay.end = this.realBatch;
-    }
+  displayMiniMap(order: Order, index: number) {
+    this.apiOrderService.getOrder(order.url).subscribe((iOrder) => {
+      this.selectedOrder = new Order(iOrder);
+      this.generateOrderItemsElements(this.selectedOrder, index);
+      GeoHelper.displayMiniMap(this.selectedOrder, [this.minimap], [this.vectorSource], 0);
+    });
+  }
 
-    if ((this.ordersToDisplay.end - this.ordersToDisplay.start) > this.realBatch) {
-      this.ordersToDisplay.end = this.ordersToDisplay.start +
-        (this.ordersToDisplay.end / this.realBatch > 0 ? this.realBatch : this.realBatch - 1);
-    }
+  addToCart() {
+    if (this.selectedOrder) {
 
-    console.log('orders to display', this.ordersToDisplay);
+      const observables = this.selectedOrder.items.map(x => this.apiService.find<IProduct>(x.product, 'product'));
 
-    let batchIndex = 0;
-    for (let i = this.ordersToDisplay.start; i < this.ordersToDisplay.end; i++) {
-      GeoHelper.displayMiniMap(this.currentOrders[i], this.minimaps, this.vectorSources, batchIndex);
-      batchIndex++;
+      forkJoin(observables).subscribe(results => {
+        const products: Product[] = [];
+        for (const result of results) {
+          for (const product of result.results) {
+            if (this.selectedOrder.items.findIndex(x => x.product === product.label) > -1 &&
+              products.findIndex(x => x.label === product.label) === -1) {
+              products.push(new Product(product));
+            }
+          }
+        }
+        this.store.dispatch(reloadOrder({
+          order: this.selectedOrder.toIorder,
+          products
+        }));
+      });
     }
   }
 }

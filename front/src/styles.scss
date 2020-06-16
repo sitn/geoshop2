@@ -97,3 +97,12 @@ ul {
 .justify-content-space-between {
   justify-content: space-between;
 }
+
+.mini-map {
+  width: 30%;
+  height: 250px;
+
+  @media (max-width: 527px) {
+    width: 100%;
+  }
+}

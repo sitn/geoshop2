@@ -12,16 +12,49 @@
   </mat-form-field>
 </div>
 
-<ng-container *ngIf="infinite|async as orders">
+<ng-container *ngIf="currentOrders">
   <cdk-virtual-scroll-viewport class="orders-container"
                                [itemSize]="itemHeight"
-                               (scrolledIndexChange)="nextBatch($event, orders.length-1)">
-    <gs2-order-view *ngFor="let order of orders; index as i;" [order]="order"></gs2-order-view>
+                               (scrolledIndexChange)="nextBatch($event, currentOrders.length-1)">
+
+    <mat-accordion>
+      <mat-expansion-panel #panel *ngFor="let order of currentOrders; index as i;"
+                           (afterExpand)="displayMiniMap(order, i)">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <gs2-icon-text [text]="order.statusAsReadableIconText.text"
+                           [matIconName]="order.statusAsReadableIconText.iconName"
+                           [fontColor]="order.statusAsReadableIconText.color"
+                           [fontSize]="16"></gs2-icon-text>
+            <span [class]="panel.expanded ? '' : 'text-ellipsis-2'">{{order.title}}</span>
+          </mat-panel-title>
+          <mat-panel-description>
+            <span [class]="panel.expanded ? '' : 'text-ellipsis-2'">{{order.description}}</span>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="flex-column">
+          <div class="flex-row">
+            <!-- Order items -->
+            <ng-template class="gs2-order-item-view" gs2WidgetHost></ng-template>
+            <!-- Mini map -->
+            <div class="mini-map" [id]="'mini-map-' + order.id"></div>
+          </div>
+
+          <div class="bottom-actions-container">
+            <button mat-raised-button color="primary" (click)="addToCart()">Dupliquer dans le panier</button>
+          </div>
+        </div>
+
+
+      </mat-expansion-panel>
+    </mat-accordion>
+
   </cdk-virtual-scroll-viewport>
 </ng-container>
 
 <div class="cdk-overlay-container"
-     *ngIf="!(infinite|async) || (infinite|async)?.length === 0 || (isSearchLoading$|async)">
+     *ngIf="(isSearchLoading$|async)">
   <div class="cdk-overlay-backdrop cdk-overlay-dark-backdrop cdk-overlay-backdrop-showing flex-row"
        style="align-items: center;justify-content: center;">
     <mat-spinner diameter="64" color="accent"></mat-spinner>

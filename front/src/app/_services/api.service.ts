@@ -5,10 +5,8 @@ import {ConfigService} from './config.service';
 import {Observable, of, zip} from 'rxjs';
 import {IApiResponse} from '../_models/IApi';
 import {ICredentials, IIdentity} from '../_models/IIdentity';
-import {IOrder, IOrderType, Order} from '../_models/IOrder';
 import {map, switchMap} from 'rxjs/operators';
 import {IMetadata} from '../_models/IMetadata';
-import {fromPromise} from 'rxjs/internal-compatibility';
 
 @Injectable({
   providedIn: 'root'
@@ -76,19 +74,6 @@ export class ApiService {
     }
   }
 
-  getOrderTypes() {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
-
-    const url = new URL(`${this.apiUrl}/ordertype/`);
-
-    return this.http.get<IApiResponse<IOrderType>>(url.toString())
-      .pipe(
-        map(x => x.results)
-      );
-  }
-
   getCustomers(userId: string = 'https://sitn.ne.ch/geoshop2_dev/identity/3') {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
@@ -99,82 +84,12 @@ export class ApiService {
     );
   }
 
-  getOrders(offset?: number, limit?: number): Observable<IApiResponse<Order>> {
+  getIdentity(url: string | undefined): Observable<IIdentity | undefined> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    const url = new URL(`${this.apiUrl}/order/`);
-    if (limit) {
-      url.searchParams.append('limit', limit.toString());
-    }
-    if (offset) {
-      url.searchParams.append('offset', offset.toString());
-    }
-
-    return fromPromise(this.http.get<IApiResponse<IOrder>>(url.toString()).toPromise()
-      .then(async (resp) => {
-        const promises = resp.results.map(x => this.getOrder(x.url).toPromise());
-        const results = await Promise.all(promises);
-        const all: IApiResponse<Order> = {
-          results: results.map(x => new Order(x)),
-          count: resp.count,
-          next: resp.next,
-          previous: resp.previous
-        };
-        return all;
-      }));
-  }
-
-  getFullOrder(iOrder: IOrder): Observable<Order> {
-    return zip(
-      this.getOrderType(iOrder.order_type),
-      this.getIdentity(iOrder.invoice_contact),
-      this.getIdentity(iOrder.order_contact),
-      this.getIdentity(iOrder.client),
-    ).pipe(
-      map(data => {
-        console.log(data);
-
-        const order = new Order(iOrder);
-        order.deepInitialize(data[0], data[1], data[2], data[3]);
-        return order;
-      })
-    );
-  }
-
-  getLastDraft(): Observable<Order | null> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
-
-    const url = new URL(`${this.apiUrl}/order/last_draft/`);
-
-    return this.http.get<IOrder>(url.toString()).pipe(map(iOrder => iOrder ? new Order(iOrder) : null));
-  }
-
-  getOrder(url: string): Observable<IOrder> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
-
-    return this.http.get<IOrder>(url);
-  }
-
-  getOrderType(url: string): Observable<IOrderType> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
-
-    return this.http.get<IOrderType>(url);
-  }
-
-  getIdentity(url: string): Observable<IIdentity> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
-
-    return this.http.get<IIdentity>(url);
+    return !url ? of(undefined) : this.http.get<IIdentity | undefined>(url);
   }
 
   login(authenticate: ICredentials, callbackUrl: string): Observable<{ identity: Partial<IIdentity>; callbackUrl: string; }> {

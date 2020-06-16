@@ -24,7 +24,7 @@ import {ScrollingModule} from '@angular/cdk/scrolling';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatRadioModule} from '@angular/material/radio';
-import {LastDraftComponent} from './last-draft/last-draft.component';
+import {MatExpansionModule} from '@angular/material/expansion';
 
 const MODULES = [
   ReactiveFormsModule,
@@ -46,10 +46,11 @@ const MODULES = [
   MatProgressSpinnerModule,
   MatCheckboxModule,
   MatRadioModule,
+  MatExpansionModule
 ];
 
 @NgModule({
-  declarations: [AccountComponent, NewOrderComponent, OrdersComponent, ProfileComponent, LastDraftComponent],
+  declarations: [AccountComponent, NewOrderComponent, OrdersComponent, ProfileComponent],
   imports: [
     CommonModule,
     AccountRoutingModule,

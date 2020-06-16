@@ -23,17 +23,18 @@
   <mat-card-content>
     <!-- Order items -->
     <div class="order-item-wrapper">
-      <ng-container *ngFor="let orderItem of order.orderItems">
+      <ng-container *ngFor="let orderItem of order.items">
         <div class="order-item-container flex-column" *ngIf="orderItem">
-          <span>{{orderItem.product.label}}</span>
-          <gs2-icon-text [text]="orderItem.statusAsReadableIconText.text"
+          <span>{{orderItem.product}}</span>
+          <gs2-icon-text *ngIf="orderItem.statusAsReadableIconText"
+                         [text]="orderItem.statusAsReadableIconText.text"
                          [matIconName]="orderItem.statusAsReadableIconText.iconName"
                          [fontColor]="orderItem.statusAsReadableIconText.color"
                          [fontSize]="16"></gs2-icon-text>
         </div>
       </ng-container>
 
-      <div *ngIf="order.orderItems.length === 0">
+      <div *ngIf="order.items.length === 0">
         Aucun produit n'est lié à cette commande.
       </div>
     </div>

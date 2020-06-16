@@ -40,11 +40,12 @@ export const initialState: CartState = adapter.getInitialState({
   date_ordered: undefined,
   date_downloaded: undefined,
   client: '',
-  id: '',
+  id: -1,
   url: '',
   geom: null,
   entities: {},
-  ids: []
+  ids: [],
+  items: []
 });
 
 const cartReducer = createReducer(initialState,
@@ -74,15 +75,11 @@ const cartReducer = createReducer(initialState,
       id: '',
       url: '',
       geom: null,
+      items: []
     };
   }),
   on(CartActions.reloadOrder, (state, data) => {
-    adapter.removeAll(state);
-    adapter.addMany(data.products, state);
-    return {
-      ...state,
-      ...data.order
-    };
+    return adapter.setAll(data.products, state);
   }),
   on(CartActions.addProduct, (state, {product}) => {
     return adapter.addOne(product, {...state, total: state.total + 10});
@@ -145,7 +142,8 @@ export const selectOrder = (state: CartState) => {
     client: state.client,
     id: state.id,
     url: state.url,
-    geom: state.geom
+    geom: state.geom,
+    items: state.items
   };
 
   return iOrder;

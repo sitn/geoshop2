@@ -7,19 +7,25 @@ import {CommonModule} from '@angular/common';
 import {MatButtonModule} from '@angular/material/button';
 import {ConfirmDialogComponent} from '../_components/confirm-dialog/confirm-dialog.component';
 import {MatDialogModule} from '@angular/material/dialog';
+import {OrderItemViewComponent} from '../_components/order-item-view/order-item-view.component';
+import {MatTableModule} from '@angular/material/table';
+import {WidgetHostDirective} from '../_directives/widget-host.directive';
 
 const MODULES = [
   CommonModule,
   MatIconModule,
   MatCardModule,
   MatButtonModule,
-  MatDialogModule
+  MatDialogModule,
+  MatTableModule
 ];
 
 const COMPONENTS = [
   IconTextComponent,
   OrderViewComponent,
-  ConfirmDialogComponent
+  ConfirmDialogComponent,
+  OrderItemViewComponent,
+  WidgetHostDirective
 ];
 
 @NgModule({
