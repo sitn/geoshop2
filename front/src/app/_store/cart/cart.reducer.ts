@@ -79,7 +79,16 @@ const cartReducer = createReducer(initialState,
     };
   }),
   on(CartActions.reloadOrder, (state, data) => {
-    return adapter.setAll(data.products, state);
+    return {
+      ...adapter.setAll(data.products, state),
+      ...data.order
+    };
+  }),
+  on(CartActions.updateOrder, (state, order) => {
+    return {
+      ...state,
+      ...order
+    };
   }),
   on(CartActions.addProduct, (state, {product}) => {
     return adapter.addOne(product, {...state, total: state.total + 10});

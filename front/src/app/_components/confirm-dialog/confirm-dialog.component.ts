@@ -9,6 +9,8 @@ import {MatDialogRef} from '@angular/material/dialog';
 export class ConfirmDialogComponent implements OnInit {
 
   public confirmMessage: string;
+  public noButtonTitle = 'Non';
+  public yesButtonTitle = 'Oui';
 
   constructor(public dialogRef: MatDialogRef<ConfirmDialogComponent>) {
   }

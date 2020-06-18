@@ -7,11 +7,17 @@ export const ADD_PRODUCT = '[Cart] Add product';
 export const UPDATE_PRODUCT = '[Cart] Update product';
 export const REMOVE_PRODUCT = '[Cart] Remove product';
 export const REMOVE_ALL_PRODUCTS = '[Cart] Remove all products';
+export const UPDATE_ORDER = '[Cart] Update order';
 export const RELOAD_ORDER = '[Cart] Reload order';
 export const DELETE_ORDER = '[Cart] Delete order';
 
 export const deleteOrder = createAction(
   DELETE_ORDER,
+);
+
+export const updateOrder = createAction(
+  UPDATE_ORDER,
+  props<{ geom: string }>()
 );
 
 export const reloadOrder = createAction(

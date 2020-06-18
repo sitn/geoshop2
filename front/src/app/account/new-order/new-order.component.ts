@@ -7,13 +7,17 @@ import {IIdentity} from '../../_models/IIdentity';
 import {debounceTime, filter, map, mergeMap, startWith, switchMap, takeUntil} from 'rxjs/operators';
 import {Product} from '../../_models/IProduct';
 import {select, Store} from '@ngrx/store';
-import {AppState, getUser, selectAllProducts, selectOrder} from '../../_store';
+import {AppState, getUser, selectOrder} from '../../_store';
 import {MatPaginator} from '@angular/material/paginator';
 import {MatSort} from '@angular/material/sort';
 import {MatTableDataSource} from '@angular/material/table';
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
-import {IOrderType, Order} from '../../_models/IOrder';
+import {IOrder, IOrderType, Order} from '../../_models/IOrder';
 import {ApiOrderService} from '../../_services/api-order.service';
+import {MatStepper} from '@angular/material/stepper';
+import {StoreService} from '../../_services/store.service';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {IApiResponseError} from '../../_models/IApi';
 
 @Component({
   selector: 'gs2-new-order',
@@ -27,6 +31,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   @HostBinding('class') class = 'main-container';
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild(MatSort, {static: true}) sort: MatSort;
+  @ViewChild('stepper') stepper: MatStepper;
 
   step1FormGroup: FormGroup;
   step2FormGroup: FormGroup;
@@ -51,6 +56,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   constructor(private formBuilder: FormBuilder,
               private apiOrderService: ApiOrderService,
               private apiService: ApiService,
+              private storeService: StoreService,
+              private snackBar: MatSnackBar,
               private store: Store<AppState>) {
 
     this.store.pipe(
@@ -83,15 +90,15 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.store.pipe(
-      takeUntil(this.onDestroy$),
-      select(selectAllProducts),
-    ).subscribe(x => {
-      this.products = x;
-      this.dataSource = new MatTableDataSource<Product>(this.products);
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
+    // this.store.pipe(
+    //   takeUntil(this.onDestroy$),
+    //   select(selectAllProducts),
+    // ).subscribe(x => {
+    //   this.products = x;
+    //   this.dataSource = new MatTableDataSource<Product>(this.products);
+    //   this.dataSource.paginator = this.paginator;
+    //   this.dataSource.sort = this.sort;
+    // });
   }
 
   ngOnDestroy() {
@@ -201,7 +208,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   updateForm2(orderType: IOrderType, isNewClient = false) {
     // current user, disable required form controls
-    if (orderType.id === 1) {
+    if (orderType && orderType.id === 1) {
       this.step2FormGroup.get('info')?.clearValidators();
       this.step2FormGroup.get('info')?.updateValueAndValidity();
 
@@ -286,5 +293,20 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   orderTypeCompareWith(a: IOrderType, b: IOrderType) {
     return a && b && a.id === b.id;
+  }
+
+  createOrUpdateDraftOrder() {
+    this.currentOrder.title = this.step1FormGroup.get('title')?.value;
+    this.currentOrder.description = this.step1FormGroup.get('description')?.value;
+    this.currentOrder.orderType = this.step1FormGroup.get('orderType')?.value;
+
+    this.apiOrderService.updateOrPostOrder(this.currentOrder, this.products).subscribe(newOrder => {
+      if ((newOrder as IApiResponseError).error) {
+        this.snackBar.open((newOrder as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'});
+      } else {
+        this.storeService.addOrderToStore(new Order(newOrder as IOrder));
+        this.stepper.next();
+      }
+    });
   }
 }

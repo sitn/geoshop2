@@ -297,6 +297,17 @@ $dark: #393939;
   color: black;
 }
 
+.warning-container {
+  margin: 10px;
+  padding: 5px;
+  border: solid 1px mat-color($warning);
+
+  mat-icon {
+    color: mat-color($warning);
+    margin-right: 10px;
+  }
+}
+
 .dark-background {
   background-color: $dark-background;
   color: white;

@@ -49,7 +49,7 @@
   <mat-menu #menu="matMenu">
     <button mat-menu-item *ngFor="let basemap of basemaps" (click)="switchBasemap(basemap.id)">
       <img alt="Basemap" [src]="basemap.thumbUrl" height="40px">
-      <span class="text-white">{{basemap.label}}</span>
+      <span>{{basemap.label}}</span>
     </button>
   </mat-menu>
 

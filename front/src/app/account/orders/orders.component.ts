@@ -1,5 +1,5 @@
 import {Component, ComponentFactoryResolver, ElementRef, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
-import {BehaviorSubject, forkJoin, merge, of, zip} from 'rxjs';
+import {BehaviorSubject, forkJoin, merge, of} from 'rxjs';
 import {IOrder, Order} from '../../_models/IOrder';
 import {concatMap, debounceTime, filter, map, mergeMap, scan, skip, switchMap, tap} from 'rxjs/operators';
 import {MapService} from '../../_services/map.service';
@@ -15,8 +15,7 @@ import {OrderItemViewComponent} from '../../_components/order-item-view/order-it
 import {WidgetHostDirective} from '../../_directives/widget-host.directive';
 import {AppState} from '../../_store';
 import {Store} from '@ngrx/store';
-import {reloadOrder} from '../../_store/cart/cart.action';
-import {IProduct, Product} from '../../_models/IProduct';
+import {StoreService} from '../../_services/store.service';
 
 @Component({
   selector: 'gs2-orders',
@@ -56,6 +55,7 @@ export class OrdersComponent implements OnInit {
               private elRef: ElementRef,
               private cfr: ComponentFactoryResolver,
               private store: Store<AppState>,
+              private storeService: StoreService
   ) {
     console.log('constructor');
   }
@@ -180,24 +180,7 @@ export class OrdersComponent implements OnInit {
 
   addToCart() {
     if (this.selectedOrder) {
-
-      const observables = this.selectedOrder.items.map(x => this.apiService.find<IProduct>(x.product, 'product'));
-
-      forkJoin(observables).subscribe(results => {
-        const products: Product[] = [];
-        for (const result of results) {
-          for (const product of result.results) {
-            if (this.selectedOrder.items.findIndex(x => x.product === product.label) > -1 &&
-              products.findIndex(x => x.label === product.label) === -1) {
-              products.push(new Product(product));
-            }
-          }
-        }
-        this.store.dispatch(reloadOrder({
-          order: this.selectedOrder.toIorder,
-          products
-        }));
-      });
+      this.storeService.addOrderToStore(this.selectedOrder);
     }
   }
 }

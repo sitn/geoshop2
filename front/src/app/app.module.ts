@@ -27,6 +27,7 @@ import {ErrorInterceptor} from './_interceptors/errorInterceptor';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {OverlayContainer} from '@angular/cdk/overlay';
 import {ActivatedRoute} from '@angular/router';
+import {CartEffects} from './_store/cart/cart.effects';
 
 export function initializeApp(configService: ConfigService) {
   return () => configService.load();
@@ -59,7 +60,7 @@ const MODULES = [
     HttpClientModule,
     MODULES,
     StoreModule.forRoot(reducers, {metaReducers}),
-    EffectsModule.forRoot([AuthEffects])
+    EffectsModule.forRoot([AuthEffects, CartEffects])
   ],
   providers: [
     {

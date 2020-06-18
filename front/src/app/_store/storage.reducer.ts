@@ -12,7 +12,13 @@ const setSavedState = (state: any, localStorageKey: string) => {
 
 const getSavedState = (localStorageKey: string): any => {
   const item = localStorage.getItem(localStorageKey);
-  return item ? JSON.parse(item) : undefined;
+
+  try {
+    return item ? JSON.parse(item) : undefined;
+  } catch (error) {
+    console.error(error);
+    return undefined;
+  }
 };
 
 export function storageMetaReducer<S, A extends Action = Action>(reducer: ActionReducer<S, A>) {

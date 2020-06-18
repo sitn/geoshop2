@@ -35,6 +35,9 @@ import Projection from 'ol/proj/Projection';
 import {boundingExtent, buffer, Extent, getArea} from 'ol/extent';
 import MultiPoint from 'ol/geom/MultiPoint';
 import {IBasemap} from '../_models/IConfig';
+import {AppState, selectOrder} from '../_store';
+import {Store} from '@ngrx/store';
+import {updateOrder} from '../_store/cart/cart.action';
 
 @Injectable({
   providedIn: 'root'
@@ -107,8 +110,12 @@ export class MapService {
     return this.basemapLayers.length > 0 ? this.basemapLayers[0] : null;
   }
 
-  constructor(private configService: ConfigService, private snackBar: MatSnackBar,
+  constructor(private configService: ConfigService,
+              private store: Store<AppState>,
+              private snackBar: MatSnackBar,
               private httpClient: HttpClient) {
+
+
   }
 
   public initialize() {
@@ -123,6 +130,14 @@ export class MapService {
       this.initializeDrawing();
       this.initializeGeolocation();
       this.initializeDragInteraction();
+
+      this.store.select(selectOrder).subscribe(order => {
+        if (!this.featureFromDrawing && order && order.geom) {
+          const geometry = this.geoJsonFormatter.readGeometry(order.geom);
+          const feature = new Feature(geometry);
+          this.drawingSource.addFeature(feature);
+        }
+      });
 
       this.initialized = true;
     }).catch(() => {
@@ -168,6 +183,9 @@ export class MapService {
         });
       } else {
         const id = layerGroup.get('gsId');
+        if (!id) {
+          return;
+        }
         if (id && id === gsId) {
           layerGroup.setVisible(true);
         } else {
@@ -400,12 +418,13 @@ export class MapService {
   private setAreaToCurrentFeature() {
     const area = GeoHelper.formatArea(this.featureFromDrawing.getGeometry() as Polygon);
     this.featureFromDrawing.set('area', area);
-    this.displayAreaMessage(area);
+    this.store.dispatch(updateOrder({geom:  this.geoJsonFormatter.writeGeometry(this.featureFromDrawing.getGeometry())}));
+    // this.displayAreaMessage(area);
   }
 
   private displayAreaMessage(area: string) {
     this.snackBarRef = this.snackBar.open(`L'aire du polygone sélectionné est de ${area}`, 'Cancel', {
-      duration: 10000,
+      duration: 5000,
       panelClass: 'primary-container'
     });
   }

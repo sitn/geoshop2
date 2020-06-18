@@ -1,11 +1,21 @@
 // tslint:disable:variable-name
 
-import {IProduct} from './IProduct';
-import {IFormat} from './IFormat';
 import Polygon from 'ol/geom/Polygon';
 import GeoJSON from 'ol/format/GeoJSON';
 import Geometry from 'ol/geom/Geometry';
 import {IIdentity} from './IIdentity';
+
+export interface IOrderToPost {
+  id?: number;
+  title: string;
+  description: string;
+  order_type: string;
+  geom: string | undefined;
+  invoice_reference?: string;
+  order_contact: any;
+  invoice_contact: any;
+  items: IOrderItem[];
+}
 
 export interface IOrder {
   id?: number;
@@ -32,7 +42,7 @@ export interface IOrder {
 }
 
 export interface IOrderItem {
-  id: number;
+  id?: number;
   product: string;
   format: string;
   last_download?: string;
@@ -73,7 +83,7 @@ export class Order {
   geom: Polygon | undefined;
   items: Array<IOrderItem>;
 
-  orderType: IOrderType;
+  orderType: IOrderType | undefined;
   clientIdentity: IIdentity | undefined;
   invoiceContact: IIdentity | undefined;
   orderContact: IIdentity | undefined;
@@ -118,7 +128,11 @@ export class Order {
     return this.orderContact && this.invoiceContact ? this.orderContact.url === this.invoiceContact.url : false;
   }
 
-  constructor(iOrder?: IOrder) {
+  get geometryAsGeoJson(): string | undefined {
+    return this.geom ? new GeoJSON().writeGeometry(this.geom) : undefined;
+  }
+
+  constructor(iOrder?: IOrder | null) {
     if (iOrder) {
       this.id = iOrder.id;
       this.url = iOrder.url;
@@ -169,7 +183,7 @@ export class Order {
     this.initializeStatus();
   }
 
-  public deepInitialize(orderType: IOrderType,
+  public deepInitialize(orderType: IOrderType | undefined,
                         client: IIdentity | undefined,
                         invoiceContact: IIdentity | undefined,
                         orderContact: IIdentity | undefined) {

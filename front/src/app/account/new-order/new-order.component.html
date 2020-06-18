@@ -169,6 +169,7 @@
             <input formControlName="postcode"
                    required
                    matInput
+                   type="number"
                    [readonly]="isCustomerSelected"
                    placeholder="Code postale">
             <mat-error *ngIf="step2FormGroup.get('postcode')?.hasError('required')">Requis</mat-error>
@@ -199,7 +200,7 @@
       <div class="bottom-container">
         <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
         <button color="primary" mat-button matStepperPrevious> Retour</button>
-        <button color="primary" mat-button matStepperNext> Suivant</button>
+        <button color="primary" mat-button (click)="createOrUpdateDraftOrder()"> Suivant</button>
       </div>
     </form>
   </mat-step>
