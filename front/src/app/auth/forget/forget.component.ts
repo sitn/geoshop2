@@ -14,7 +14,7 @@ import {of} from 'rxjs';
 })
 export class ForgetComponent implements OnInit {
 
-  @HostBinding('class') class = 'main-container dark-background';
+  @HostBinding('class') class = 'main-container';
 
   private readonly successMessage = 'Le mot de passe a été envoyé à l\'adresse : ';
   form: FormGroup;

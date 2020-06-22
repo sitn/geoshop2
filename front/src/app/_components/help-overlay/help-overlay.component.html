@@ -1,4 +1,4 @@
-<button mat-button color="accent">
+<button mat-button color="primary">
   <div class="flex-row">
     <mat-icon>remove_red_eye</mat-icon>
     <span>Voir l'aide</span>
@@ -7,13 +7,17 @@
 
 <span class="padding-horizontal-15 questions">Avez-vous des questions ?</span>
 
-<a [href]="'tel:' + phoneNumber" class="flex-row padding-horizontal-15">
-  <mat-icon color="accent">phone</mat-icon>
-  <span>{{phoneLabel}}</span>
+<a mat-button color="primary" [href]="'tel:' + phoneNumber">
+  <div class="flex-row">
+    <mat-icon color="primary">phone</mat-icon>
+    <span>{{phoneLabel}}</span>
+  </div>
 </a>
 
-<a [href]="'mailto:' + email" class="flex-row padding-horizontal-15">
-  <mat-icon color="accent">email</mat-icon>
-  <span>{{email}}</span>
+<a mat-button color="primary" [href]="'mailto:' + email">
+  <div class="flex-row">
+    <mat-icon color="primary">email</mat-icon>
+    <span>{{email}}</span>
+  </div>
 </a>
 

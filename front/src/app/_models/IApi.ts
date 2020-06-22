@@ -16,3 +16,10 @@ export interface IApiResponse<T> {
    */
   results: Array<T>;
 }
+
+export interface IApiResponseError {
+  error: { detail: string; };
+  message: string;
+  name: string;
+  status: number;
+}

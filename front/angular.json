@@ -30,7 +30,7 @@
             "styles": [
               "node_modules/ol/ol.css",
               "node_modules/ol-geocoder/dist/ol-geocoder.min.css",
-              "./node_modules/@angular/material/prebuilt-themes/purple-green.css",
+              "src/theme.scss",
               "src/styles.scss"
             ],
             "scripts": [

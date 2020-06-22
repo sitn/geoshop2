@@ -1,61 +1,62 @@
-<mat-form-field class="filter-container" color="accent">
-  <mat-label>Rechercher une commande...</mat-label>
-  <input matInput [formControl]="orderFilterControl">
-  <button mat-button *ngIf="orderFilterControl.value" matSuffix mat-icon-button aria-label="Clear"
-          (click)="orderFilterControl.setValue('')">
-    <mat-icon>close</mat-icon>
-  </button>
-</mat-form-field>
+<div class="actions-container">
+  <mat-form-field class="filter-container" color="primary">
+    <input matInput [formControl]="orderFilterControl" placeholder="Rechercher une commande...">
+    <div matSuffix class="flex-row">
+      <mat-spinner *ngIf="isSearchLoading$|async" diameter="16" color="accent"
+                   style="margin-right: 10px"></mat-spinner>
+      <button mat-button *ngIf="orderFilterControl.value" mat-icon-button aria-label="Clear"
+              (click)="orderFilterControl.setValue('');">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </mat-form-field>
+</div>
 
-<ng-container *ngIf="infinite|async as orders">
+<ng-container *ngIf="currentOrders">
   <cdk-virtual-scroll-viewport class="orders-container"
                                [itemSize]="itemHeight"
-                               (scrolledIndexChange)="nextBatch($event, orders.length-1)">
+                               (scrolledIndexChange)="nextBatch($event, currentOrders.length-1)">
 
-    <mat-card *ngFor="let order of orders">
-      <mat-card-header>
-        <mat-card-title>
-          <span>Commande </span>
-          <span>
-        <mat-icon style="transform: scaleX(-1)">format_quote</mat-icon>
-            {{order.title}}
-            <mat-icon>format_quote</mat-icon>
-      </span>
-          <span> du {{order.date_ordered | date}}</span>
-        </mat-card-title>
-        <mat-card-subtitle>
-          <div class="flex-row">
+    <mat-accordion>
+      <mat-expansion-panel #panel *ngFor="let order of currentOrders; index as i;"
+                           (afterExpand)="displayMiniMap(order, i)">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
             <gs2-icon-text [text]="order.statusAsReadableIconText.text"
                            [matIconName]="order.statusAsReadableIconText.iconName"
                            [fontColor]="order.statusAsReadableIconText.color"
                            [fontSize]="16"></gs2-icon-text>
-            <span class="right-container">Montant total {{order.total_cost_currency}} {{order.total_cost}}</span>
-          </div>
-        </mat-card-subtitle>
-      </mat-card-header>
+            <span [class]="panel.expanded ? '' : 'text-ellipsis-2'">{{order.title}}</span>
+          </mat-panel-title>
+          <mat-panel-description>
+            <span [class]="panel.expanded ? '' : 'text-ellipsis-2'">{{order.description}}</span>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
 
-      <mat-card-content>
-        <!-- Order items -->
-        <div class="order-item-wrapper">
-          <ng-container *ngFor="let orderItem of order.orderItems">
-            <div class="order-item-container flex-column" *ngIf="orderItem">
-              <span>{{orderItem.product.label}}</span>
-              <gs2-icon-text [text]="orderItem.statusAsReadableIconText.text"
-                             [matIconName]="orderItem.statusAsReadableIconText.iconName"
-                             [fontColor]="orderItem.statusAsReadableIconText.color"
-                             [fontSize]="16"></gs2-icon-text>
-            </div>
-          </ng-container>
+        <div class="flex-column">
+          <div class="flex-row">
+            <!-- Order items -->
+            <ng-template class="gs2-order-item-view" gs2WidgetHost></ng-template>
+            <!-- Mini map -->
+            <div class="mini-map" [id]="'mini-map-' + order.id"></div>
+          </div>
+
+          <div class="bottom-actions-container">
+            <button mat-raised-button color="primary" (click)="addToCart()">Dupliquer dans le panier</button>
+          </div>
         </div>
 
-        <div class="mini-map" [id]="'mini-map-' + order.id"></div>
-      </mat-card-content>
 
-      <mat-card-actions>
-        <button mat-raised-button color="primary" *ngIf="order.status === 'PENDING'">Valider définitivement la commande</button>
-        <button mat-raised-button color="primary">Détails</button>
-      </mat-card-actions>
+      </mat-expansion-panel>
+    </mat-accordion>
 
-    </mat-card>
   </cdk-virtual-scroll-viewport>
 </ng-container>
+
+<div class="cdk-overlay-container"
+     *ngIf="(isSearchLoading$|async)">
+  <div class="cdk-overlay-backdrop cdk-overlay-dark-backdrop cdk-overlay-backdrop-showing flex-row"
+       style="align-items: center;justify-content: center;">
+    <mat-spinner diameter="64" color="accent"></mat-spinner>
+  </div>
+</div>

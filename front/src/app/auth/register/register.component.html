@@ -2,15 +2,15 @@
   <mat-card-header>
     <div mat-card-avatar class="card-header-image"></div>
     <mat-card-title>GeoShop - Authentification</mat-card-title>
-    <mat-card-subtitle>Créer un nouveau compte</mat-card-subtitle>
+    <mat-card-subtitle>Création d'un nouveau compte</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
 
-    <mat-horizontal-stepper #stepper [linear]="true">
+    <mat-horizontal-stepper #stepper [linear]="true" (selectionChange)="setFocusOn($event)">
       <mat-step [stepControl]="formCredentials" label="Identifiants">
         <form [formGroup]="formCredentials" class="flex-column">
-          <mat-form-field color="accent">
-            <input formControlName="username"
+          <mat-form-field color="primary">
+            <input #firstInput formControlName="username"
                    autocapitalize="off"
                    autofocus
                    spellcheck="false"
@@ -23,15 +23,15 @@
 
           <div class="flex-column" formGroupName="passwords">
 
-            <mat-form-field color="accent">
-              <input formControlName="password"  autocapitalize="off" autocomplete="off"
+            <mat-form-field color="primary">
+              <input formControlName="password" autocapitalize="off" autocomplete="off"
                      spellcheck="false"
                      required matInput
                      placeholder="Mot de passe" type="password">
               <mat-error *ngIf="password?.hasError('required')">Required</mat-error>
             </mat-form-field>
 
-            <mat-form-field color="accent">
+            <mat-form-field color="primary">
               <input formControlName="passwordConfirm" autocapitalize="off" autocomplete="off"
                      spellcheck="false"
                      required matInput
@@ -46,14 +46,14 @@
         </form>
 
         <div class="bottom-container">
-          <button color="accent" mat-button matStepperNext> Suivant</button>
+          <button color="primary" mat-button matStepperNext> Suivant</button>
         </div>
       </mat-step>
 
-      <mat-step [stepControl]="formContact" label="Identifiants">
+      <mat-step [stepControl]="formContact" label="Contact">
         <form [formGroup]="formContact" class="flex-column">
-          <mat-form-field color="accent">
-            <input formControlName="firstName"
+          <mat-form-field color="primary">
+            <input id="registerInput1" formControlName="firstName"
                    autocapitalize="off"
                    autofocus
                    spellcheck="false"
@@ -63,7 +63,7 @@
             <mat-error *ngIf="firstName?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
-          <mat-form-field color="accent">
+          <mat-form-field color="primary">
             <input formControlName="lastName"
                    autocapitalize="off"
                    autofocus
@@ -74,7 +74,7 @@
             <mat-error *ngIf="lastName?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
-          <mat-form-field color="accent">
+          <mat-form-field color="primary">
             <input formControlName="email"
                    autocapitalize="off"
                    autofocus
@@ -86,7 +86,7 @@
             <mat-error *ngIf="email?.hasError('email')">Format de courriel incorrect</mat-error>
           </mat-form-field>
 
-          <mat-form-field color="accent">
+          <mat-form-field color="primary">
             <input formControlName="phone"
                    autocapitalize="off"
                    autofocus
@@ -95,19 +95,29 @@
                    matInput
                    placeholder="Téléphone">
             <mat-error *ngIf="phone?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="phone?.hasError('pattern')">
+              <ul>Mauvais format de téléphone, accepté :
+                <li>+41225252356</li>
+                <li>+41 22 225 25 23</li>
+                <li>0041222252523</li>
+                <li>0041 22 225 25 23</li>
+                <li>0225232523</li>
+                <li>02 25 25 25 23</li>
+              </ul>
+            </mat-error>
           </mat-form-field>
         </form>
 
         <div class="bottom-container">
-          <button color="accent" mat-button matStepperPrevious> Retour</button>
-          <button color="accent" mat-button matStepperNext> Suivant</button>
+          <button color="primary" mat-button matStepperPrevious> Retour</button>
+          <button color="primary" mat-button matStepperNext> Suivant</button>
         </div>
       </mat-step>
 
-      <mat-step [stepControl]="formAddress" label="Identifiants">
+      <mat-step [stepControl]="formAddress" label="Adresse">
         <form [formGroup]="formAddress" class="flex-column">
-          <mat-form-field color="accent">
-            <input formControlName="street"
+          <mat-form-field color="primary">
+            <input id="registerInput2" formControlName="street"
                    autocapitalize="off"
                    autofocus
                    spellcheck="false"
@@ -117,7 +127,7 @@
             <mat-error *ngIf="street?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
-          <mat-form-field color="accent">
+          <mat-form-field color="primary">
             <input formControlName="street2"
                    autocapitalize="off"
                    autofocus
@@ -128,7 +138,7 @@
             <mat-error *ngIf="street2?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
-          <mat-form-field color="accent">
+          <mat-form-field color="primary">
             <input formControlName="postcode"
                    autocapitalize="off"
                    autofocus
@@ -139,7 +149,7 @@
             <mat-error *ngIf="postcode?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
-          <mat-form-field color="accent">
+          <mat-form-field color="primary">
             <input formControlName="city"
                    autocapitalize="off"
                    autofocus
@@ -150,7 +160,7 @@
             <mat-error *ngIf="city?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
-          <mat-form-field color="accent">
+          <mat-form-field color="primary">
             <input formControlName="country"
                    autocapitalize="off"
                    autofocus
@@ -163,15 +173,15 @@
         </form>
 
         <div class="bottom-container">
-          <button color="accent" mat-button matStepperPrevious> Retour</button>
-          <button color="accent" mat-button matStepperNext> Suivant</button>
+          <button color="primary" mat-button matStepperPrevious> Retour</button>
+          <button color="primary" mat-button matStepperNext> Suivant</button>
         </div>
       </mat-step>
 
-      <mat-step [stepControl]="formOthers" label="Identifiants">
+      <mat-step [stepControl]="formOthers" label="Société">
         <form [formGroup]="formOthers" class="flex-column">
-          <mat-form-field color="accent">
-            <input formControlName="companyName"
+          <mat-form-field color="primary">
+            <input id="registerInput3" formControlName="companyName"
                    autocapitalize="off"
                    autofocus
                    spellcheck="false"
@@ -183,9 +193,9 @@
         </form>
 
         <div class="bottom-container">
-          <button color="accent" mat-button matStepperPrevious> Retour</button>
-          <button mat-button (click)="stepper.reset()">Remettre à zéro</button>
-          <button class="form-login-button" color="accent" mat-button type="submit" (click)="submit()"
+          <button color="primary" mat-button matStepperPrevious> Retour</button>
+          <button mat-button color="warn" (click)="stepper.reset()">Remettre à zéro</button>
+          <button class="form-login-button" color="primary" mat-button type="submit" (click)="submit()"
                   [disabled]="
                     formOthers.invalid || formOthers.pristine ||
                     formAddress.invalid || formAddress.pristine ||

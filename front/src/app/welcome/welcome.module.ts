@@ -5,7 +5,7 @@ import {WelcomeRoutingModule} from './welcome-routing.module';
 import {WelcomeComponent} from './welcome.component';
 import {MapComponent} from './map/map.component';
 import {CatalogComponent} from './catalog/catalog.component';
-import {DialogMetadataComponent} from './catalog/dialog-metadata/dialog-metadata.component';
+import {DialogLegendComponent, DialogMetadataComponent} from './catalog/dialog-metadata/dialog-metadata.component';
 import {ReactiveFormsModule} from '@angular/forms';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatIconModule} from '@angular/material/icon';
@@ -36,7 +36,7 @@ const MODULES = [
 ];
 
 @NgModule({
-  declarations: [WelcomeComponent, MapComponent, CatalogComponent, DialogMetadataComponent],
+  declarations: [WelcomeComponent, MapComponent, CatalogComponent, DialogMetadataComponent, DialogLegendComponent],
   imports: [
     CommonModule,
     WelcomeRoutingModule,
@@ -44,7 +44,8 @@ const MODULES = [
     MODULES
   ],
   entryComponents: [
-    DialogMetadataComponent
+    DialogMetadataComponent,
+    DialogLegendComponent
   ]
 })
 export class WelcomeModule {

@@ -3,7 +3,10 @@
   width: 250px;
   display: flex;
   flex-direction: column;
-  color: white;
+
+  .text-ellipsis-2 {
+    flex: 1;
+  }
 
   .items-container {
     .mat-button {
@@ -16,11 +19,12 @@
     margin: 10px 0;
   }
 
-  .trash-container {
-   margin-top: 20px;
-    mat-icon {
-      margin-right: 10px;
-    }
+  .delete-container {
+    margin-top: 20px;
+  }
+
+  .empty-container {
+   margin-top: 10px;
   }
 
   .button-submit {

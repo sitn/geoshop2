@@ -9,32 +9,40 @@ import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
 import LayerGroup from 'ol/layer/Group';
 import ScaleLine from 'ol/control/ScaleLine';
-// @ts-ignore
-import Geocoder from 'ol-geocoder/dist/ol-geocoder.js';
+import {defaults as defaultInteractions, DragAndDrop} from 'ol/interaction';
 import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
 import {Draw, Modify} from 'ol/interaction';
 import GeometryType from 'ol/geom/GeometryType';
 import {Feature} from 'ol';
 import Geolocation from 'ol/Geolocation';
-import {BehaviorSubject, of} from 'rxjs';
-import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
-import Point from 'ol/geom/Point';
-import DragPan from 'ol/interaction/DragPan';
-import {GeoHelper} from '../_helpers/geoHelper';
 import Polygon, {fromExtent} from 'ol/geom/Polygon';
 import WMTSCapabilities from 'ol/format/WMTSCapabilities';
 import WMTS, {optionsFromCapabilities} from 'ol/source/WMTS';
 import {register} from 'ol/proj/proj4';
-import proj4 from 'proj4';
-import {fromLonLat} from 'ol/proj';
-import {HttpClient} from '@angular/common/http';
-import {map} from 'rxjs/operators';
+import DragPan from 'ol/interaction/DragPan';
+import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
+import Point from 'ol/geom/Point';
 import GeoJSON from 'ol/format/GeoJSON';
 import Projection from 'ol/proj/Projection';
 import {boundingExtent, buffer, Extent, getArea} from 'ol/extent';
 import MultiPoint from 'ol/geom/MultiPoint';
+import {fromLonLat} from 'ol/proj';
+
+// @ts-ignore
+import Geocoder from 'ol-geocoder/dist/ol-geocoder.js';
+
+import {BehaviorSubject, of} from 'rxjs';
+import {GeoHelper} from '../_helpers/geoHelper';
+import proj4 from 'proj4';
+import {HttpClient} from '@angular/common/http';
+import {map} from 'rxjs/operators';
 import {IBasemap} from '../_models/IConfig';
+import {AppState, selectOrder} from '../_store';
+import {Store} from '@ngrx/store';
+import {updateOrder} from '../_store/cart/cart.action';
+import {KML} from 'ol/format';
+import {DragAndDropEvent} from 'ol/interaction/DragAndDrop';
 
 @Injectable({
   providedIn: 'root'
@@ -59,18 +67,18 @@ export class MapService {
   public readonly drawingStyle = [
     new Style({
       stroke: new Stroke({
-        color: 'rgba(123,31,162,1)',
+        color: 'rgba(38,165,154,1))',
         width: 3
       }),
       fill: new Fill({
-        color: 'rgba(123,31,162,0.1)'
+        color: 'rgba(38,165,154,0.1)'
       })
     }),
     new Style({
       image: new CircleStyle({
         radius: 8,
         fill: new Fill({
-          color: 'rgba(105,240,174,1)'
+          color: 'rgba(38,165,154,1)'
         }),
       }),
       geometry: (feature) => {
@@ -107,7 +115,9 @@ export class MapService {
     return this.basemapLayers.length > 0 ? this.basemapLayers[0] : null;
   }
 
-  constructor(private configService: ConfigService, private snackBar: MatSnackBar,
+  constructor(private configService: ConfigService,
+              private store: Store<AppState>,
+              private snackBar: MatSnackBar,
               private httpClient: HttpClient) {
   }
 
@@ -123,6 +133,14 @@ export class MapService {
       this.initializeDrawing();
       this.initializeGeolocation();
       this.initializeDragInteraction();
+
+      this.store.select(selectOrder).subscribe(order => {
+        if (!this.featureFromDrawing && order && order.geom) {
+          const geometry = this.geoJsonFormatter.readGeometry(order.geom);
+          const feature = new Feature(geometry);
+          this.drawingSource.addFeature(feature);
+        }
+      });
 
       this.initialized = true;
     }).catch(() => {
@@ -168,6 +186,9 @@ export class MapService {
         });
       } else {
         const id = layerGroup.get('gsId');
+        if (!id) {
+          return;
+        }
         if (id && id === gsId) {
           layerGroup.setVisible(true);
         } else {
@@ -277,6 +298,7 @@ export class MapService {
       layers: new LayerGroup({
         layers: baseLayers
       }),
+      interactions: defaultInteractions().extend([this.initializeDragAndDropInteraction()]),
       controls: [
         new ScaleLine({
           target: 'ol-scaleline',
@@ -309,6 +331,26 @@ export class MapService {
     }
 
     return this.basemapLayers;
+  }
+
+  private initializeDragAndDropInteraction() {
+    // @ts-ignore
+    const dragAndDropInteraction = new DragAndDrop({
+      formatConstructors: [
+        KML
+      ]
+    });
+
+    dragAndDropInteraction.on('addfeatures', (event: DragAndDropEvent) => {
+      console.log(event.features);
+
+      if (event.features.length > 0) {
+        const feature = new Feature(event.features[0].getGeometry());
+        this.addFeatureFromGeocoderToDrawing(feature);
+      }
+    });
+
+    return dragAndDropInteraction;
   }
 
   private initializeDrawing() {
@@ -400,12 +442,13 @@ export class MapService {
   private setAreaToCurrentFeature() {
     const area = GeoHelper.formatArea(this.featureFromDrawing.getGeometry() as Polygon);
     this.featureFromDrawing.set('area', area);
-    this.displayAreaMessage(area);
+    this.store.dispatch(updateOrder({geom: this.geoJsonFormatter.writeGeometry(this.featureFromDrawing.getGeometry())}));
+    // this.displayAreaMessage(area);
   }
 
   private displayAreaMessage(area: string) {
     this.snackBarRef = this.snackBar.open(`L'aire du polygone sélectionné est de ${area}`, 'Cancel', {
-      duration: 10000,
+      duration: 5000,
       panelClass: 'primary-container'
     });
   }

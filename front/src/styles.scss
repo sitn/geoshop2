@@ -7,7 +7,6 @@ body {
 
 body {
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
 ul {
@@ -33,31 +32,6 @@ ul {
   border-radius: 50%;
 }
 
-.text-white {
-  color: white;
-}
-
-.text-success {
-  color: palegreen;
-}
-
-.text-primary {
-  color: #7b1fa2;
-}
-
-.text-accent {
-  color: #69f0ae;
-}
-
-.text-error {
-  color: palevioletred;
-
-  &:visited,
-  &:focus {
-    color: palevioletred;
-  }
-}
-
 .text-ellipsis-2 {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -70,11 +44,6 @@ ul {
   font-size: 16px;
   color: palegreen;
   margin-right: 5px;
-}
-
-.main-container {
-  width: 100%;
-  height: calc(100vh - 64px);
 }
 
 .right-container {
@@ -102,16 +71,6 @@ ul {
   }
 }
 
-.primary-container {
-  background-color: #69f0ae;
-  color: black;
-}
-
-.dark-background {
-  background-color: #302f2f;
-  color: white;
-}
-
 .info-container {
   margin: 10px;
   padding: 5px;
@@ -121,11 +80,6 @@ ul {
     color: #4177F6;
     margin-right: 10px;
   }
-}
-
-.as-split-gutter {
-  background-color: #7b1fa2 !important;
-  flex-basis: 5px !important;
 }
 
 .padding-horizontal-15 {
@@ -144,30 +98,11 @@ ul {
   justify-content: space-between;
 }
 
-#geocoder-container {
-  background-color: #7b1fa2;
-}
+.mini-map {
+  width: 30%;
+  height: 250px;
 
-.notification-success {
-  &.mat-snack-bar-container {
-    background: #302f2f;
-    color: white;
-
-    .mat-button {
-      background: #69f0ae;
-      color: black;
-    }
-  }
-}
-
-.notification-error {
-  &.mat-snack-bar-container {
-    background: #302f2f;
-    color: white;
-
-    .mat-button {
-      background: palegoldenrod;
-      color: black;
-    }
+  @media (max-width: 527px) {
+    width: 100%;
   }
 }

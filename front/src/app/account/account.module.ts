@@ -19,8 +19,12 @@ import {MatSortModule} from '@angular/material/sort';
 import {OrdersComponent} from './orders/orders.component';
 import {MatDividerModule} from '@angular/material/divider';
 import {SharedModule} from '../shared/shared.module';
-import { ProfileComponent } from './profile/profile.component';
+import {ProfileComponent} from './profile/profile.component';
 import {ScrollingModule} from '@angular/cdk/scrolling';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatRadioModule} from '@angular/material/radio';
+import {MatExpansionModule} from '@angular/material/expansion';
 
 const MODULES = [
   ReactiveFormsModule,
@@ -38,7 +42,11 @@ const MODULES = [
   MatDividerModule,
   MatAutocompleteModule,
   ScrollingModule,
-  MatStepperModule
+  MatStepperModule,
+  MatProgressSpinnerModule,
+  MatCheckboxModule,
+  MatRadioModule,
+  MatExpansionModule
 ];
 
 @NgModule({

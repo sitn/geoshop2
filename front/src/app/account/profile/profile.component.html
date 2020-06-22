@@ -6,7 +6,7 @@
   </mat-card-header>
   <mat-card-content>
     <div class="flex-row" style="padding: 0 8px;">
-      <mat-icon>house</mat-icon>
+      <mat-icon color="primary">house</mat-icon>
       <ul class="padding-horizontal-15">
         <li>{{user.street}}</li>
         <li>{{user.street2}}</li>
@@ -15,11 +15,11 @@
     </div>
   </mat-card-content>
   <mat-card-actions>
-    <a [href]="'mailto:' + user.email" class="flex-row" mat-button>
+    <a [href]="'mailto:' + user.email" class="flex-row" mat-button color="primary">
       <mat-icon>email</mat-icon>
       <span class="padding-horizontal-15">{{user.email}}</span>
     </a>
-    <a [href]="'tel:' + user.phone" class="flex-row" mat-button>
+    <a [href]="'tel:' + user.phone" class="flex-row" mat-button color="primary">
       <mat-icon>phone</mat-icon>
       <span class="padding-horizontal-15">{{user.phone}}</span>
     </a>

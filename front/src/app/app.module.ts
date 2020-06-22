@@ -24,6 +24,10 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {ErrorInterceptor} from './_interceptors/errorInterceptor';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {OverlayContainer} from '@angular/cdk/overlay';
+import {ActivatedRoute} from '@angular/router';
+import {CartEffects} from './_store/cart/cart.effects';
 
 export function initializeApp(configService: ConfigService) {
   return () => configService.load();
@@ -38,7 +42,8 @@ const MODULES = [
   MatToolbarModule,
   MatButtonModule,
   MatDialogModule,
-  MatSnackBarModule
+  MatSnackBarModule,
+  MatTooltipModule
 ];
 
 @NgModule({
@@ -55,7 +60,7 @@ const MODULES = [
     HttpClientModule,
     MODULES,
     StoreModule.forRoot(reducers, {metaReducers}),
-    EffectsModule.forRoot([AuthEffects])
+    EffectsModule.forRoot([AuthEffects, CartEffects])
   ],
   providers: [
     {
@@ -78,4 +83,16 @@ const MODULES = [
   bootstrap: [AppComponent]
 })
 export class AppModule {
+  constructor(overlayContainer: OverlayContainer, route: ActivatedRoute) {
+    route.queryParams.subscribe(res => {
+      if (res.theme && res.theme === 'dark') {
+        overlayContainer.getContainerElement().classList.add('theme-alternate');
+        document.body.classList.add('theme-alternate');
+      }
+      if (res.theme && res.theme === 'light') {
+        overlayContainer.getContainerElement().classList.remove('theme-alternate');
+        document.body.classList.remove('theme-alternate');
+      }
+    });
+  }
 }

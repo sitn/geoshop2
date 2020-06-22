@@ -1,88 +1,93 @@
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {ApiService} from '../../_services/api.service';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {Order} from '../../_models/IOrder';
-import {map, mergeMap, scan, tap, throttleTime} from 'rxjs/operators';
+import {Component, ComponentFactoryResolver, ElementRef, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
+import {BehaviorSubject, forkJoin, merge, of} from 'rxjs';
+import {IOrder, Order} from '../../_models/IOrder';
+import {concatMap, debounceTime, filter, map, mergeMap, scan, skip, switchMap, tap} from 'rxjs/operators';
 import {MapService} from '../../_services/map.service';
 import Map from 'ol/Map';
-import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import Feature from 'ol/Feature';
-import LayerGroup from 'ol/layer/Group';
-import View from 'ol/View';
-import Projection from 'ol/proj/Projection';
-import {fromLonLat} from 'ol/proj';
 import {ConfigService} from '../../_services/config.service';
-import proj4 from 'proj4';
-import {register} from 'ol/proj/proj4';
-import {defaults} from 'ol/interaction';
 import {FormControl} from '@angular/forms';
 import {CdkVirtualScrollViewport} from '@angular/cdk/scrolling';
+import {GeoHelper} from '../../_helpers/geoHelper';
+import {ApiOrderService} from '../../_services/api-order.service';
+import {ApiService} from '../../_services/api.service';
+import {OrderItemViewComponent} from '../../_components/order-item-view/order-item-view.component';
+import {WidgetHostDirective} from '../../_directives/widget-host.directive';
+import {AppState} from '../../_store';
+import {Store} from '@ngrx/store';
+import {StoreService} from '../../_services/store.service';
 
 @Component({
   selector: 'gs2-orders',
   templateUrl: './orders.component.html',
-  styleUrls: ['./orders.component.scss']
+  styleUrls: ['./orders.component.scss'],
 })
 export class OrdersComponent implements OnInit {
+
+  private currentIndex = 0;
 
   // Infinity scrolling
   @ViewChild(CdkVirtualScrollViewport) viewport: CdkVirtualScrollViewport;
   batch = 10;
-  offset = new BehaviorSubject<number | null>(null);
-  infinite: Observable<Order[]>;
+  realBatch = 10;
+  offset = new BehaviorSubject<number | null>(0);
+  currentOrders: Order[] = [];
   total = 0;
   stepToLoadData = 0;
-  readonly itemHeight = 350;
+  readonly itemHeight = 48;
+
+  // Order items
+  @ViewChildren(WidgetHostDirective) orderItemTemplates: QueryList<WidgetHostDirective>;
+  selectedOrder: Order;
+
+  // Map
+  private minimap: Map;
+  private vectorSource: VectorSource;
 
   // Filtering
   orderFilterControl = new FormControl('');
+  isSearchLoading$ = new BehaviorSubject(false);
 
-  constructor(private apiService: ApiService, private mapService: MapService, private configService: ConfigService,
-              private elRef: ElementRef
+  constructor(private apiOrderService: ApiOrderService,
+              private apiService: ApiService,
+              private mapService: MapService,
+              private configService: ConfigService,
+              private elRef: ElementRef,
+              private cfr: ComponentFactoryResolver,
+              private store: Store<AppState>,
+              private storeService: StoreService
   ) {
-    const batchMap = this.offset.pipe(
-      throttleTime(500),
-      mergeMap((n: number) => this.getBatch(n)),
-      scan((acc, batch) => {
-        return {...acc, ...batch};
-      }, {})
-    );
-
-    this.infinite = batchMap.pipe(map(x => Object.values(x)));
-    this.infinite.subscribe(orders => {
-      const promises = orders.map(x => this.loadMinimap(x));
-      Promise.all(promises).then(() => {
-        console.log('minimaps created');
-      });
-    });
+    console.log('constructor');
   }
 
   ngOnInit(): void {
+    console.log('ngOnInit');
     const firstElement = this.elRef.nativeElement.children[0].clientHeight;
-    const heightAvailable = this.elRef.nativeElement.clientHeight - firstElement - 10;
+    const heightAvailable = this.elRef.nativeElement.clientHeight - firstElement;
 
     const ratio = heightAvailable / this.itemHeight;
-    const numberOfRowPossible = ratio > 1.5 ? Math.trunc(ratio + 1) : Math.trunc(ratio);
+    const numberOfRowPossible = ratio > 1 ? Math.trunc(ratio) + 1 : Math.trunc(ratio);
+
     const half = Math.trunc(numberOfRowPossible / 2);
     this.stepToLoadData = numberOfRowPossible - half;
-    this.batch = numberOfRowPossible + half;
+    this.realBatch = numberOfRowPossible;
+    this.batch = numberOfRowPossible + 1;
 
-    if (!this.mapService.FirstBaseMapLayer) {
-      proj4.defs(this.configService.config.epsg,
-        '+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333'
-        + ' +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel '
-        + '+towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs');
-      register(proj4);
-    }
+    GeoHelper.generateMiniMap(this.configService, this.mapService).then(result => {
+      this.minimap = result.minimap;
+      this.vectorSource = result.vectorSource;
+
+      this.initializeComponentAction();
+    });
   }
 
   getBatch(offset: number) {
-    return this.apiService.getOrders(offset, this.batch)
+    console.log(`get batch: offset : ${offset}, number : ${this.batch}`);
+    return this.apiOrderService.getOrders(offset, this.batch)
       .pipe(
         tap(response => this.total = response.count),
         map((response) =>
-          response.results.sort((a) => a.status === 'PENDING' ? 1 : a.status === 'DONE' ? 1 : 0).map(p => new Order(p))
+          response.results.sort((a) => a.status === 'PENDING' ? 1 : a.status === 'DONE' ? 1 : 0).map(p => p)
         ),
         map(arr => {
           return arr.reduce((acc, cur) => {
@@ -94,6 +99,10 @@ export class OrdersComponent implements OnInit {
   }
 
   nextBatch(e: number, offset: number) {
+    if (this.currentIndex === e) {
+      return;
+    }
+    this.currentIndex = e;
     if (offset + 1 >= this.total) {
       return;
     }
@@ -106,56 +115,72 @@ export class OrdersComponent implements OnInit {
     }
   }
 
-  async loadMinimap(order: Order) {
-    const target = `mini-map-${order.id}`;
-    const exists = this.elRef.nativeElement.querySelector(`[id=${target}]`) as HTMLDivElement;
-    if (exists && exists.innerHTML.length > 0) {
-      return;
+  private initializeComponentAction() {
+
+    console.log('initializeComponentAction');
+
+    const batchMap = this.offset.pipe(
+      filter((x) => x != null && x >= 0),
+      mergeMap((n: number) => this.getBatch(n)),
+      scan((acc, batch) => {
+        return {...acc, ...batch};
+      }, {}),
+      map(v => Object.values(v).map((x: IOrder) => new Order(x)))
+    );
+
+    merge(
+      batchMap,
+      this.orderFilterControl.valueChanges.pipe(
+        skip(1),
+        debounceTime(500),
+        switchMap(inputText => {
+          this.isSearchLoading$.next(true);
+
+          if (!inputText || inputText.length < 3) {
+            this.offset.next(0);
+            return of([]);
+          }
+
+          return this.apiService.find<IOrder>(inputText, 'order').pipe(
+            concatMap(response => {
+              this.total = response.count;
+              return forkJoin(response.results.map(x => this.apiOrderService.getOrder(x.url))).pipe(
+                map(iOrders => iOrders.map(x => new Order(x)))
+              );
+            }),
+          );
+        })
+      )
+    ).subscribe(orders => {
+      console.log('Get orders result', orders.length);
+      this.currentOrders = orders;
+      this.isSearchLoading$.next(false);
+    });
+  }
+
+  private generateOrderItemsElements(order: Order, index: number) {
+    const componentFac = this.cfr.resolveComponentFactory(OrderItemViewComponent);
+    this.orderItemTemplates.forEach((item, i) => {
+      if (index === i && item.viewContainerRef.length === 0) {
+        const component = item.viewContainerRef.createComponent(componentFac);
+        component.instance.dataSource = order.items;
+        component.changeDetectorRef.detectChanges();
+        return;
+      }
+    });
+  }
+
+  displayMiniMap(order: Order, index: number) {
+    this.apiOrderService.getOrder(order.url).subscribe((iOrder) => {
+      this.selectedOrder = new Order(iOrder);
+      this.generateOrderItemsElements(this.selectedOrder, index);
+      GeoHelper.displayMiniMap(this.selectedOrder, [this.minimap], [this.vectorSource], 0);
+    });
+  }
+
+  addToCart() {
+    if (this.selectedOrder) {
+      this.storeService.addOrderToStore(this.selectedOrder);
     }
-
-    const feature = new Feature();
-    feature.setGeometry(order.geometry);
-    const source = new VectorSource();
-    source.addFeature(feature);
-    const layer = new VectorLayer({
-      source,
-      style: this.mapService.drawingStyle
-    });
-
-    const projection = new Projection({
-      code: this.configService.config.epsg,
-      // @ts-ignore
-      extent: this.configService.config.initialExtent,
-    });
-    const view = new View({
-      projection,
-      center: fromLonLat([6.80, 47.05], projection),
-      zoom: 4,
-    });
-
-    const baseMapConfig = this.configService.config.basemaps[0];
-    const tileLayer = await this.mapService.createTileLayer(baseMapConfig, true);
-
-    const minimap = new Map({
-      layers: new LayerGroup({layers: [tileLayer]}),
-      view,
-      target,
-      interactions: defaults({
-        keyboard: false,
-        mouseWheelZoom: false,
-        dragPan: false,
-        altShiftDragRotate: false,
-        shiftDragZoom: false,
-        doubleClickZoom: false,
-        pinchZoom: false,
-      }),
-    });
-
-    minimap.addLayer(layer);
-    minimap.getView().fit(order.geometry, {
-      padding: [50, 50, 50, 50]
-    });
-
-    return order;
   }
 }

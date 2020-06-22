@@ -1,10 +1,12 @@
-<mat-form-field color="accent">
-  <mat-label>Catalogue</mat-label>
-  <input matInput [formControl]="catalogInputControl" placeholder="Rechercher un produit">
-  <button mat-button *ngIf="catalogInputControl.value" matSuffix mat-icon-button aria-label="Clear"
-          (click)="catalogInputControl.setValue('')">
-    <mat-icon>close</mat-icon>
-  </button>
+<mat-form-field color="primary">
+  <input matInput [formControl]="catalogInputControl" placeholder="Rechercher un produit...">
+  <div matSuffix class="flex-row">
+    <mat-spinner *ngIf="isSearchLoading" diameter="16" color="accent" style="margin-right: 10px"></mat-spinner>
+    <button mat-button *ngIf="catalogInputControl.value"  mat-icon-button aria-label="Clear"
+            (click)="catalogInputControl.setValue('')">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
 </mat-form-field>
 
 <ng-container *ngIf="infinite|async as products">
@@ -24,7 +26,7 @@
               [disabled]="!product.metadata"
               color="primary" mat-mini-fab
               (click)="openMetadata(product)">
-        <mat-icon>help</mat-icon>
+        <mat-icon>description</mat-icon>
       </button>
 
       <button class="item-cart" color="primary" mat-mini-fab matTooltip="Ajouter au panier" (click)="addToCart(product)"

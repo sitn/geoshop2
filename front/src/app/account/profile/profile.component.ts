@@ -8,7 +8,7 @@ import {ApiService} from '../../_services/api.service';
 })
 export class ProfileComponent implements OnInit {
 
-  @HostBinding('class') class = 'main-container dark-background';
+  @HostBinding('class') class = 'main-container';
 
   user$ = this.apiService.getProfile();
 

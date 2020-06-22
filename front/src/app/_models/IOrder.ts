@@ -1,12 +1,24 @@
 // tslint:disable:variable-name
 
-import {IProduct} from './IProduct';
-import {IFormat} from './IFormat';
 import Polygon from 'ol/geom/Polygon';
 import GeoJSON from 'ol/format/GeoJSON';
+import Geometry from 'ol/geom/Geometry';
+import {IIdentity} from './IIdentity';
+
+export interface IOrderToPost {
+  id?: number;
+  title: string;
+  description: string;
+  order_type: string;
+  geom: string | undefined;
+  invoice_reference?: string;
+  order_contact: any;
+  invoice_contact: any;
+  items: IOrderItem[];
+}
 
 export interface IOrder {
-  id: string;
+  id?: number;
   url: string;
   title: string;
   description: string;
@@ -17,24 +29,24 @@ export interface IOrder {
   part_vat_currency: string;
   part_vat: string;
   invoice_reference: string;
-  status: string;
-  date_ordered: string;
-  date_downloaded: string;
-  date_processed: string;
-  client: string;
+  status: IOrderStatus;
+  date_ordered: string | undefined;
+  date_downloaded: string | undefined;
+  date_processed: string | undefined;
+  client: string | undefined;
   order_contact: string;
   invoice_contact: string;
   order_type: string;
-  geometry: any;
+  geom: any;
+  items: Array<IOrderItem>;
 }
 
 export interface IOrderItem {
-  id: string;
-  product: IProduct;
-  order?: IOrder;
-  format?: IFormat;
-  last_download?: Date;
-  statusAsReadableIconText: {
+  id?: number;
+  product: string;
+  format: string;
+  last_download?: string;
+  statusAsReadableIconText?: {
     iconName: string;
     text: string;
     color: string;
@@ -46,118 +58,185 @@ export interface IOrderType {
   name: string;
 }
 
+export type IOrderStatus = 'DRAFT' | ' ARCHIVED' | 'PENDING' | 'DONE';
+
 export class Order {
-  id: string;
+  id?: number;
   url: string;
   title: string;
   description: string;
   processing_fee_currency: string;
-  processing_fee: number;
+  processing_fee: string;
   total_cost_currency: string;
-  total_cost: number;
+  total_cost: string;
   part_vat_currency: string;
-  part_vat: number;
+  part_vat: string;
   invoice_reference: string;
-  status: string;
-  date_ordered: Date | null;
-  date_downloaded: Date | null;
-  date_processed: Date | null;
-  client: string;
+  status: IOrderStatus;
+  date_ordered: Date | undefined;
+  date_downloaded: Date | undefined;
+  date_processed: Date | undefined;
+  client: string | undefined;
   order_contact: string;
   invoice_contact: string;
   order_type: string;
-  geometry: Polygon;
+  geom: Polygon | undefined;
+  items: Array<IOrderItem>;
 
-  orderItems: Array<IOrderItem> = new Array<IOrderItem>(3);
+  orderType: IOrderType | undefined;
+  clientIdentity: IIdentity | undefined;
+  invoiceContact: IIdentity | undefined;
+  orderContact: IIdentity | undefined;
+
   statusAsReadableIconText = {
     iconName: '',
     text: '',
     color: ''
   };
 
-  constructor(iOrder: IOrder) {
-    this.id = iOrder.id;
-    this.url = iOrder.url;
-    this.title = iOrder.title;
-    this.description = iOrder.description;
-    this.processing_fee_currency = iOrder.processing_fee_currency;
-    this.processing_fee = parseFloat(iOrder.processing_fee);
-    this.total_cost_currency = iOrder.total_cost_currency;
-    this.total_cost = parseFloat(iOrder.total_cost);
-    this.part_vat_currency = iOrder.part_vat_currency;
-    this.part_vat = parseFloat(iOrder.part_vat);
-    this.invoice_reference = iOrder.invoice_reference;
-    this.status = iOrder.status;
-    this.date_ordered = iOrder.date_ordered ? new Date(iOrder.date_ordered) : null;
-    this.date_downloaded = iOrder.date_downloaded ? new Date(iOrder.date_downloaded) : null;
-    this.date_processed = iOrder.date_processed ? new Date(iOrder.date_processed) : null;
-    this.client = iOrder.client;
-    this.order_contact = iOrder.order_contact;
-    this.invoice_contact = iOrder.invoice_contact;
-    this.order_type = iOrder.order_type;
+  get toIorder(): IOrder {
+    return {
+      geom: this.geom ? new GeoJSON().writeGeometry(this.geom) : undefined,
+      url: this.url || '',
+      id: this.id || -1,
+      client: this.client || undefined,
+      date_downloaded: this.date_downloaded ? this.date_downloaded.getTime().toString() : undefined,
+      date_ordered: this.date_ordered ? this.date_ordered.getTime().toString() : undefined,
+      date_processed: this.date_processed ? this.date_processed.getTime().toString() : undefined,
+      description: this.description,
+      invoice_contact: this.invoice_contact,
+      invoice_reference: this.invoice_reference,
+      order_contact: this.order_contact,
+      order_type: this.order_type,
+      part_vat: this.part_vat,
+      part_vat_currency: this.part_vat_currency,
+      processing_fee: this.processing_fee,
+      processing_fee_currency: this.processing_fee_currency,
+      status: this.status,
+      title: this.title,
+      total_cost: this.total_cost,
+      total_cost_currency: this.total_cost_currency,
+      items: this.items
+    };
+  }
 
+  get getOrderTypeId() {
+    return this.orderType ? this.orderType.id : this.order_type;
+  }
+
+  get isOwnCustomer() {
+    return this.orderContact && this.invoiceContact ? this.orderContact.url === this.invoiceContact.url : false;
+  }
+
+  get geometryAsGeoJson(): string | undefined {
+    return this.geom ? new GeoJSON().writeGeometry(this.geom) : undefined;
+  }
+
+  constructor(iOrder?: IOrder | null) {
+    if (iOrder) {
+      this.id = iOrder.id;
+      this.url = iOrder.url;
+      this.title = iOrder.title;
+      this.description = iOrder.description;
+      this.processing_fee_currency = iOrder.processing_fee_currency;
+      this.processing_fee = iOrder.processing_fee;
+      this.total_cost_currency = iOrder.total_cost_currency;
+      this.total_cost = iOrder.total_cost;
+      this.part_vat_currency = iOrder.part_vat_currency;
+      this.part_vat = iOrder.part_vat;
+      this.invoice_reference = iOrder.invoice_reference;
+      this.status = iOrder.status;
+      this.date_ordered = iOrder.date_ordered ? new Date(iOrder.date_ordered) : undefined;
+      this.date_downloaded = iOrder.date_downloaded ? new Date(iOrder.date_downloaded) : undefined;
+      this.date_processed = iOrder.date_processed ? new Date(iOrder.date_processed) : undefined;
+      this.client = iOrder.client;
+      this.order_contact = iOrder.order_contact;
+      this.invoice_contact = iOrder.invoice_contact;
+      this.order_type = iOrder.order_type;
+      this.items = iOrder.items;
+      this.initializeGeometry(iOrder.geom);
+    } else {
+      this.id = -1;
+      this.url = '';
+      this.title = '';
+      this.description = '';
+      this.processing_fee_currency = '';
+      this.processing_fee = '';
+      this.total_cost_currency = '';
+      this.total_cost = '';
+      this.part_vat_currency = '';
+      this.part_vat = '';
+      this.invoice_reference = '';
+      this.status = 'DRAFT';
+      this.date_ordered = undefined;
+      this.date_downloaded = undefined;
+      this.date_processed = undefined;
+      this.client = '';
+      this.order_contact = '';
+      this.invoice_contact = '';
+      this.order_type = '';
+      this.items = [];
+      this.geom = undefined;
+    }
+
+    this.initializeId();
+    this.initializeStatus();
+  }
+
+  public deepInitialize(orderType: IOrderType | undefined,
+                        client: IIdentity | undefined,
+                        invoiceContact: IIdentity | undefined,
+                        orderContact: IIdentity | undefined) {
+    this.orderType = orderType;
+    this.clientIdentity = client;
+    this.invoiceContact = invoiceContact;
+    this.orderContact = orderContact;
+  }
+
+  private initializeId() {
     if (!this.id && this.url) {
       if (this.url.endsWith('/')) {
         this.url = this.url.substr(0, this.url.length - 1);
       }
       const temp = this.url.split('/');
-      this.id = temp[temp.length - 1];
+      this.id = parseInt(temp[temp.length - 1], 10);
     }
+  }
 
+  private initializeGeometry(geom: Geometry) {
     try {
-      const geo = new GeoJSON().readGeometry(
-        iOrder.geometry
-        || '{"type":"Polygon","coordinates":[[[2561024.796190677,1204805.285190677],[2561024.796190677,1204951.921809323],[2561164.990809323,1204951.921809323],[2561164.990809323,1204805.285190677],[2561024.796190677,1204805.285190677]]]}'
-      );
-      if (geo instanceof Polygon) {
-        this.geometry = geo;
+      if (geom instanceof Polygon) {
+        this.geom = geom;
+      } else {
+        const geo = new GeoJSON().readGeometry(geom);
+        if (geo instanceof Polygon) {
+          this.geom = geo;
+        }
       }
     } catch (error) {
       console.log(error);
     }
+  }
 
+  private initializeStatus() {
     if (this.status === 'PENDING') {
       this.statusAsReadableIconText = {
         iconName: 'warning',
         text: `Devis réalisé, en attente de validation de votre part</span></div>`,
         color: 'paleorange'
       };
+    } else if (this.status === 'DRAFT') {
+      this.statusAsReadableIconText = {
+        text: `Brouillon`,
+        iconName: 'info',
+        color: 'paleblue'
+      };
     } else {
       this.statusAsReadableIconText = {
         text: `Traitée`,
         iconName: 'check_outline',
-        color: 'palegreen'
+        color: '#2bae66'
       };
-    }
-
-
-    for (let i = 0; i < 50; i++) {
-      this.orderItems.push({
-        id: 'id_' + i,
-        last_download: new Date(),
-        product: {
-          url: 'https://sitn.ne.ch/geoshop2_dev/product/1/',
-          label: 'GE18 - Cadastre des surfaces de limitation d\'obstacle - couloirs',
-          status: 'PUBLISHED',
-          order: 249,
-          group: null,
-        },
-        format: undefined,
-        order: iOrder,
-        statusAsReadableIconText: i === 0 ? {
-          text: `Traitée`,
-          iconName: 'check_outline',
-          color: 'palegreen'
-        } : i === 1 ? {
-          iconName: 'warning',
-          text: `Validée, en traitement`,
-          color: 'orange'
-        } : {
-          iconName: 'cancel',
-          text: `Annulée, <a class="text-error" href="#" target="_blank">cliquer ici pour plus d'informations</a>`,
-          color: 'palevioletred'
-        }
-      });
     }
   }
 }

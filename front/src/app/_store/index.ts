@@ -69,3 +69,7 @@ export const selectCartTotal = createSelector(
   cartFeatureSelector,
   fromCart.selectCartTotal
 );
+export const selectOrder = createSelector(
+  cartFeatureSelector,
+  fromCart.selectOrder
+);

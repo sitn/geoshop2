@@ -4,19 +4,19 @@
     <span>{{(user$|async)?.first_name}} {{(user$|async)?.last_name}}</span>
   </div>
 
-  <button mat-button color="accent" [routerLink]="['/account/orders']">
+  <button mat-button color="primary" [routerLink]="['/account/orders']">
     <span class="flex-row">
       <mat-icon>receipt</mat-icon>
       <span>Mes Commandes</span>
     </span>
   </button>
-  <button mat-button color="accent" [routerLink]="['/account/profile']">
+  <button mat-button color="primary" [routerLink]="['/account/profile']">
     <span class="flex-row">
       <mat-icon>perm_identity</mat-icon>
       <span>Mon profil</span>
     </span>
   </button>
-  <button mat-button color="accent" (click)="logout()">
+  <button mat-button color="primary" (click)="logout()">
     <span class="flex-row">
       <mat-icon>exit_to_app</mat-icon>
       <span>Déconnexion</span>
@@ -31,13 +31,13 @@
     <span>Pour commander vous devez obligatoirement vous authentifiez.</span>
   </div>
 
-  <button mat-button color="accent" [routerLink]="['auth/login']">
+  <button mat-button color="primary" [routerLink]="['auth/login']">
     <span class="flex-row">
       <mat-icon>input</mat-icon>
       <span>S'authentifier</span>
     </span>
   </button>
-  <button mat-button color="accent" [routerLink]="['auth/register']">
+  <button mat-button color="primary" [routerLink]="['auth/register']">
     <span class="flex-row">
       <mat-icon>person_add</mat-icon>
       <span>Créer un compte</span>

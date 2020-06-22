@@ -13,7 +13,7 @@ import {ActivatedRoute} from '@angular/router';
 })
 export class LoginComponent implements OnInit {
 
-  @HostBinding('class') class = 'main-container dark-background';
+  @HostBinding('class') class = 'main-container';
 
   form: FormGroup = new FormGroup({
     username: new FormControl('', Validators.required),
