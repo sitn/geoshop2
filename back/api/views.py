@@ -244,7 +244,7 @@ class ProductFormatViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows Product to be viewed or edited.
-    
+
     You can search a product with `?search=` param.
     Searchable properties are:
      - label
@@ -254,6 +254,15 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     ts_field = 'ts'
+
+
+class PricingViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Pricing to be viewed or edited.
+    """
+    queryset = Pricing.objects.all()
+    serializer_class = PricingSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class RegisterView(generics.CreateAPIView):
