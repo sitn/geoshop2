@@ -1,4 +1,7 @@
 from django.contrib.gis.db.models.functions import Area, Intersection
+from django.db.models import ExpressionWrapper, F, Sum
+from djmoney.models.fields import MoneyField
+from djmoney.money import Money
 
 class ProductPriceCalculator():
     """
@@ -7,16 +10,17 @@ class ProductPriceCalculator():
     """
 
     @classmethod
-    def get_price(cls, pricing_type, **kwargs):
+    def get_price(cls, **kwargs):
         """
         Will call any of the methods listed below depending on the price type
         """
-        method_name = '_get_{}_price'.format(pricing_type)
-        method = getattr(cls, method_name, lambda: '{} is not defined'.format(method_name.lower()))
+        pricing_instance = kwargs.get('pricing_instance')
+        method_name = '_get_{}_price'.format(pricing_instance.pricing_type.lower())
+        method = getattr(cls, method_name, lambda: '{} is not defined'.format(method_name))
         return method(**kwargs)
 
     @staticmethod
-    def _get_free_price():
+    def _get_free_price(**kwargs):
         return 0
 
     @staticmethod
@@ -25,19 +29,55 @@ class ProductPriceCalculator():
         return unit_price
 
     @staticmethod
-    def _get_by_area_price(**kwargs):
+    def _get_by_object_number_price(**kwargs):
+        """
+        The objects have all to be in PricingArea.
+        The objects have to be completely inside of the polygon (within).
+        The Unit price is taken on the pricing instance, not
+        the pricing area instance
+        """
+        pricing_instance = kwargs.get('pricing_instance')
+        pricing_area_instance = pricing_instance.pricingarea_set
         polygon = kwargs.get('polygon')
-        unit_price = kwargs.get('unit_price')
-        area = Area(polygon)
+        unit_price = pricing_instance.unit_price
+        nbr_objects = pricing_area_instance.filter(
+            pricing=pricing_instance.id
+        ).filter(geom__within=polygon).count()
+        return unit_price * nbr_objects
+
+
+    @staticmethod
+    def _get_by_area_price(**kwargs):
+        """
+        The price is expected to be in hectares
+        """
+        polygon = kwargs.get('polygon')
+        pricing_instance = kwargs.get('pricing_instance')
+        unit_price = pricing_instance.unit_price
+        area = polygon.area / 10000
         return unit_price * area
 
     @staticmethod
     def _get_from_pricing_layer_price(**kwargs):
+        """
+        The price is expected to be in hectares
+        As the price may vary from one polygon to
+        the other, it has to be taken in the
+        pricing layer
+        """
         polygon = kwargs.get('polygon')
-        unit_price = kwargs.get('unit_price')
-        area = Area(polygon)
-        return 'TODO_FROM_PRICING_LAYER'
+        pricing_instance = kwargs.get('pricing_instance')
+        pricing_area_instance = pricing_instance.pricingarea_set
+        total = pricing_area_instance.filter(
+            pricing=pricing_instance.id
+        ).filter(
+            geom__intersects=polygon
+        ).aggregate(sum=ExpressionWrapper(Sum(
+            (Area(Intersection('geom', polygon))/10000)*F('unit_price')
+        ), output_field=MoneyField()))
+
+        return Money(total['sum'], pricing_instance.unit_price_currency)
 
     @staticmethod
     def _get_manual_price(**kwargs):
-        return 'TODO_MANUAL'
+        return 'Manual'

@@ -24,6 +24,10 @@ If ($destConfig -eq "dev") {
 }
 fme $env:FMEDIR\02_product_metadata.fmw
 fme $env:FMEDIR\03_order_item.fmw
+psql -d geoshop -a -f $env:FMEDIR\04_pricing.sql
+fme $env:FMEDIR\05_mo2geoshop.fmw
+psql -d geoshop -a -f $env:FMEDIR\06_product_pricing.sql
+
 $previous_PGPASSWORD = $env:PGPASSWORD
 $env:PGPASSWORD = $env:PGPOSTGRESPASSWORD
 

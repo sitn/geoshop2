@@ -6,6 +6,7 @@ from django.contrib.gis.geos import Polygon
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
+from djmoney.contrib.django_rest_framework import MoneyField
 
 from .models import (
     Copyright, Document, Format, Identity,
@@ -126,6 +127,7 @@ class OrderItemTextualSerializer(serializers.ModelSerializer):
     format = serializers.SlugRelatedField(
         queryset=Format.objects.all(),
         slug_field='name')
+    price = MoneyField(max_digits=14, decimal_places=2, required=False, allow_null=True)
 
     class Meta:
         model = OrderItem
@@ -162,7 +164,9 @@ class OrderSerializer(serializers.ModelSerializer):
         order.geom = Polygon(geom.coords[0], srid=2056)
         order.save()
         for item_data in items_data:
-            OrderItem.objects.create(order=order, **item_data)
+            item = OrderItem.objects.create(order=order, **item_data)
+            item.set_price()
+            item.save()
         return order
 
     def update(self, instance, validated_data):
@@ -177,7 +181,9 @@ class OrderSerializer(serializers.ModelSerializer):
 
         instance.save()
         for item_data in items_data:
-            OrderItem.objects.create(order=instance, **item_data)
+            item = OrderItem.objects.create(order=instance, **item_data)
+            item.set_price()
+            item.save()
         return instance
 
 
