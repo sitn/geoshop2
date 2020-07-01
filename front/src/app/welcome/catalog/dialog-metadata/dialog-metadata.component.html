@@ -5,18 +5,25 @@
     <mat-card-title>Contacts</mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <div class="flex-row">
-      <div *ngFor="let person of data.contact_persons" class="person-container">
-        <span>{{person.contact_person.first_name}} {{person.contact_person.last_name}}</span>
-        <span>{{person.metadata_role}}</span>
-        <div class="flex-row">
-          <a [href]="'mailto:'+person.contact_person.email" mat-icon-button color="primary">
-            <mat-icon>email</mat-icon>
+    <div class="person-container">
+      <div *ngFor="let person of data.contact_persons" class="flex-row">
+
+        <div class="flex-column">
+          <span class="line-height-36">{{person.contact_person.first_name}} {{person.contact_person.last_name}}</span>
+          <span class="line-height-36">{{person.metadata_role}}</span>
+        </div>
+
+        <div class="flex-column">
+          <a class="flex-row" [href]="'mailto:'+person.contact_person.email" mat-button color="primary">
+            <mat-icon class="m-r-5">email</mat-icon>
+            <span>{{person.contact_person.email}}</span>
           </a>
-          <a [href]="'tel:'+person.contact_person.phone" mat-icon-button color="primary">
-            <mat-icon>phone</mat-icon>
+          <a class="flex-row" [href]="'tel:'+person.contact_person.phone" mat-button color="primary">
+            <mat-icon class="m-r-5">phone</mat-icon>
+            <span>{{person.contact_person.phone}}</span>
           </a>
         </div>
+
       </div>
     </div>
   </mat-card-content>
