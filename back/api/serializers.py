@@ -127,7 +127,7 @@ class OrderItemTextualSerializer(serializers.ModelSerializer):
     format = serializers.SlugRelatedField(
         queryset=Format.objects.all(),
         slug_field='name')
-    price = MoneyField(max_digits=14, decimal_places=2, required=False)
+    price = MoneyField(max_digits=14, decimal_places=2, required=False, allow_null=True)
 
     class Meta:
         model = OrderItem
