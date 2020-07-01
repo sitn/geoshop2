@@ -164,6 +164,8 @@ export class MapService {
     if (this.snackBarRef) {
       this.snackBarRef.dismiss();
     }
+
+    this.store.dispatch(updateOrder({geom: ''}));
   }
 
   public toggleTracking() {
