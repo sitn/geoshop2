@@ -221,6 +221,7 @@ $primary: map-get($theme, primary);
 $accent: map-get($theme, accent);
 $warning: map-get($theme, warn);
 $dark: #393939;
+$info: #4177F6;
 
 .theme-alternate {
   @include angular-material-theme($altTheme);
@@ -316,7 +317,6 @@ $dark: #393939;
 
 .as-split-gutter {
   background-color: mat-color($primary) !important;
-  flex-basis: 5px !important;
 }
 
 #geocoder-container {
@@ -331,6 +331,18 @@ $dark: #393939;
   &.mat-snack-bar-container {
     background: mat-color($primary);
     color: white;
+  }
+}
+
+.notification-info {
+  &.mat-snack-bar-container {
+    background: $info;
+    color: white;
+
+    .mat-button {
+      background: mat-color($primary);
+      color: white;
+    }
   }
 }
 
@@ -384,6 +396,6 @@ $dark: #393939;
   background: #eee;
 }
 
-  .mat-menu-content:not(:empty) {
-    padding: 8px;
-  }
+.mat-menu-content:not(:empty) {
+  padding: 8px;
+}

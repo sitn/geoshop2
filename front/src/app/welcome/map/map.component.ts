@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, ElementRef, Input, OnInit} from '@angular/core';
 import {MapService} from '../../_services/map.service';
 import {IBasemap} from 'src/app/_models/IConfig';
 import {FormControl, FormGroup} from '@angular/forms';
