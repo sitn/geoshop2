@@ -5,7 +5,7 @@ import {WelcomeRoutingModule} from './welcome-routing.module';
 import {WelcomeComponent} from './welcome.component';
 import {MapComponent} from './map/map.component';
 import {CatalogComponent} from './catalog/catalog.component';
-import {DialogLegendComponent, DialogMetadataComponent} from './catalog/dialog-metadata/dialog-metadata.component';
+import {DialogMetadataComponent} from './catalog/dialog-metadata/dialog-metadata.component';
 import {ReactiveFormsModule} from '@angular/forms';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatIconModule} from '@angular/material/icon';
@@ -19,6 +19,7 @@ import {ScrollingModule} from '@angular/cdk/scrolling';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
+import {MatExpansionModule} from '@angular/material/expansion';
 
 const MODULES = [
   MatMenuModule,
@@ -33,10 +34,11 @@ const MODULES = [
   MatDialogModule,
   MatSnackBarModule,
   MatAutocompleteModule,
+  MatExpansionModule
 ];
 
 @NgModule({
-  declarations: [WelcomeComponent, MapComponent, CatalogComponent, DialogMetadataComponent, DialogLegendComponent],
+  declarations: [WelcomeComponent, MapComponent, CatalogComponent, DialogMetadataComponent],
   imports: [
     CommonModule,
     WelcomeRoutingModule,
@@ -44,8 +46,7 @@ const MODULES = [
     MODULES
   ],
   entryComponents: [
-    DialogMetadataComponent,
-    DialogLegendComponent
+    DialogMetadataComponent
   ]
 })
 export class WelcomeModule {

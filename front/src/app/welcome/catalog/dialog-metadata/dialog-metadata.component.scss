@@ -40,16 +40,22 @@
     .mat-card-content {
       flex: 1;
       overflow-y: auto;
-
-      img {
-        margin-left: 25%;
-        margin-bottom: 5px;
-      }
     }
   }
 
   .header-image {
     background-size: cover;
+  }
+
+  .image-center-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 16px;
+
+    img {
+      height: 150px;
+    }
   }
 
   .long-description {
