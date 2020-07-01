@@ -5,13 +5,19 @@
   flex-direction: column;
   overflow: hidden;
 
+  .close-button {
+    position: fixed;
+    right: 18.5%;
+    top: 3%;
+    z-index: 10;
+  }
+
   .logo-image {
     height: 50px;
     width: 180px;
     position: fixed;
-    right: 20%;
-    top: 5%;
-    z-index: 10;
+    right: 22%;
+    bottom: 8%;
   }
 
   .contacts-container {
