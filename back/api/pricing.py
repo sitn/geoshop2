@@ -36,11 +36,11 @@ class ProductPriceCalculator():
         The Unit price is taken on the pricing instance, not
         the pricing area instance
         """
-        pricing_area_instance = kwargs.get('pricing_area_instance')
         pricing_instance = kwargs.get('pricing_instance')
+        pricing_area_instance = pricing_instance.pricingarea_set
         polygon = kwargs.get('polygon')
         unit_price = pricing_instance.unit_price
-        nbr_objects = pricing_area_instance.objects.filter(
+        nbr_objects = pricing_area_instance.filter(
             pricing=pricing_instance.id
         ).filter(geom__within=polygon).count()
         return unit_price * nbr_objects
@@ -66,9 +66,9 @@ class ProductPriceCalculator():
         pricing layer
         """
         polygon = kwargs.get('polygon')
-        pricing_area_instance = kwargs.get('pricing_area_instance')
         pricing_instance = kwargs.get('pricing_instance')
-        total = pricing_area_instance.objects.filter(
+        pricing_area_instance = pricing_instance.pricingarea_set
+        total = pricing_area_instance.filter(
             pricing=pricing_instance.id
         ).filter(
             geom__intersects=polygon

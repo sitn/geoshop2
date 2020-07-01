@@ -161,7 +161,6 @@ class Pricing(models.Model):
         """
         price = ProductPriceCalculator.get_price(
             pricing_instance=self,
-            pricing_area_instance=PricingArea,
             polygon=polygon
         )
 
