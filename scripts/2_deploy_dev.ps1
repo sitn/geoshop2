@@ -11,6 +11,7 @@ pipenv install
 .\.venv\Scripts\activate
 pipenv run python manage.py collectstatic --noinput
 pipenv run python manage.py compilemessages
+pipenv run python manage.py setcustompassword
 
 If (Test-Path $PSScriptRoot\$env:PGDATABASE'.backup') {
     $env:PGPASSWORD = $env:PGPOSTGRESPASSWORD
@@ -18,4 +19,3 @@ If (Test-Path $PSScriptRoot\$env:PGDATABASE'.backup') {
 } Else {
     Write-Host "pg_dump has not been done"
 }
-pipenv run python manage.py setcustompassword

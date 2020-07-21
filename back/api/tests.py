@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from api.models import Identity, OrderType, Product, Format, UserChange
+from api.models import *
 
 
 class AuthViewsTests(APITestCase):
@@ -115,8 +115,13 @@ class OrderTests(APITestCase):
         self.format = Format.objects.create(
             name="Geobat NE complet (DXF)",
         )
+        self.pricing = Pricing.objects.create(
+            name="Gratuit",
+            pricing_type="FREE"
+        )
         self.product = Product.objects.create(
             label="MO - Cadastre complet (Format A4-A3-A2-A1-A0)",
+            pricing=self.pricing
         )
         url = reverse('token_obtain_pair')
         resp = self.client.post(url, {'username':'private_user_order', 'password':'testPa$$word'}, format='json')
@@ -124,6 +129,10 @@ class OrderTests(APITestCase):
         self.assertTrue('access' in resp.data)
         self.token = resp.data['access']
 
+    def get_order_item(self):
+        url = reverse('orderitem-list')
+        response = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     def test_post_order(self):
         """
@@ -187,6 +196,7 @@ class OrderTests(APITestCase):
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertEqual(response.data['items'][0]['product'], data['items'][0]['product'], 'Check product')
+
 
 class UserChangeTests(APITestCase):
     """

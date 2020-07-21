@@ -69,8 +69,8 @@ class Identity(AbstractUser):
     country = models.CharField(_('country'), max_length=50, blank=True)
     company_name = models.CharField(_('company_name'), max_length=100, blank=True)
     phone = models.CharField(_('phone'), max_length=50, blank=True)
-    sap_id = models.BigIntegerField(_('sap_id'), null=True)
-    contract_accepted = models.DateField(_('contract_accepted'), null=True)
+    sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
+    contract_accepted = models.DateField(_('contract_accepted'), null=True, blank=True)
     is_public = models.BooleanField(_('is_public'), default=False)
 
     class Meta:
@@ -218,7 +218,7 @@ class Product(models.Model):
     label = models.CharField(_('label'), max_length=250, blank=True)
     status = models.CharField(_('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     group = models.ForeignKey('self', models.DO_NOTHING, verbose_name=_('group'), null=True)
-    pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'), null=True)
+    pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'))
     order = models.BigIntegerField(_('order'), blank=True, null=True)
     ts = SearchVectorField(null=True)
 
