@@ -22,11 +22,9 @@ If ($destConfig -eq "dev") {
     $destFolder = $env:PREPUB_SERVER_PATH
     $destFile = ("{0}\{1}" -f $env:PREPUB_SERVER_PATH, $filename)
 }
-fme $env:FMEDIR\02_product_metadata.fmw
+fme $env:FMEDIR\02_product_metadata_pricing.fmw
 fme $env:FMEDIR\03_order_item.fmw
-psql -d geoshop -a -f $env:FMEDIR\04_pricing.sql
 fme $env:FMEDIR\05_mo2geoshop.fmw
-psql -d geoshop -a -f $env:FMEDIR\06_product_pricing.sql
 
 $previous_PGPASSWORD = $env:PGPASSWORD
 $env:PGPASSWORD = $env:PGPOSTGRESPASSWORD

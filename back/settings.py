@@ -82,8 +82,6 @@ TEMPLATES = [
     },
 ]
 
-AUTH_USER_MODEL = 'api.Identity'
-
 WSGI_APPLICATION = 'wsgi.application'
 
 
