@@ -3,242 +3,459 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.2" last-position="0,0" last-zoom="1" max-obj-count="21"
-	 default-owner="geoshop">
-<role name="geoshop"
+<dbmodel pgmodeler-ver="0.9.2" last-position="0,27" last-zoom="0.65" max-obj-count="46"
+	 default-schema="public" default-owner="postgres">
+<role name="www-data"
+      inherit="true"
       login="true"
       encrypted="true"
-      password="geoshop">
-	<prepended-sql><![CDATA[DROP role geoshop;]]></prepended-sql>
+      password="********">
 </role>
 
-<database name="geoshop" is-template="false" allow-conns="true">
+<role name="test"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="mapfish"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="police"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="amenagiste_foret"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="autoextract"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="comptages"
+      inherit="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="crdppf"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="mdgm"
+      superuser="true"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="planal"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="planal_read"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="sat_admin"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="sat_read"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="selvansgeo_admin"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="sffn_reader"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="sffn_writer"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="sitn_read"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="sitn_read_cadsout"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="sitndata"
+      superuser="true"
+      createdb="true"
+      createrole="true"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="spch_admin"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="spch_comptages_admin"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="spch_comptages_ro"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="spch_comptages_rw"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="spch_editor"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="spch_mistra"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="spch_reader"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="spch_update"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="sport"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="sport_edit"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="suissemelio"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="suissemelio_read"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="vc3d"
+      createdb="true"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="ville_neuchatel"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="ville_neuchatel_fdv"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="perturbtrafic"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="prestopresta"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="geoshop"
+      superuser="true"
+      createdb="true"
+      createrole="true"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<role name="manif_sportives"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<database name="geoshop" encoding="UTF8" lc-collate="French_Switzerland.1252" lc-ctype="French_Switzerland.1252" is-template="false" allow-conns="true">
 	<role name="geoshop"/>
+	<tablespace name="pg_default"/>
 </database>
 
-<schema name="public" layer="0" fill-color="#e1e1e1" sql-disabled="true">
+<schema name="public" layer="0" rect-visible="true" fill-color="#e1e1e1" sql-disabled="true">
 </schema>
 
-<extension name="postgis">
+<extension name="postgis" cur-version="2.4.4">
 	<schema name="public"/>
+	<comment><![CDATA[PostGIS geometry, geography, and raster spatial types and functions]]></comment>
 </extension>
 
-<schema name="geoshop" layer="0" rect-visible="true" fill-color="#e1e1e1">
+<schema name="geoshop" layer="0" rect-visible="true" fill-color="#ffffff">
 	<role name="geoshop"/>
 </schema>
 
-<extension name="uuid-ossp">
-	<schema name="public"/>
-</extension>
-
-<table name="pricing" layer="0" collapse-mode="2" max-obj-count="4">
+<sequence name="auth_user_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<position x="20" y="420"/>
-	<column name="id" not-null="true" default-value="uuid_generate_v4()">
-		<type name="uuid" length="0"/>
+</sequence>
+
+<table name="auth_user" layer="0" collapse-mode="2" max-obj-count="13">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+	<position x="960" y="80"/>
+	<column name="id" not-null="true" sequence="geoshop.auth_user_id_seq">
+		<type name="integer" length="0"/>
 	</column>
-	<column name="product_id">
-		<type name="uuid" length="0"/>
+	<column name="password" not-null="true">
+		<type name="character varying" length="128"/>
 	</column>
-	<column name="type">
+	<column name="last_login">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="is_superuser" not-null="true">
+		<type name="boolean" length="0"/>
+	</column>
+	<column name="username" not-null="true">
+		<type name="character varying" length="150"/>
+	</column>
+	<column name="first_name" not-null="true">
+		<type name="character varying" length="30"/>
+	</column>
+	<column name="last_name" not-null="true">
+		<type name="character varying" length="150"/>
+	</column>
+	<column name="email" not-null="true">
+		<type name="character varying" length="254"/>
+	</column>
+	<column name="is_staff" not-null="true">
+		<type name="boolean" length="0"/>
+	</column>
+	<column name="is_active" not-null="true">
+		<type name="boolean" length="0"/>
+	</column>
+	<column name="date_joined" not-null="true">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<constraint name="auth_user_pkey" type="pk-constr" table="geoshop.auth_user">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="auth_user_username_key" type="uq-constr" table="geoshop.auth_user">
+		<columns names="username" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<index name="auth_user_username_6821ab7c_like" table="geoshop.auth_user"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="username"/>
+		</idxelement>
+</index>
+
+<sequence name="copyright_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+</sequence>
+
+<table name="copyright" layer="0" collapse-mode="2" max-obj-count="2">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+	<position x="960" y="1360"/>
+	<column name="id" not-null="true" sequence="geoshop.copyright_id_seq">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="description" not-null="true">
 		<type name="text" length="0"/>
 	</column>
-	<column name="price">
-		<type name="numeric" length="0"/>
-	</column>
-	<constraint name="pricing_pk" type="pk-constr" table="geoshop.pricing">
+	<constraint name="copyright_pkey" type="pk-constr" table="geoshop.copyright">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<usertype name="product_status" configuration="enumeration">
+<sequence name="document_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<enumeration values="draft,valid,deprecated"/>
-</usertype>
+</sequence>
 
-<usertype name="user_status" configuration="enumeration">
+<table name="document" layer="0" collapse-mode="2" max-obj-count="3">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<enumeration values="new,enabled,disabled"/>
-</usertype>
-
-<table name="metadata" layer="0" collapse-mode="2" max-obj-count="9">
-	<schema name="geoshop"/>
-	<role name="geoshop"/>
-	<position x="440" y="640"/>
-	<column name="id" not-null="true" default-value="uuid_generate_v4()">
-		<type name="uuid" length="0"/>
+	<position x="960" y="1240"/>
+	<column name="id" not-null="true" sequence="geoshop.document_id_seq">
+		<type name="integer" length="0"/>
 	</column>
-	<column name="name">
-		<type name="text" length="0"/>
+	<column name="name" not-null="true">
+		<type name="character varying" length="80"/>
 	</column>
-	<column name="description_short">
-		<type name="text" length="0"/>
+	<column name="link" not-null="true">
+		<type name="character varying" length="200"/>
 	</column>
-	<column name="description_long">
-		<type name="text" length="0"/>
-	</column>
-	<column name="geocat_link">
-		<type name="text" length="0"/>
-	</column>
-	<column name="legend_link">
-		<type name="text" length="0"/>
-	</column>
-	<column name="image_link">
-		<type name="text" length="0"/>
-	</column>
-	<column name="copyright_id">
-		<type name="uuid" length="0"/>
-	</column>
-	<constraint name="metadata_pk" type="pk-constr" table="geoshop.metadata">
+	<constraint name="document_pkey" type="pk-constr" table="geoshop.document">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<table name="product" layer="0" collapse-mode="2" max-obj-count="8">
+<sequence name="format_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<position x="520" y="440"/>
-	<column name="id" not-null="true" default-value="uuid_generate_v4()">
-		<type name="uuid" length="0"/>
-	</column>
-	<column name="metadata_id">
-		<type name="uuid" length="0"/>
-	</column>
-	<column name="label">
-		<type name="text" length="0"/>
-	</column>
-	<column name="status">
-		<type name="geoshop.product_status" length="0"/>
-	</column>
-	<column name="is_published" not-null="true" default-value="false">
-		<type name="bool" length="0"/>
-	</column>
-	<column name="base_fee">
-		<type name="numeric" length="0"/>
-	</column>
-	<column name="is_group" not-null="true" default-value="false">
-		<type name="bool" length="0"/>
-		<comment><![CDATA[Si le produit est en fait un groupe de produits]]></comment>
-	</column>
-	<constraint name="product_pk" type="pk-constr" table="geoshop.product">
-		<columns names="id" ref-type="src-columns"/>
-	</constraint>
-</table>
+</sequence>
 
 <table name="format" layer="0" collapse-mode="2" max-obj-count="2">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<position x="340" y="280"/>
-	<column name="id" not-null="true" default-value="uuid_generate_v4()">
-		<type name="uuid" length="0"/>
+	<position x="100" y="620"/>
+	<column name="id" not-null="true" sequence="geoshop.format_id_seq">
+		<type name="integer" length="0"/>
 	</column>
-	<column name="name">
-		<type name="text" length="0"/>
+	<column name="name" not-null="true">
+		<type name="character varying" length="100"/>
 	</column>
-	<constraint name="format_pk" type="pk-constr" table="geoshop.format">
+	<constraint name="format_pkey" type="pk-constr" table="geoshop.format">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<usertype name="product_format_availability" configuration="enumeration">
-	<schema name="geoshop"/>
-	<role name="postgres"/>
-	<enumeration values="automatic,manual"/>
-</usertype>
-
-<table name="product_format" layer="0" collapse-mode="2" max-obj-count="3">
+<sequence name="identity_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<position x="580" y="320"/>
-	<column name="product_id" not-null="true">
-		<type name="uuid" length="0"/>
-	</column>
-	<column name="format_id" not-null="true">
-		<type name="uuid" length="0"/>
-	</column>
-	<column name="availability">
-		<type name="geoshop.product_format_availability" length="0"/>
-	</column>
-	<constraint name="product_data_format_pk" type="pk-constr" table="geoshop.product_format">
-		<columns names="product_id,format_id" ref-type="src-columns"/>
-	</constraint>
-</table>
+</sequence>
 
-<table name="product_group" layer="0" collapse-mode="2" max-obj-count="3">
+<table name="identity" layer="0" collapse-mode="2" max-obj-count="18">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<position x="20" y="600"/>
-	<column name="product_id_parent" not-null="true">
-		<type name="uuid" length="0"/>
+	<position x="960" y="360"/>
+	<column name="id" not-null="true" sequence="geoshop.identity_id_seq">
+		<type name="integer" length="0"/>
 	</column>
-	<column name="product_id_child" not-null="true">
-		<type name="uuid" length="0"/>
+	<column name="first_name" not-null="true">
+		<type name="character varying" length="30"/>
 	</column>
-	<constraint name="product_group_pk" type="pk-constr" table="geoshop.product_group">
-		<columns names="product_id_parent,product_id_child" ref-type="src-columns"/>
-	</constraint>
-</table>
-
-<table name="order_item" layer="0" collapse-mode="2" max-obj-count="6">
-	<schema name="geoshop"/>
-	<role name="geoshop"/>
-	<position x="0" y="200"/>
-	<column name="id" not-null="true" default-value="uuid_generate_v4()">
-		<type name="uuid" length="0"/>
+	<column name="last_name" not-null="true">
+		<type name="character varying" length="150"/>
 	</column>
-	<column name="order_id">
-		<type name="uuid" length="0"/>
+	<column name="email" not-null="true">
+		<type name="character varying" length="254"/>
 	</column>
-	<column name="product_id">
-		<type name="uuid" length="0"/>
+	<column name="street" not-null="true">
+		<type name="character varying" length="100"/>
 	</column>
-	<column name="format_id">
-		<type name="uuid" length="0"/>
+	<column name="street2" not-null="true">
+		<type name="character varying" length="100"/>
 	</column>
-	<column name="last_download">
-		<type name="timestamp" length="0"/>
+	<column name="postcode" not-null="true">
+		<type name="character varying" length="10"/>
 	</column>
-	<constraint name="order_item_pk" type="pk-constr" table="geoshop.order_item">
-		<columns names="id" ref-type="src-columns"/>
-	</constraint>
-</table>
-
-<table name="identity" layer="0" collapse-mode="2" max-obj-count="14">
-	<schema name="geoshop"/>
-	<role name="geoshop"/>
-	<position x="920" y="20"/>
-	<column name="id" not-null="true" default-value="uuid_generate_v4()">
-		<type name="uuid" length="0"/>
+	<column name="city" not-null="true">
+		<type name="character varying" length="50"/>
 	</column>
-	<column name="firstname">
-		<type name="text" length="0"/>
+	<column name="country" not-null="true">
+		<type name="character varying" length="50"/>
 	</column>
-	<column name="lastname">
-		<type name="text" length="0"/>
+	<column name="company_name" not-null="true">
+		<type name="character varying" length="100"/>
 	</column>
-	<column name="street">
-		<type name="text" length="0"/>
-	</column>
-	<column name="street2">
-		<type name="text" length="0"/>
-	</column>
-	<column name="postcode">
-		<type name="smallint" length="0"/>
-	</column>
-	<column name="city">
-		<type name="text" length="0"/>
-	</column>
-	<column name="country">
-		<type name="text" length="0"/>
-	</column>
-	<column name="companyname">
-		<type name="text" length="0"/>
-	</column>
-	<column name="phone">
-		<type name="text" length="0"/>
+	<column name="phone" not-null="true">
+		<type name="character varying" length="50"/>
 	</column>
 	<column name="sap_id">
 		<type name="bigint" length="0"/>
@@ -246,348 +463,1152 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="contract_accepted">
 		<type name="date" length="0"/>
 	</column>
-	<constraint name="identity_pk" type="pk-constr" table="geoshop.identity">
+	<column name="is_public" not-null="true">
+		<type name="boolean" length="0"/>
+	</column>
+	<column name="user_id">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="identity_pkey" type="pk-constr" table="geoshop.identity">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="identity_user_id_key" type="uq-constr" table="geoshop.identity">
+		<columns names="user_id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="metadata_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+</sequence>
+
+<table name="metadata" layer="0" collapse-mode="2" max-obj-count="14">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+	<position x="500" y="1120"/>
+	<column name="id" not-null="true" sequence="geoshop.metadata_id_seq">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="id_name" not-null="true">
+		<type name="character varying" length="50"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="character varying" length="300"/>
+	</column>
+	<column name="description_short" not-null="true">
+		<type name="character varying" length="500"/>
+	</column>
+	<column name="description_long" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="scale" not-null="true">
+		<type name="character varying" length="500"/>
+	</column>
+	<column name="geocat_link" not-null="true">
+		<type name="character varying" length="2000"/>
+	</column>
+	<column name="legend_link" not-null="true">
+		<type name="character varying" length="2000"/>
+	</column>
+	<column name="image_link" not-null="true">
+		<type name="character varying" length="2000"/>
+	</column>
+	<column name="modified_date" not-null="true">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="copyright_id">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="modified_user_id" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="metadata_pkey" type="pk-constr" table="geoshop.metadata">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="metadata_id_name_key" type="uq-constr" table="geoshop.metadata">
+		<columns names="id_name" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<usertype name="geometry" configuration="base"
+ internal-length="0" by-value="false"
+ alignment="double precision" storage="main"
+ delimiter=":"
+ category="U" sql-disabled="true">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<comment><![CDATA[postgis type: Planar spatial data type.]]></comment>
+</usertype>
+
+<sequence name="order_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+</sequence>
+
+<table name="order" layer="0" collapse-mode="2" max-obj-count="22">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+	<position x="460" y="160"/>
+	<column name="id" not-null="true" sequence="geoshop.order_id_seq">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="title" not-null="true">
+		<type name="character varying" length="255"/>
+	</column>
+	<column name="description" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="processing_fee_currency" not-null="true">
+		<type name="character varying" length="3"/>
+	</column>
+	<column name="processing_fee">
+		<type name="numeric" length="14" precision="2"/>
+	</column>
+	<column name="total_cost_currency" not-null="true">
+		<type name="character varying" length="3"/>
+	</column>
+	<column name="total_cost">
+		<type name="numeric" length="14" precision="2"/>
+	</column>
+	<column name="part_vat_currency" not-null="true">
+		<type name="character varying" length="3"/>
+	</column>
+	<column name="part_vat">
+		<type name="numeric" length="14" precision="2"/>
+	</column>
+	<column name="geom" not-null="true">
+		<type name="public.geometry" length="0"/>
+	</column>
+	<column name="invoice_reference" not-null="true">
+		<type name="character varying" length="255"/>
+	</column>
+	<column name="status" not-null="true">
+		<type name="character varying" length="20"/>
+	</column>
+	<column name="date_ordered">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="date_downloaded">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="date_processed">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="client_id" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="invoice_contact_id">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="order_contact_id">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="order_type_id">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="order_pkey" type="pk-constr" table="geoshop.&quot;order&quot;">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<table name="role" layer="0" collapse-mode="2" max-obj-count="2">
+<sequence name="order_type_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<position x="20" y="20"/>
-	<column name="id" not-null="true" default-value="uuid_generate_v4()">
-		<type name="uuid" length="0"/>
+</sequence>
+
+<table name="order_type" layer="0" collapse-mode="2" max-obj-count="2">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+	<position x="520" y="580"/>
+	<column name="id" not-null="true" sequence="geoshop.order_type_id_seq">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="character varying" length="30"/>
+	</column>
+	<constraint name="order_type_pkey" type="pk-constr" table="geoshop.order_type">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="pricing_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+</sequence>
+
+<table name="pricing" layer="0" collapse-mode="2" max-obj-count="13">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+	<position x="100" y="1100"/>
+	<column name="id" not-null="true" sequence="geoshop.pricing_id_seq">
+		<type name="integer" length="0"/>
 	</column>
 	<column name="name">
-		<type name="text" length="0"/>
+		<type name="character varying" length="100"/>
 	</column>
-	<constraint name="role_pk" type="pk-constr" table="geoshop.role">
+	<column name="pricing_type" not-null="true">
+		<type name="character varying" length="30"/>
+	</column>
+	<column name="base_fee_currency" not-null="true">
+		<type name="character varying" length="3"/>
+	</column>
+	<column name="base_fee">
+		<type name="numeric" length="14" precision="2"/>
+	</column>
+	<column name="min_price_currency" not-null="true">
+		<type name="character varying" length="3"/>
+	</column>
+	<column name="min_price">
+		<type name="numeric" length="14" precision="2"/>
+	</column>
+	<column name="max_price_currency" not-null="true">
+		<type name="character varying" length="3"/>
+	</column>
+	<column name="max_price">
+		<type name="numeric" length="14" precision="2"/>
+	</column>
+	<column name="unit_price_currency" not-null="true">
+		<type name="character varying" length="3"/>
+	</column>
+	<column name="unit_price">
+		<type name="numeric" length="14" precision="2"/>
+	</column>
+	<constraint name="pricing_pkey" type="pk-constr" table="geoshop.pricing">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<table name="user_role" layer="0" collapse-mode="2" max-obj-count="3">
+<sequence name="product_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<position x="180" y="20"/>
-	<column name="user_id" not-null="true">
-		<type name="uuid" length="0"/>
-	</column>
-	<column name="role_id" not-null="true">
-		<type name="uuid" length="0"/>
-	</column>
-	<constraint name="user_role_pk" type="pk-constr" table="geoshop.user_role">
-		<columns names="user_id,role_id" ref-type="src-columns"/>
-	</constraint>
-</table>
+</sequence>
 
-<table name="copyright" layer="0" collapse-mode="2" max-obj-count="2">
+<table name="product" layer="0" collapse-mode="2" max-obj-count="9">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<position x="40" y="760"/>
-	<column name="id" not-null="true" default-value="uuid_generate_v4()">
-		<type name="uuid" length="0"/>
+	<position x="500" y="880"/>
+	<column name="id" not-null="true" sequence="geoshop.product_id_seq">
+		<type name="integer" length="0"/>
 	</column>
-	<column name="description">
-		<type name="text" length="0"/>
+	<column name="label" not-null="true">
+		<type name="character varying" length="250"/>
 	</column>
-	<constraint name="copyright_pk" type="pk-constr" table="geoshop.copyright">
+	<column name="status" not-null="true">
+		<type name="character varying" length="30"/>
+	</column>
+	<column name="order">
+		<type name="bigint" length="0"/>
+	</column>
+	<column name="ts">
+		<type name="tsvector" length="0"/>
+	</column>
+	<column name="group_id">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="pricing_id" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="metadata_id">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="product_pkey" type="pk-constr" table="geoshop.product">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<table name="document" layer="0" collapse-mode="2" max-obj-count="3">
+<sequence name="user_change_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<position x="960" y="720"/>
-	<column name="id" not-null="true" default-value="uuid_generate_v4()">
-		<type name="uuid" length="0"/>
+</sequence>
+
+<table name="user_change" layer="0" collapse-mode="2" max-obj-count="13">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+	<position x="960" y="840"/>
+	<column name="id" not-null="true" sequence="geoshop.user_change_id_seq">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="first_name" not-null="true">
+		<type name="character varying" length="30"/>
+	</column>
+	<column name="last_name" not-null="true">
+		<type name="character varying" length="150"/>
+	</column>
+	<column name="email" not-null="true">
+		<type name="character varying" length="254"/>
+	</column>
+	<column name="street" not-null="true">
+		<type name="character varying" length="100"/>
+	</column>
+	<column name="street2" not-null="true">
+		<type name="character varying" length="100"/>
+	</column>
+	<column name="postcode" not-null="true">
+		<type name="character varying" length="10"/>
+	</column>
+	<column name="city" not-null="true">
+		<type name="character varying" length="50"/>
+	</column>
+	<column name="country" not-null="true">
+		<type name="character varying" length="50"/>
+	</column>
+	<column name="company_name" not-null="true">
+		<type name="character varying" length="100"/>
+	</column>
+	<column name="phone" not-null="true">
+		<type name="character varying" length="50"/>
+	</column>
+	<constraint name="user_change_pkey" type="pk-constr" table="geoshop.user_change">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="product_validation_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+</sequence>
+
+<table name="product_validation" layer="0" collapse-mode="2" max-obj-count="4">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+	<position x="540" y="680"/>
+	<column name="id" not-null="true" sequence="geoshop.product_validation_id_seq">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="order_type_id" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="product_id" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="validator_id" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="product_validation_pkey" type="pk-constr" table="geoshop.product_validation">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="product_field_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+</sequence>
+
+<table name="product_field" layer="0" collapse-mode="2" max-obj-count="7">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+	<position x="100" y="860"/>
+	<column name="id" not-null="true" sequence="geoshop.product_field_id_seq">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="db_name" not-null="true">
+		<type name="character varying" length="50"/>
+	</column>
+	<column name="export_name" not-null="true">
+		<type name="character varying" length="50"/>
+	</column>
+	<column name="field_type" not-null="true">
+		<type name="character varying" length="10"/>
+	</column>
+	<column name="field_length" not-null="true">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="product_id" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="product_field_pkey" type="pk-constr" table="geoshop.product_field">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="pricing_layer_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+</sequence>
+
+<table name="pricing_layer" layer="0" collapse-mode="2" max-obj-count="7">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+	<position x="100" y="1420"/>
+	<column name="id" not-null="true" sequence="geoshop.pricing_layer_id_seq">
+		<type name="integer" length="0"/>
 	</column>
 	<column name="name">
-		<type name="text" length="0"/>
+		<type name="character varying" length="300"/>
 	</column>
-	<column name="link">
-		<type name="text" length="0"/>
+	<column name="unit_price_currency" not-null="true">
+		<type name="character varying" length="3"/>
 	</column>
-	<constraint name="documents_pk" type="pk-constr" table="geoshop.document">
+	<column name="unit_price">
+		<type name="numeric" length="14" precision="2"/>
+	</column>
+	<column name="geom" not-null="true">
+		<type name="public.geometry" length="0"/>
+	</column>
+	<column name="pricing_id">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="pricing_layer_pkey" type="pk-constr" table="geoshop.pricing_layer">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<table name="metadata_document" layer="0" collapse-mode="2" max-obj-count="3">
+<sequence name="order_item_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<position x="680" y="720"/>
+</sequence>
+
+<table name="order_item" layer="0" collapse-mode="2" max-obj-count="10">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+	<position x="100" y="380"/>
+	<column name="id" not-null="true" sequence="geoshop.order_item_id_seq">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="last_download">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="price_currency" not-null="true">
+		<type name="character varying" length="3"/>
+	</column>
+	<column name="price">
+		<type name="numeric" length="14" precision="2"/>
+	</column>
+	<column name="base_fee_currency" not-null="true">
+		<type name="character varying" length="3"/>
+	</column>
+	<column name="base_fee">
+		<type name="numeric" length="14" precision="2"/>
+	</column>
+	<column name="format_id">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="order_id">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="product_id">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="order_item_pkey" type="pk-constr" table="geoshop.order_item">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="metadata_contact_persons_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+</sequence>
+
+<table name="metadata_contact_persons" layer="0" collapse-mode="2" max-obj-count="4">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+	<position x="960" y="700"/>
+	<column name="id" not-null="true" sequence="geoshop.metadata_contact_persons_id_seq">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="metadata_role" not-null="true">
+		<type name="character varying" length="150"/>
+	</column>
+	<column name="contact_person_id" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
 	<column name="metadata_id" not-null="true">
-		<type name="uuid" length="0"/>
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="metadata_contact_persons_pkey" type="pk-constr" table="geoshop.metadata_contact_persons">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="metadata_documents_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+</sequence>
+
+<table name="metadata_documents" layer="0" collapse-mode="2" max-obj-count="4">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+	<position x="960" y="1120"/>
+	<column name="id" not-null="true" sequence="geoshop.metadata_documents_id_seq">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="metadata_id" not-null="true">
+		<type name="integer" length="0"/>
 	</column>
 	<column name="document_id" not-null="true">
-		<type name="uuid" length="0"/>
+		<type name="integer" length="0"/>
 	</column>
-	<constraint name="metadata_documents_pk" type="pk-constr" table="geoshop.metadata_document">
+	<constraint name="metadata_documents_pkey" type="pk-constr" table="geoshop.metadata_documents">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="metadata_documents_metadata_id_document_id_129e4940_uniq" type="uq-constr" table="geoshop.metadata_documents">
 		<columns names="metadata_id,document_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<table name="metadata_identity" layer="0" collapse-mode="2" max-obj-count="3">
+<sequence name="contact_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<position x="920" y="520"/>
-	<column name="metadata_id" not-null="true">
-		<type name="uuid" length="0"/>
-	</column>
-	<column name="identity_id" not-null="true">
-		<type name="uuid" length="0"/>
-	</column>
-	<constraint name="metadata_identity_pk" type="pk-constr" table="geoshop.metadata_identity">
-		<columns names="metadata_id,identity_id" ref-type="src-columns"/>
-	</constraint>
-</table>
+</sequence>
 
-<table name="order" layer="0" collapse-mode="2" max-obj-count="6">
+<table name="contact" layer="0" collapse-mode="2" max-obj-count="14">
 	<schema name="geoshop"/>
 	<role name="geoshop"/>
-	<position x="320" y="140"/>
-	<column name="id" not-null="true" default-value="uuid_generate_v4()">
-		<type name="uuid" length="0"/>
+	<position x="100" y="80"/>
+	<column name="id" not-null="true" sequence="geoshop.contact_id_seq">
+		<type name="integer" length="0"/>
 	</column>
-	<column name="total_cost">
-		<type name="numeric" length="0"/>
+	<column name="belongs_to_id" not-null="true">
+		<type name="integer" length="0"/>
 	</column>
-	<column name="vat">
-		<type name="numeric" length="0"/>
+	<column name="first_name" not-null="true">
+		<type name="character varying" length="30"/>
 	</column>
-	<column name="geom">
-		<type name="geometry" length="0" spatial-type="MULTIPOLYGON" variation="0" srid="2056"/>
-	</column>
-	<column name="user_id">
-		<type name="uuid" length="0"/>
-	</column>
-	<constraint name="order_pk" type="pk-constr" table="geoshop.&quot;order&quot;">
-		<columns names="id" ref-type="src-columns"/>
-	</constraint>
-</table>
-
-<table name="user" layer="0" collapse-mode="2" max-obj-count="6">
-	<schema name="geoshop"/>
-	<role name="geoshop"/>
-	<position x="640" y="20"/>
-	<column name="id" not-null="true" default-value="uuid_generate_v4()">
-		<type name="uuid" length="0"/>
-	</column>
-	<column name="password">
-		<type name="text" length="0"/>
+	<column name="last_name" not-null="true">
+		<type name="character varying" length="150"/>
 	</column>
 	<column name="email" not-null="true">
-		<type name="text" length="0"/>
+		<type name="character varying" length="254"/>
 	</column>
-	<column name="identity_id">
-		<type name="uuid" length="0"/>
+	<column name="street" not-null="true">
+		<type name="character varying" length="100"/>
 	</column>
-	<column name="status">
-		<type name="geoshop.user_status" length="0"/>
+	<column name="street2" not-null="true">
+		<type name="character varying" length="100"/>
 	</column>
-	<constraint name="user_pk" type="pk-constr" table="geoshop.&quot;user&quot;">
+	<column name="postcode" not-null="true">
+		<type name="character varying" length="10"/>
+	</column>
+	<column name="city" not-null="true">
+		<type name="character varying" length="50"/>
+	</column>
+	<column name="country" not-null="true">
+		<type name="character varying" length="50"/>
+	</column>
+	<column name="company_name" not-null="true">
+		<type name="character varying" length="100"/>
+	</column>
+	<column name="phone" not-null="true">
+		<type name="character varying" length="50"/>
+	</column>
+	<constraint name="contact_pkey" type="pk-constr" table="geoshop.contact">
 		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="contact_belongs_to_id_key" type="uq-constr" table="geoshop.contact">
+		<columns names="belongs_to_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<constraint name="product_pricing" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.product" table="geoshop.pricing">
-	<columns names="product_id" ref-type="src-columns"/>
-	<columns names="id" ref-type="dst-columns"/>
-</constraint>
+<sequence name="product_format_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+</sequence>
 
-<constraint name="metadata_copyright" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.copyright" table="geoshop.metadata">
-	<columns names="copyright_id" ref-type="src-columns"/>
-	<columns names="id" ref-type="dst-columns"/>
-</constraint>
+<table name="product_format" layer="0" collapse-mode="2" max-obj-count="4">
+	<schema name="geoshop"/>
+	<role name="geoshop"/>
+	<position x="100" y="720"/>
+	<column name="id" not-null="true" sequence="geoshop.product_format_id_seq">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="is_manual" not-null="true">
+		<type name="boolean" length="0"/>
+	</column>
+	<column name="format_id" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="product_id" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="product_format_pkey" type="pk-constr" table="geoshop.product_format">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="product_format_product_id_format_id_8f0734fb_uniq" type="uq-constr" table="geoshop.product_format">
+		<columns names="product_id,format_id" ref-type="src-columns"/>
+	</constraint>
+</table>
 
-<constraint name="product_metadata" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.metadata" table="geoshop.product">
-	<columns names="metadata_id" ref-type="src-columns"/>
-	<columns names="id" ref-type="dst-columns"/>
-</constraint>
+<index name="product_ts_96c462_gin" table="geoshop.product"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="gin" factor="0">
+		<idxelement use-sorting="false">
+			<column name="ts"/>
+		</idxelement>
+</index>
 
-<constraint name="product_formats_product" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.product" table="geoshop.product_format">
-	<columns names="product_id" ref-type="src-columns"/>
-	<columns names="id" ref-type="dst-columns"/>
-</constraint>
+<index name="pricing_lay_name_23aff9_btree" table="geoshop.pricing_layer"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="name"/>
+		</idxelement>
+</index>
 
-<constraint name="product_formats_formats" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.format" table="geoshop.product_format">
-	<columns names="format_id" ref-type="src-columns"/>
-	<columns names="id" ref-type="dst-columns"/>
-</constraint>
+<index name="metadata_id_name_c4a8ba2d_like" table="geoshop.metadata"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="id_name"/>
+		</idxelement>
+</index>
 
-<constraint name="product_group_parent" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.product" table="geoshop.product_group">
-	<columns names="product_id_parent" ref-type="src-columns"/>
-	<columns names="id" ref-type="dst-columns"/>
-</constraint>
+<index name="order_geom_id" table="geoshop.&quot;order&quot;"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="gist" factor="90">
+		<idxelement use-sorting="false">
+			<column name="geom"/>
+		</idxelement>
+</index>
 
-<constraint name="product_group_child" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.product" table="geoshop.product_group">
-	<columns names="product_id_child" ref-type="src-columns"/>
-	<columns names="id" ref-type="dst-columns"/>
-</constraint>
+<index name="order_client_id_53f540f5" table="geoshop.&quot;order&quot;"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="client_id"/>
+		</idxelement>
+</index>
 
-<constraint name="order_item_order" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.&quot;order&quot;" table="geoshop.order_item">
-	<columns names="order_id" ref-type="src-columns"/>
-	<columns names="id" ref-type="dst-columns"/>
-</constraint>
+<index name="order_invoice_contact_id_893647e6" table="geoshop.&quot;order&quot;"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="invoice_contact_id"/>
+		</idxelement>
+</index>
 
-<constraint name="order_item_product" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.product" table="geoshop.order_item">
-	<columns names="product_id" ref-type="src-columns"/>
-	<columns names="id" ref-type="dst-columns"/>
-</constraint>
+<index name="order_order_contact_id_ec44599d" table="geoshop.&quot;order&quot;"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="order_contact_id"/>
+		</idxelement>
+</index>
 
-<constraint name="order_item_format" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.format" table="geoshop.order_item">
-	<columns names="format_id" ref-type="src-columns"/>
-	<columns names="id" ref-type="dst-columns"/>
-</constraint>
+<index name="product_group_id_063cac35" table="geoshop.product"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="group_id"/>
+		</idxelement>
+</index>
 
-<constraint name="user_role_user" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.&quot;user&quot;" table="geoshop.user_role">
+<index name="product_metadata_id_9413f0a9" table="geoshop.product"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="metadata_id"/>
+		</idxelement>
+</index>
+
+<index name="product_pricing_id_301f6e8e" table="geoshop.product"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="pricing_id"/>
+		</idxelement>
+</index>
+
+<index name="product_validation_order_type_id_8e748a06" table="geoshop.product_validation"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="order_type_id"/>
+		</idxelement>
+</index>
+
+<index name="product_validation_product_id_7788ef13" table="geoshop.product_validation"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="product_id"/>
+		</idxelement>
+</index>
+
+<index name="product_validation_validator_id_9f225304" table="geoshop.product_validation"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="validator_id"/>
+		</idxelement>
+</index>
+
+<index name="product_field_product_id_55c728bb" table="geoshop.product_field"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="product_id"/>
+		</idxelement>
+</index>
+
+<index name="pricing_layer_geom_id" table="geoshop.pricing_layer"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="gist" factor="90">
+		<idxelement use-sorting="false">
+			<column name="geom"/>
+		</idxelement>
+</index>
+
+<index name="pricing_layer_pricing_id_afcadfe4" table="geoshop.pricing_layer"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="pricing_id"/>
+		</idxelement>
+</index>
+
+<index name="order_item_format_id_dfb7c2c2" table="geoshop.order_item"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="format_id"/>
+		</idxelement>
+</index>
+
+<index name="order_item_order_id_0ca9e92e" table="geoshop.order_item"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="order_id"/>
+		</idxelement>
+</index>
+
+<index name="order_item_product_id_62a1cc4c" table="geoshop.order_item"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="product_id"/>
+		</idxelement>
+</index>
+
+<index name="order_order_type_id_5c8bb9e8" table="geoshop.&quot;order&quot;"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="order_type_id"/>
+		</idxelement>
+</index>
+
+<index name="metadata_contact_persons_contact_person_id_7423c386" table="geoshop.metadata_contact_persons"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="contact_person_id"/>
+		</idxelement>
+</index>
+
+<index name="metadata_contact_persons_metadata_id_dfdd31e6" table="geoshop.metadata_contact_persons"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="metadata_id"/>
+		</idxelement>
+</index>
+
+<index name="metadata_copyright_id_93b98b00" table="geoshop.metadata"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="copyright_id"/>
+		</idxelement>
+</index>
+
+<index name="metadata_documents_metadata_id_1bf6884e" table="geoshop.metadata_documents"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="metadata_id"/>
+		</idxelement>
+</index>
+
+<index name="metadata_documents_document_id_f1de5144" table="geoshop.metadata_documents"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="document_id"/>
+		</idxelement>
+</index>
+
+<index name="metadata_modified_user_id_c19bcf69" table="geoshop.metadata"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="modified_user_id"/>
+		</idxelement>
+</index>
+
+<index name="product_format_format_id_81c00e9c" table="geoshop.product_format"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="format_id"/>
+		</idxelement>
+</index>
+
+<index name="product_format_product_id_0fbf168e" table="geoshop.product_format"
+	 concurrent="false" unique="false" fast-update="false" buffering="false"
+	 index-type="btree" factor="90">
+		<idxelement use-sorting="false">
+			<column name="product_id"/>
+		</idxelement>
+</index>
+
+<constraint name="identity_user_id_3e67743b_fk_auth_user_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.auth_user"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.identity">
 	<columns names="user_id" ref-type="src-columns"/>
 	<columns names="id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="user_role_role" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.role" table="geoshop.user_role">
-	<columns names="role_id" ref-type="src-columns"/>
+<constraint name="metadata_copyright_id_93b98b00_fk_copyright_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.copyright"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.metadata">
+	<columns names="copyright_id" ref-type="src-columns"/>
 	<columns names="id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="metadata_document_metadata" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.metadata" table="geoshop.metadata_document">
+<constraint name="metadata_modified_user_id_c19bcf69_fk_auth_user_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.auth_user"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.metadata">
+	<columns names="modified_user_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="order_order_type_id_5c8bb9e8_fk_order_type_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.order_type"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.&quot;order&quot;">
+	<columns names="order_type_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="order_client_id_53f540f5_fk_auth_user_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.auth_user"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.&quot;order&quot;">
+	<columns names="client_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="order_invoice_contact_id_893647e6_fk_identity_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.identity"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.&quot;order&quot;">
+	<columns names="invoice_contact_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="order_order_contact_id_ec44599d_fk_identity_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.identity"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.&quot;order&quot;">
+	<columns names="order_contact_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="product_group_id_063cac35_fk_product_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.product"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.product">
+	<columns names="group_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="product_metadata_id_9413f0a9_fk_metadata_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.metadata"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.product">
 	<columns names="metadata_id" ref-type="src-columns"/>
 	<columns names="id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="metadata_document_document" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.document" table="geoshop.metadata_document">
+<constraint name="product_pricing_id_301f6e8e_fk_pricing_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.pricing"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.product">
+	<columns names="pricing_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="product_validation_order_type_id_8e748a06_fk_order_type_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.order_type"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.product_validation">
+	<columns names="order_type_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="product_validation_product_id_7788ef13_fk_product_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.product"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.product_validation">
+	<columns names="product_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="product_validation_validator_id_9f225304_fk_identity_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.identity"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.product_validation">
+	<columns names="validator_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="product_field_product_id_55c728bb_fk_product_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.product"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.product_field">
+	<columns names="product_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="pricing_layer_pricing_id_afcadfe4_fk_pricing_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.pricing"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.pricing_layer">
+	<columns names="pricing_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="order_item_format_id_dfb7c2c2_fk_format_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.format"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.order_item">
+	<columns names="format_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="order_item_order_id_0ca9e92e_fk_order_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.&quot;order&quot;"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.order_item">
+	<columns names="order_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="order_item_product_id_62a1cc4c_fk_product_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.product"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.order_item">
+	<columns names="product_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="metadata_contact_per_contact_person_id_7423c386_fk_identity_" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.identity"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.metadata_contact_persons">
+	<columns names="contact_person_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="metadata_contact_persons_metadata_id_dfdd31e6_fk_metadata_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.metadata"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.metadata_contact_persons">
+	<columns names="metadata_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="metadata_documents_metadata_id_1bf6884e_fk_metadata_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.metadata"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.metadata_documents">
+	<columns names="metadata_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="metadata_documents_document_id_f1de5144_fk_document_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.document"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.metadata_documents">
 	<columns names="document_id" ref-type="src-columns"/>
 	<columns names="id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="metadata_identity_metadata" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.metadata" table="geoshop.metadata_identity">
-	<columns names="metadata_id" ref-type="src-columns"/>
+<constraint name="contact_belongs_to_id_56f90c0f_fk_auth_user_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.auth_user"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.contact">
+	<columns names="belongs_to_id" ref-type="src-columns"/>
 	<columns names="id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="metadata_identity_identity" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.identity" table="geoshop.metadata_identity">
-	<columns names="identity_id" ref-type="src-columns"/>
+<constraint name="product_format_format_id_81c00e9c_fk_format_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.format"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.product_format">
+	<columns names="format_id" ref-type="src-columns"/>
 	<columns names="id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="order_user" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.&quot;user&quot;" table="geoshop.&quot;order&quot;">
-	<columns names="id" ref-type="src-columns"/>
+<constraint name="product_format_product_id_0fbf168e_fk_product_id" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.product"
+	deferrable="true" defer-type="INITIALLY DEFERRED"
+ table="geoshop.product_format">
+	<columns names="product_id" ref-type="src-columns"/>
 	<columns names="id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="user_identity" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="geoshop.identity" table="geoshop.&quot;user&quot;">
-	<columns names="id" ref-type="src-columns"/>
-	<columns names="id" ref-type="dst-columns"/>
-</constraint>
-
-<relationship name="rel_order_user" type="relfk" layer="0"
-	 src-table="geoshop.&quot;order&quot;"
-	 dst-table="geoshop.&quot;user&quot;" reference-fk="order_user"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_pricing_product" type="relfk" layer="0"
-	 src-table="geoshop.pricing"
-	 dst-table="geoshop.product" reference-fk="product_pricing"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_product_metadata" type="relfk" layer="0"
-	 src-table="geoshop.product"
-	 dst-table="geoshop.metadata" reference-fk="product_metadata"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_product_format_product" type="relfk" layer="0"
-	 src-table="geoshop.product_format"
-	 dst-table="geoshop.product" reference-fk="product_formats_product"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_product_format_format" type="relfk" layer="0"
-	 src-table="geoshop.product_format"
-	 dst-table="geoshop.format" reference-fk="product_formats_formats"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_product_group_product" type="relfk" layer="0"
-	 src-table="geoshop.product_group"
-	 dst-table="geoshop.product" reference-fk="product_group_parent"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_product_group_product1" type="relfk" layer="0"
-	 src-table="geoshop.product_group"
-	 dst-table="geoshop.product" reference-fk="product_group_child"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_order_item_order" type="relfk" layer="0"
-	 src-table="geoshop.order_item"
-	 dst-table="geoshop.&quot;order&quot;" reference-fk="order_item_order"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_order_item_product" type="relfk" layer="0"
-	 src-table="geoshop.order_item"
-	 dst-table="geoshop.product" reference-fk="order_item_product"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_order_item_format" type="relfk" layer="0"
-	 src-table="geoshop.order_item"
-	 dst-table="geoshop.format" reference-fk="order_item_format"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_user_identity" type="relfk" layer="0"
-	 src-table="geoshop.&quot;user&quot;"
-	 dst-table="geoshop.identity" reference-fk="user_identity"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_user_role_user" type="relfk" layer="0"
-	 src-table="geoshop.user_role"
-	 dst-table="geoshop.&quot;user&quot;" reference-fk="user_role_user"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_user_role_role" type="relfk" layer="0"
-	 src-table="geoshop.user_role"
-	 dst-table="geoshop.role" reference-fk="user_role_role"
+<relationship name="rel_identity_auth_user" type="relfk" layer="0"
+	 custom-color="#6440ea"
+	 src-table="geoshop.identity"
+	 dst-table="geoshop.auth_user" reference-fk="identity_user_id_3e67743b_fk_auth_user_id"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_metadata_copyright" type="relfk" layer="0"
+	 custom-color="#9b04c8"
 	 src-table="geoshop.metadata"
-	 dst-table="geoshop.copyright" reference-fk="metadata_copyright"
+	 dst-table="geoshop.copyright" reference-fk="metadata_copyright_id_93b98b00_fk_copyright_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_metadata_auth_user" type="relfk" layer="0"
+	 custom-color="#099430"
+	 src-table="geoshop.metadata"
+	 dst-table="geoshop.auth_user" reference-fk="metadata_modified_user_id_c19bcf69_fk_auth_user_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_order_order_type" type="relfk" layer="0"
+	 custom-color="#21fd00"
+	 src-table="geoshop.&quot;order&quot;"
+	 dst-table="geoshop.order_type" reference-fk="order_order_type_id_5c8bb9e8_fk_order_type_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_order_auth_user" type="relfk" layer="0"
+	 custom-color="#f4bf7a"
+	 src-table="geoshop.&quot;order&quot;"
+	 dst-table="geoshop.auth_user" reference-fk="order_client_id_53f540f5_fk_auth_user_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_order_identity" type="relfk" layer="0"
+	 custom-color="#0424e1"
+	 src-table="geoshop.&quot;order&quot;"
+	 dst-table="geoshop.identity" reference-fk="order_invoice_contact_id_893647e6_fk_identity_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_order_identity1" type="relfk" layer="0"
+	 custom-color="#4d1f98"
+	 src-table="geoshop.&quot;order&quot;"
+	 dst-table="geoshop.identity" reference-fk="order_order_contact_id_ec44599d_fk_identity_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_product_product" type="relfk" layer="0" alias="group of products"
+	 custom-color="#74089f"
+	 src-table="geoshop.product"
+	 dst-table="geoshop.product" reference-fk="product_group_id_063cac35_fk_product_id"
+	 src-required="false" dst-required="false">
+	<line>
+		<position x="782.428" y="944.4"/>
+	<position x="782.428" y="869"/>
+	<position x="680.952" y="869"/>
+	</line>
+	<label ref-type="src-label">
+		<position x="3.5725" y="25.025"/>
+	</label>
+</relationship>
+
+<relationship name="rel_product_metadata" type="relfk" layer="0"
+	 custom-color="#ec30f7"
+	 src-table="geoshop.product"
+	 dst-table="geoshop.metadata" reference-fk="product_metadata_id_9413f0a9_fk_metadata_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_product_pricing" type="relfk" layer="0"
+	 custom-color="#6fa9e7"
+	 src-table="geoshop.product"
+	 dst-table="geoshop.pricing" reference-fk="product_pricing_id_301f6e8e_fk_pricing_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_product_validation_order_type" type="relfk" layer="0"
+	 custom-color="#3d5d68"
+	 src-table="geoshop.product_validation"
+	 dst-table="geoshop.order_type" reference-fk="product_validation_order_type_id_8e748a06_fk_order_type_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_product_validation_product" type="relfk" layer="0"
+	 custom-color="#8be2f0"
+	 src-table="geoshop.product_validation"
+	 dst-table="geoshop.product" reference-fk="product_validation_product_id_7788ef13_fk_product_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_product_validation_identity" type="relfk" layer="0"
+	 custom-color="#86903f"
+	 src-table="geoshop.product_validation"
+	 dst-table="geoshop.identity" reference-fk="product_validation_validator_id_9f225304_fk_identity_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_product_field_product" type="relfk" layer="0"
+	 custom-color="#d943d6"
+	 src-table="geoshop.product_field"
+	 dst-table="geoshop.product" reference-fk="product_field_product_id_55c728bb_fk_product_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_pricing_layer_pricing" type="relfk" layer="0"
+	 custom-color="#f74fe7"
+	 src-table="geoshop.pricing_layer"
+	 dst-table="geoshop.pricing" reference-fk="pricing_layer_pricing_id_afcadfe4_fk_pricing_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_order_item_format" type="relfk" layer="0"
+	 custom-color="#a8d359"
+	 src-table="geoshop.order_item"
+	 dst-table="geoshop.format" reference-fk="order_item_format_id_dfb7c2c2_fk_format_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_order_item_order" type="relfk" layer="0"
+	 custom-color="#16ace1"
+	 src-table="geoshop.order_item"
+	 dst-table="geoshop.&quot;order&quot;" reference-fk="order_item_order_id_0ca9e92e_fk_order_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_order_item_product" type="relfk" layer="0"
+	 custom-color="#393faa"
+	 src-table="geoshop.order_item"
+	 dst-table="geoshop.product" reference-fk="order_item_product_id_62a1cc4c_fk_product_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_metadata_contact_persons_identity" type="relfk" layer="0"
+	 custom-color="#263e84"
+	 src-table="geoshop.metadata_contact_persons"
+	 dst-table="geoshop.identity" reference-fk="metadata_contact_per_contact_person_id_7423c386_fk_identity_"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_metadata_contact_persons_metadata" type="relfk" layer="0"
+	 custom-color="#7ff58a"
+	 src-table="geoshop.metadata_contact_persons"
+	 dst-table="geoshop.metadata" reference-fk="metadata_contact_persons_metadata_id_dfdd31e6_fk_metadata_id"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_metadata_documents_metadata" type="relfk" layer="0"
-	 src-table="geoshop.metadata_document"
-	 dst-table="geoshop.metadata" reference-fk="metadata_document_metadata"
+	 custom-color="#16fad6"
+	 src-table="geoshop.metadata_documents"
+	 dst-table="geoshop.metadata" reference-fk="metadata_documents_metadata_id_1bf6884e_fk_metadata_id"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_metadata_documents_document" type="relfk" layer="0"
-	 src-table="geoshop.metadata_document"
-	 dst-table="geoshop.document" reference-fk="metadata_document_document"
+	 custom-color="#01f608"
+	 src-table="geoshop.metadata_documents"
+	 dst-table="geoshop.document" reference-fk="metadata_documents_document_id_f1de5144_fk_document_id"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="rel_metadata_identity_metadata" type="relfk" layer="0"
-	 src-table="geoshop.metadata_identity"
-	 dst-table="geoshop.metadata" reference-fk="metadata_identity_metadata"
+<relationship name="rel_contact_auth_user" type="relfk" layer="0"
+	 custom-color="#5f6ef0"
+	 src-table="geoshop.contact"
+	 dst-table="geoshop.auth_user" reference-fk="contact_belongs_to_id_56f90c0f_fk_auth_user_id"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="rel_metadata_identity_identity" type="relfk" layer="0"
-	 src-table="geoshop.metadata_identity"
-	 dst-table="geoshop.identity" reference-fk="metadata_identity_identity"
+<relationship name="rel_product_format_format" type="relfk" layer="0"
+	 custom-color="#96b5fe"
+	 src-table="geoshop.product_format"
+	 dst-table="geoshop.format" reference-fk="product_format_format_id_81c00e9c_fk_format_id"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_product_format_product" type="relfk" layer="0"
+	 custom-color="#3fd0d6"
+	 src-table="geoshop.product_format"
+	 dst-table="geoshop.product" reference-fk="product_format_product_id_0fbf168e_fk_product_id"
 	 src-required="false" dst-required="false"/>
 
 </dbmodel>
