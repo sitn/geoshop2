@@ -1,11 +1,43 @@
 from django.conf import settings
 from django.contrib.gis.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import User
 from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex, BTreeIndex
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
 from .pricing import ProductPriceCalculator
+
+
+class AbstractIdentity(models.Model):
+    """
+    Common properties for identities, addresses and temporary users
+    """
+    first_name = models.CharField(_('first_name'), max_length=30, blank=True)
+    last_name = models.CharField(_('last_name'), max_length=150, blank=True)
+    email = models.EmailField(_('email'), max_length=254, blank=True)
+    street = models.CharField(_('street'), max_length=100, blank=True)
+    street2 = models.CharField(_('street2'), max_length=100, blank=True)
+    postcode = models.CharField(_('postcode'), max_length=10, blank=True)
+    city = models.CharField(_('city'), max_length=50, blank=True)
+    country = models.CharField(_('country'), max_length=50, blank=True)
+    company_name = models.CharField(_('company_name'), max_length=100, blank=True)
+    phone = models.CharField(_('phone'), max_length=50, blank=True)
+
+    class Meta:
+        abstract = True
+
+
+class Contact(AbstractIdentity):
+    """
+    Address book of contacts linked to an user that stores addresses
+    previously filled by the user.
+    """
+    belongs_to = models.OneToOneField(
+        User, on_delete=models.DO_NOTHING, verbose_name=_('belongs_to'))
+
+    class Meta:
+        db_table = 'contact'
+        verbose_name = _('contact')
 
 
 class Copyright(models.Model):
@@ -20,6 +52,9 @@ class Copyright(models.Model):
 
 
 class Document(models.Model):
+    """
+    Named links to more informations on metadata
+    """
     name = models.CharField(_('name'), max_length=80)
     link = models.URLField(
         _('link'),
@@ -58,19 +93,13 @@ class OrderType(models.Model):
         return self.name
 
 
-class Identity(AbstractUser):
+class Identity(AbstractIdentity):
     """
-    Extends User model. All Identities are users but all the users can login.
+    All users have an Identity but not all identities are users.
     """
-    street = models.CharField(_('street'), max_length=100, blank=True)
-    street2 = models.CharField(_('street2'), max_length=100, blank=True)
-    postcode = models.CharField(_('postcode'), max_length=10, blank=True)
-    city = models.CharField(_('city'), max_length=50, blank=True)
-    country = models.CharField(_('country'), max_length=50, blank=True)
-    company_name = models.CharField(_('company_name'), max_length=100, blank=True)
-    phone = models.CharField(_('phone'), max_length=50, blank=True)
-    sap_id = models.BigIntegerField(_('sap_id'), null=True)
-    contract_accepted = models.DateField(_('contract_accepted'), null=True)
+    user = models.OneToOneField(User, on_delete=models.DO_NOTHING, verbose_name=_('user'), blank=True, null=True)
+    sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
+    contract_accepted = models.DateField(_('contract_accepted'), null=True, blank=True)
     is_public = models.BooleanField(_('is_public'), default=False)
 
     class Meta:
@@ -99,7 +128,7 @@ class Metadata(models.Model):
         through='MetadataContact')
     modified_date = models.DateTimeField(auto_now=True)
     modified_user = models.ForeignKey(
-        Identity,
+        User,
         models.DO_NOTHING,
         verbose_name=_('modified_user'),
         related_name='modified_user')
@@ -114,7 +143,7 @@ class Metadata(models.Model):
 
 class MetadataContact(models.Model):
     """
-    Links Metadata with the persons to contact depending on the role they play for metadata.
+    Links Metadata with the persons to contact (Identity) depending on the role they play for metadata.
     """
     metadata = models.ForeignKey(Metadata, models.DO_NOTHING, verbose_name=_('metadata'))
     contact_person = models.ForeignKey(Identity, models.DO_NOTHING, verbose_name=_('contact_person'))
@@ -177,6 +206,7 @@ class Pricing(models.Model):
     def __str__(self):
         return '%s - %s' % (self.id, self.name)
 
+
 class PricingArea(models.Model):
     """
     Areas defining prices must be grouped by name.
@@ -193,6 +223,7 @@ class PricingArea(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Product(models.Model):
     """
@@ -218,7 +249,7 @@ class Product(models.Model):
     label = models.CharField(_('label'), max_length=250, blank=True)
     status = models.CharField(_('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     group = models.ForeignKey('self', models.DO_NOTHING, verbose_name=_('group'), null=True)
-    pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'), null=True)
+    pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'))
     order = models.BigIntegerField(_('order'), blank=True, null=True)
     ts = SearchVectorField(null=True)
 
@@ -255,7 +286,7 @@ class Order(models.Model):
     total_cost = MoneyField(_('total_cost'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
     part_vat = MoneyField(_('part_vat'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
     geom = models.PolygonField(_('geom'), srid=2056)
-    client = models.ForeignKey(Identity, models.DO_NOTHING, verbose_name=_('client'), blank=True)
+    client = models.ForeignKey(User, models.DO_NOTHING, verbose_name=_('client'), blank=True)
     order_contact = models.ForeignKey(
         Identity,
         models.DO_NOTHING,
@@ -311,6 +342,9 @@ class OrderItem(models.Model):
 
 
 class ProductField(models.Model):
+    """
+    Describes fields and their types of products.
+    """
 
     class ProductFieldType(models.TextChoices):
         REAL = 'REAL', 'Real'
@@ -357,17 +391,10 @@ class ProductFormat(models.Model):
         verbose_name = _('product_format')
 
 
-class UserChange(models.Model):
-    first_name = models.CharField(_('first_name'), max_length=30, blank=True)
-    last_name = models.CharField(_('last_name'), max_length=150, blank=True)
-    email = models.EmailField(_('email'), max_length=254, blank=True)
-    street = models.CharField(_('street'), max_length=100, blank=True)
-    street2 = models.CharField(_('street2'), max_length=100, blank=True)
-    postcode = models.CharField(_('postcode'), max_length=10, blank=True)
-    city = models.CharField(_('city'), max_length=50, blank=True)
-    country = models.CharField(_('country'), max_length=50, blank=True)
-    company_name = models.CharField(_('company_name'), max_length=100, blank=True)
-    phone = models.CharField(_('phone'), max_length=50, blank=True)
+class UserChange(AbstractIdentity):
+    """
+    Stores temporary data in order to proceed user profile change requests.
+    """
 
     class Meta:
         db_table = 'user_change'

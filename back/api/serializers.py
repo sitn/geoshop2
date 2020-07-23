@@ -23,6 +23,12 @@ from allauth.account.adapter import get_adapter
 UserModel = get_user_model()
 
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserModel
+        exclude = ['password', 'first_name', 'last_name', 'email']
+
+
 class CopyrightSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Copyright
@@ -47,11 +53,27 @@ class OrderTypeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class IdentitySerializer(serializers.ModelSerializer):
+class UserIdentitySerializer(serializers.ModelSerializer):
+    """
+    Flattens User and Identity.
+    """
+    user = UserSerializer(many=False)
+
     class Meta:
         model = Identity
-        exclude = ['password']
+        fields = '__all__'
 
+    def to_representation(self, obj):
+        """Move fields from user to identity representation."""
+        representation = super().to_representation(obj)
+        user_representation = representation.pop('user')
+        for user_key in user_representation:
+            new_key = user_key
+            if new_key in representation:
+                new_key = 'user_' + user_key
+            representation[new_key] = user_representation[user_key]
+
+        return representation
 
 class MetadataIdentitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -296,18 +318,17 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password1')
         validated_data.pop('password2')
-        identity = Identity(**validated_data)
+        identity = UserModel(**validated_data)
         identity.set_password(password)
         identity.save()
         return identity
 
     class Meta:
-        model = Identity
+        model = UserModel
         exclude = [
             'password', 'last_login', 'date_joined',
             'groups', 'user_permissions', 'is_staff',
-            'is_active', 'is_superuser', 'sap_id',
-            'contract_accepted']
+            'is_active', 'is_superuser']
 
 
 class UserChangeSerializer(serializers.ModelSerializer):

@@ -1,9 +1,11 @@
 import os
+from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from api.models import Identity, OrderType, Product, Format, UserChange
+
+from api.models import *
 
 
 class AuthViewsTests(APITestCase):
@@ -29,7 +31,7 @@ class AuthViewsTests(APITestCase):
         url = reverse('auth_register')
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
-        user = Identity.objects.get(username=self.username)
+        user = User.objects.get(username=self.username)
         self.assertEqual(user.email, self.email, 'User is registered and has an email')
 
     def test_current_user(self):
@@ -44,7 +46,7 @@ class AuthViewsTests(APITestCase):
         # URL using path name
         url = reverse('token_obtain_pair')
 
-        user = Identity.objects.create_user(username=self.username, email='test@example.com', password=self.password)
+        user = User.objects.create_user(username=self.username, email='test@example.com', password=self.password)
         self.assertEqual(user.is_active, 1, 'Active User')
 
         # First post to get token
@@ -72,12 +74,13 @@ class ItentityViewsTests(APITestCase):
     """
 
     def setUp(self):
-        self.userPublic = Identity.objects.create_user(
+        self.userPublic = User.objects.create_user(
             username="public_user",
             password="testPa$$word",
-            is_public=True
         )
-        self.userPrivate = Identity.objects.create_user(
+        self.userPublic.identity.is_public = True
+        self.userPublic.save()
+        self.userPrivate = User.objects.create_user(
             username="private_user",
             password="testPa$$word",
         )
@@ -105,7 +108,7 @@ class OrderTests(APITestCase):
     """
 
     def setUp(self):
-        self.userPrivate = Identity.objects.create_user(
+        self.userPrivate = User.objects.create_user(
             username="private_user_order",
             password="testPa$$word",
         )
@@ -115,8 +118,13 @@ class OrderTests(APITestCase):
         self.format = Format.objects.create(
             name="Geobat NE complet (DXF)",
         )
+        self.pricing = Pricing.objects.create(
+            name="Gratuit",
+            pricing_type="FREE"
+        )
         self.product = Product.objects.create(
             label="MO - Cadastre complet (Format A4-A3-A2-A1-A0)",
+            pricing=self.pricing
         )
         url = reverse('token_obtain_pair')
         resp = self.client.post(url, {'username':'private_user_order', 'password':'testPa$$word'}, format='json')
@@ -124,6 +132,10 @@ class OrderTests(APITestCase):
         self.assertTrue('access' in resp.data)
         self.token = resp.data['access']
 
+    def get_order_item(self):
+        url = reverse('orderitem-list')
+        response = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     def test_post_order(self):
         """
@@ -188,17 +200,20 @@ class OrderTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertEqual(response.data['items'][0]['product'], data['items'][0]['product'], 'Check product')
 
+
 class UserChangeTests(APITestCase):
     """
     Test user changes
     """
     def setUp(self):
-        self.user = Identity.objects.create_user(
+        self.user = User.objects.create_user(
             username="common_user",
             password="testPa$$word",
-            is_public=False
         )
-        self.admin = Identity.objects.create_user(
+        self.user.identity.is_public = True
+        self.user.save()
+
+        self.admin = User.objects.create_user(
             username="admin_user",
             password="testPa$$wordAdmin",
             is_staff=True,

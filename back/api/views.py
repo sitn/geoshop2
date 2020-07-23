@@ -20,7 +20,7 @@ from .models import (
 
 from .serializers import (
     CopyrightSerializer, DocumentSerializer, FormatSerializer,
-    IdentitySerializer, MetadataIdentitySerializer,
+    UserIdentitySerializer, MetadataIdentitySerializer,
     MetadataSerializer, MetadataContactSerializer, OrderDigestSerializer,
     OrderSerializer, OrderItemSerializer, OrderTypeSerializer,
     PasswordResetSerializer, PasswordResetConfirmSerializer,
@@ -55,8 +55,11 @@ class CurrentUserView(views.APIView):
     API endpoint that allows users to register.
     """
     permission_classes = [permissions.IsAuthenticated]
+
     def get(self, request, *args, **kwargs):
-        ser = IdentitySerializer(request.user, context={'request': request})
+        user = request.user
+        identity = Identity.objects.filter(user_id=user.id).first()
+        ser = UserIdentitySerializer(identity, context={'request': request})
         return Response(ser.data)
 
 
