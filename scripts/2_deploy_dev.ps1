@@ -11,11 +11,13 @@ foreach ($line in Get-Content $PSScriptRoot\..\back\.env) {
 # Backend
 
 cd $PSScriptRoot\..\back
-pipenv install
+$env:PIPENV_VENV_IN_PROJECT="True"
+pipenv install --skip-lock
 .\.venv\Scripts\activate
-pipenv run python manage.py collectstatic --noinput
-pipenv run python manage.py compilemessages
-pipenv run python manage.py setcustompassword
+pip install --disable-pip-version-check $env:GDAL_WHL
+python manage.py collectstatic --noinput
+python manage.py compilemessages
+python manage.py setcustompassword
 
 If (Test-Path $PSScriptRoot\$env:PGDATABASE'.backup') {
     $env:PGPASSWORD = $env:PGPOSTGRESPASSWORD
@@ -28,7 +30,7 @@ If (Test-Path $PSScriptRoot\$env:PGDATABASE'.backup') {
 
 cd "$PSScriptRoot\..\front"
 npm install
-run ng build -- --prod --base-href $env:FRONT_HREF
+npm run ng build -- --prod --base-href $env:FRONT_HREF
 $htaccess_sample = "$PSScriptRoot\..\apache\htaccess.sample"
 $htaccess_out = "$PSScriptRoot\..\front\dist\.htaccess"
 Replace-With-Env -InFile $htaccess_sample -OutFile $htaccess_out
@@ -36,3 +38,7 @@ Replace-With-Env -InFile $htaccess_sample -OutFile $htaccess_out
 $conf_sample = "$PSScriptRoot\..\apache\app.conf.sample"
 $conf_out = "$PSScriptRoot\..\apache\app.conf"
 Replace-With-Env -InFile $conf_sample -OutFile $conf_out
+
+cd dist\assets\configs
+$path = "{0}://{1}{2}/" -f $env:FRONT_PROTOCOL, $env:FRONT_URL, $env:ROOTURL
+((Get-Content -path ./config.json -Raw) -replace 'https://sitn.ne.ch/geoshop2_dev/',$path) | Set-Content -Path ./config.json
