@@ -5,7 +5,8 @@
       <!-- Order type -->
       <mat-form-field>
         <mat-label>Type de mandat</mat-label>
-        <mat-select formControlName="orderType" required (selectionChange)="updateForm1()" [compareWith]="orderTypeCompareWith">
+        <mat-select formControlName="orderType" required (selectionChange)="updateForm1()"
+                    [compareWith]="orderTypeCompareWith">
           <mat-option *ngFor="let orderType of orderTypes" [value]="orderType">
             {{orderType.name}}
           </mat-option>
@@ -128,7 +129,7 @@
             <mat-label>Courriel mandant</mat-label>
             <input matInput required type="email" formControlName="email" [readonly]="isCustomerSelected">
             <mat-error *ngIf="step2FormGroup.get('email')?.hasError('required')">Requis</mat-error>
-            <mat-error *ngIf="step2FormGroup.get('email')?.hasError('email')">Format courriel uniquement</mat-error>
+            <mat-error *ngIf="step2FormGroup.get('email')?.hasError('pattern')">Format courriel uniquement</mat-error>
           </mat-form-field>
 
           <!-- Phone -->
@@ -158,11 +159,9 @@
 
           <mat-form-field color="primary">
             <input formControlName="street2"
-                   required
                    matInput
                    [readonly]="isCustomerSelected"
                    placeholder="Complément d'adresse">
-            <mat-error *ngIf="step2FormGroup.get('street2')?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
           <mat-form-field color="primary">
@@ -171,7 +170,7 @@
                    matInput
                    type="number"
                    [readonly]="isCustomerSelected"
-                   placeholder="Code postale">
+                   placeholder="Code postal">
             <mat-error *ngIf="step2FormGroup.get('postcode')?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
@@ -185,11 +184,14 @@
           </mat-form-field>
 
           <mat-form-field color="primary">
-            <input formControlName="country"
-                   required
-                   matInput
-                   [readonly]="isCustomerSelected"
-                   placeholder="Pays">
+            <mat-select formControlName="country" required placeholder="Pays" [disabled]="isCustomerSelected">
+              <mat-option [value]="'Suisse'">
+                Suisse
+              </mat-option>
+              <mat-option [value]="'France'">
+                France
+              </mat-option>
+            </mat-select>
             <mat-error *ngIf="step2FormGroup.get('country')?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
@@ -200,7 +202,7 @@
       <div class="bottom-container">
         <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
         <button color="primary" mat-button matStepperPrevious> Retour</button>
-        <button color="primary" mat-button (click)="createOrUpdateDraftOrder()"> Suivant</button>
+        <button color="primary" mat-button [disabled]="step2FormGroup?.invalid" (click)="createOrUpdateDraftOrder()"> Suivant</button>
       </div>
     </form>
   </mat-step>
