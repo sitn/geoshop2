@@ -1,0 +1,28 @@
+# You need to copy this file and replace the following variables:
+#  PWD -> working directory
+#  ROOTURL -> api url suffix, for instance /geoshop2_api
+#  FRONT_HREF -> front url suffix, for instance /geoshop2
+
+# Backend
+WSGIPassAuthorization On
+Alias ${ROOTURL}/static "${PWD}/back/static"
+<Directory "${PWD}/back/static">
+    Require all granted
+</Directory>
+
+WSGIScriptAlias ${ROOTURL} "${PWD}/back/apache/app.wsgi"
+<Directory "${PWD}/back/apache">
+    <Files app.wsgi>
+        Require all granted
+    </Files>
+</Directory>
+
+# Frontend
+
+Alias "${FRONT_HREF}" "${PWD}/front/dist"
+
+<Directory ${PWD}/front/dist>
+    Options Indexes FollowSymLinks MultiViews
+    AllowOverride All
+    Require all granted
+</Directory>
