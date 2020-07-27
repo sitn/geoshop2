@@ -1,6 +1,6 @@
 $callback = {
     param($match)
-    $env:PWD = pwd
+    $env:PWD = Split-Path $PSScriptRoot -Parent
     $env_path = "Env:" + $match.Groups[1]
     If (Test-Path $env_path) {
         $env_data = Get-Item -Path $env_path
