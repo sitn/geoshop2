@@ -30,7 +30,8 @@ If (Test-Path $PSScriptRoot\$env:PGDATABASE'.backup') {
 
 cd "$PSScriptRoot\..\front"
 npm install
-npm run ng build -- --prod --base-href $env:FRONT_HREF
+$href = $env:FRONT_HREF + '/'
+npm run ng build -- --prod --base-href $href
 $htaccess_sample = "$PSScriptRoot\..\apache\htaccess.sample"
 $htaccess_out = "$PSScriptRoot\..\front\dist\.htaccess"
 Replace-With-Env -InFile $htaccess_sample -OutFile $htaccess_out
