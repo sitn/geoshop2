@@ -1,4 +1,5 @@
 . "$PSScriptRoot\replace-with-env.ps1"
+$pwd = pwd
 # Read .env
 foreach ($line in Get-Content $PSScriptRoot\..\back\.env) {
     $args = $line -split "="
@@ -43,3 +44,4 @@ Replace-With-Env -InFile $conf_sample -OutFile $conf_out
 cd dist\assets\configs
 $path = "{0}://{1}{2}/" -f $env:FRONT_PROTOCOL, $env:FRONT_URL, $env:ROOTURL
 ((Get-Content -path ./config.json -Raw) -replace 'https://sitn.ne.ch/geoshop2_dev/',$path) | Set-Content -Path ./config.json
+cd $pwd
