@@ -3,10 +3,8 @@
 
 <IfModule mod_rewrite.c>
     RewriteEngine on
-	RewriteBase ${FRONT_HREF}
-    RewriteCond %{REQUEST_FILENAME} -s [OR]
-    RewriteCond %{REQUEST_FILENAME} -l [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteCond %{REQUEST_FILENAME} -f [OR]  
+    RewriteCond %{REQUEST_FILENAME} -d 
     RewriteRule ^.*$ - [NC,L]
-    RewriteRule ^(.*) ${FRONT_HREF} [NC,L]
+    RewriteRule ^(.*) ${FRONT_HREF}/index.html [NC,L]
 </IfModule>

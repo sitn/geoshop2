@@ -1,4 +1,5 @@
 # Read .env
+$pwd = pwd
 foreach ($line in Get-Content $PSScriptRoot\..\back\.env) {
     $args = $line -split "="
     If ($args[0] -And !$args[0].StartsWith("#")) {
@@ -27,6 +28,11 @@ fme $env:FMEDIR\02_product_metadata_pricing.fmw
 fme $env:FMEDIR\03_order_item.fmw
 fme $env:FMEDIR\05_mo2geoshop.fmw
 
+If ($destConfig -eq "dev") {
+    & "$PSScriptRoot\reset_sequences.ps1"
+    python manage.py prepareusertests
+}
+
 $previous_PGPASSWORD = $env:PGPASSWORD
 $env:PGPASSWORD = $env:PGPOSTGRESPASSWORD
 
@@ -39,3 +45,4 @@ If (Test-Path $destFile) {
 }
 xcopy $dumpFile $destFolder
 $env:PGPASSWORD = $previous_PGPASSWORD
+cd $pwd
