@@ -16,6 +16,7 @@ admin.site.site_header = _("GeoShop Administration")
 admin.site.site_title = _("GeoShop Admin")
 
 router = GeoshopRouter()
+router.register(r'contact', views.ContactViewSet, basename='contact')
 router.register(r'copyright', views.CopyrightViewSet)
 router.register(r'document', views.DocumentViewSet)
 router.register(r'format', views.FormatViewSet)

@@ -9,7 +9,7 @@ from django.utils.http import urlsafe_base64_decode
 from djmoney.contrib.django_rest_framework import MoneyField
 
 from .models import (
-    Copyright, Document, Format, Identity,
+    Copyright, Contact, Document, Format, Identity,
     Metadata, MetadataContact, Order, OrderItem, OrderType,
     Pricing, Product, ProductFormat, UserChange)
 
@@ -32,6 +32,15 @@ class UserSerializer(serializers.ModelSerializer):
 class CopyrightSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Copyright
+        fields = '__all__'
+
+
+class ContactSerializer(serializers.HyperlinkedModelSerializer):
+    belongs_to = serializers.HiddenField(
+        default=serializers.CurrentUserDefault(),
+    )
+    class Meta:
+        model = Contact
         fields = '__all__'
 
 

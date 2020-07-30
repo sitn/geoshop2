@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
-from api.models import Order, OrderItem, OrderType
+from api.models import Contact, Order, OrderItem, OrderType
 import os
 
 UserModel = get_user_model()
@@ -17,6 +17,45 @@ class Command(BaseCommand):
             username='mmi', password='mmi')
         mmi.identity.email = os.environ.get('EMAIL_TEST_TO_ARXIT', 'admin@admin.com')
         mmi.save()
+
+        contact1 = Contact.objects.create(
+            first_name='Marc',
+            last_name='Riedo',
+            email='test@admin.com',
+            postcode=2000,
+            city='Neuchâtel',
+            country='Suisse',
+            company_name='SITN',
+            phone='+41 00 787 45 15',
+            belongs_to=mmi
+        )
+        contact1.save()
+
+        contact2 = Contact.objects.create(
+            first_name='Marcelle',
+            last_name='Rieda',
+            email='test2@admin.com',
+            postcode=2000,
+            city='Neuchâtel',
+            country='Suisse',
+            company_name='SITN',
+            phone='+41 00 787 45 16',
+            belongs_to=mmi
+        )
+        contact2.save()
+
+        contact2 = Contact.objects.create(
+            first_name='Jean',
+            last_name='Doe',
+            email='test3@admin.com',
+            postcode=2000,
+            city='Lausanne',
+            country='Suisse',
+            company_name='Marine de Colombier',
+            phone='+41 00 787 29 16',
+            belongs_to=mmi
+        )
+        contact2.save()
 
         order_geom = Polygon((
             (
