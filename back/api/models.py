@@ -32,7 +32,7 @@ class Contact(AbstractIdentity):
     Address book of contacts linked to an user that stores addresses
     previously filled by the user.
     """
-    belongs_to = models.OneToOneField(
+    belongs_to = models.ForeignKey(
         User, on_delete=models.DO_NOTHING, verbose_name=_('belongs_to'))
 
     class Meta:

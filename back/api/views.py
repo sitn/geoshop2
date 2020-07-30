@@ -14,12 +14,12 @@ from rest_framework.response import Response
 from allauth.account.views import ConfirmEmailView
 
 from .models import (
-    Copyright, Document, Format, Identity, Metadata, MetadataContact,
+    Contact, Copyright, Document, Format, Identity, Metadata, MetadataContact,
     Order, OrderItem, OrderType, Pricing, Product,
     ProductFormat, UserChange)
 
 from .serializers import (
-    CopyrightSerializer, DocumentSerializer, FormatSerializer,
+    ContactSerializer, CopyrightSerializer, DocumentSerializer, FormatSerializer,
     UserIdentitySerializer, MetadataIdentitySerializer,
     MetadataSerializer, MetadataContactSerializer, OrderDigestSerializer,
     OrderSerializer, OrderItemSerializer, OrderTypeSerializer,
@@ -48,6 +48,20 @@ class CopyrightViewSet(viewsets.ModelViewSet):
     queryset = Copyright.objects.all()
     serializer_class = CopyrightSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class ContactViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Contacts to be viewed, searched or edited.
+    """
+    search_fields = ['first_name', 'last_name', 'company_name']
+    filter_backends = [filters.SearchFilter]
+    serializer_class = ContactSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Contact.objects.filter(belongs_to=user.id)
 
 
 class CurrentUserView(views.APIView):
@@ -98,7 +112,7 @@ class IdentityViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return Identity.objects.filter(Q(id=user.id) | Q(is_public=True))
+        return Identity.objects.filter(Q(user_id=user.id) | Q(is_public=True))
 
 
 class MetadataViewSet(viewsets.ModelViewSet):

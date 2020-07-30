@@ -245,3 +245,45 @@ class UserChangeTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         change_user = UserChange.objects.filter(last_name='i_got_married').first()
         self.assertEqual(change_user.city, data['city'], 'Check if the city in the DB is the same')
+
+
+class UserContacts(APITestCase):
+    """
+    Test user changes
+    """
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="common_user",
+            password="testPa$$word",
+        )
+        self.user.save()
+
+        self.contact = {
+            'first_name': "Jean",
+            'last_name': "Doe",
+        }
+
+        url = reverse('token_obtain_pair')
+        resp = self.client.post(url, {'username':'common_user', 'password':'testPa$$word'}, format='json')
+        self.token = resp.data['access']
+
+    def test_post_contact(self):
+        data = {
+            'first_name': self.contact['first_name'],
+            'last_name': self.contact['last_name']
+        }
+        url = reverse('contact-list')
+        response = self.client.get(url, format='json')
+        # Forbidden if not logged in
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(response.data['first_name'], self.contact['first_name'], 'Check contact first name')
+
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        print(response.data)
+        self.assertEqual(response.data['results'][0]['first_name'], self.contact['first_name'], 'Check contact first name')
