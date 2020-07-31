@@ -62,7 +62,7 @@ class Document(models.Model):
     link = models.URLField(
         _('link'),
         help_text=_('Please complete the above URL'),
-        default=settings.DOCUMENT_BASE_URL
+        default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL
     )
 
     class Meta:
@@ -121,7 +121,7 @@ class Metadata(models.Model):
     scale = models.CharField(_('scale'), max_length=500, blank=True)
     geocat_link = models.CharField(_('geocat_link'), max_length=2000, blank=True)
     legend_link = models.CharField(_('legend_link'), max_length=2000, blank=True)
-    image_link = models.CharField(_('image_link'), max_length=2000, blank=True)
+    image_link = models.CharField(_('image_link'), max_length=250, default=settings.DEFAULT_METADATA_IMAGE_URL)
     copyright = models.ForeignKey(Copyright, models.DO_NOTHING, verbose_name=_('copyright'), blank=True, null=True)
     documents = models.ManyToManyField(Document, verbose_name=_('documents'), blank=True)
     contact_persons = models.ManyToManyField(
@@ -254,6 +254,7 @@ class Product(models.Model):
     group = models.ForeignKey('self', models.DO_NOTHING, verbose_name=_('group'), null=True)
     pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'))
     order = models.BigIntegerField(_('order'), blank=True, null=True)
+    thumbnail_link = models.CharField(_('thumbnail_link'), max_length=250, default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL)
     ts = SearchVectorField(null=True)
 
     class Meta:
