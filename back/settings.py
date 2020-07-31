@@ -36,7 +36,7 @@ LOGGING = {
 SECRET_KEY = 'd^^+o7tg+z3uz)ar^m%xu+^0h-_sj$#ots1*d5kitdu71363x('
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', False)
 
 ALLOWED_HOSTS = os.environ["ALLOWED_HOST"].split(",")
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
@@ -188,3 +188,5 @@ CSRF_TRUSTED_ORIGINS = os.environ["ALLOWED_HOST"].split(",")
 CORS_ORIGIN_WHITELIST = [
     os.environ["FRONT_PROTOCOL"] + '://' + os.environ["FRONT_URL"],
 ]
+DEFAULT_PRODUCT_THUMBNAIL_URL = '/static/api/default_product_thumbnail.png'
+DEFAULT_METADATA_IMAGE_URL = '/static/api/default_metadata_image.png'
