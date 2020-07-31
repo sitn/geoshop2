@@ -9,7 +9,7 @@ from django.utils.http import urlsafe_base64_decode
 from djmoney.contrib.django_rest_framework import MoneyField
 
 from .models import (
-    Copyright, Contact, Document, Format, Identity,
+    Copyright, Contact, Document, DataFormat, Identity,
     Metadata, MetadataContact, Order, OrderItem, OrderType,
     Pricing, Product, ProductFormat, UserChange)
 
@@ -50,9 +50,9 @@ class DocumentSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class FormatSerializer(serializers.HyperlinkedModelSerializer):
+class DataFormatSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Format
+        model = DataFormat
         fields = '__all__'
 
 
@@ -139,30 +139,33 @@ class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):
             'order_contact', 'invoice_contact']
 
 
-class OrderItemSerializer(serializers.HyperlinkedModelSerializer):
+class OrderItemSerializer(serializers.ModelSerializer):
     """
     A Basic serializer for order items
     """
-    class Meta:
-        model = OrderItem
-        fields = '__all__'
-
-
-class OrderItemTextualSerializer(serializers.ModelSerializer):
-    """
-    A more human-readable serializer replacing ids by labels.
-    """
+    price = MoneyField(max_digits=14, decimal_places=2, required=False, allow_null=True, read_only=True)
+    data_format = serializers.SlugRelatedField(
+        required=False,
+        queryset=DataFormat.objects.all(),
+        slug_field='name'
+    )
     product = serializers.SlugRelatedField(
         queryset=Product.objects.all(),
         slug_field='label')
-    format = serializers.SlugRelatedField(
-        queryset=Format.objects.all(),
-        slug_field='name')
-    price = MoneyField(max_digits=14, decimal_places=2, required=False, allow_null=True)
 
     class Meta:
         model = OrderItem
-        exclude = ['order']
+        exclude = ['_price_currency', '_price', '_base_fee_currency', '_base_fee', 'last_download']
+        read_only_fields = ['price_status', 'order']
+
+
+class OrderItemTextualSerializer(OrderItemSerializer):
+    """
+    Same as OrderItem, without Order
+    """
+
+    class Meta(OrderItemSerializer.Meta):
+        exclude = OrderItemSerializer.Meta.exclude + ['order']
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -189,8 +192,8 @@ class OrderSerializer(serializers.ModelSerializer):
             'status']
 
     def create(self, validated_data):
-        items_data = validated_data.pop('items')
-        geom = validated_data.pop('geom')
+        items_data = validated_data.pop('items', None)
+        geom = validated_data.pop('geom', None)
         order = Order(**validated_data)
         order.geom = Polygon(geom.coords[0], srid=2056)
         order.save()
@@ -198,10 +201,17 @@ class OrderSerializer(serializers.ModelSerializer):
             item = OrderItem.objects.create(order=order, **item_data)
             item.set_price()
             item.save()
+
+        if order.order_type and items_data:
+            order.set_price()
+            order.save()
         return order
 
     def update(self, instance, validated_data):
-        items_data = validated_data.pop('items')
+        if instance.status != Order.OrderStatus.DRAFT:
+            raise 
+
+        items_data = validated_data.pop('items', None)
         geom = validated_data.pop('geom', None)
 
         if geom:
@@ -215,6 +225,11 @@ class OrderSerializer(serializers.ModelSerializer):
             item = OrderItem.objects.create(order=instance, **item_data)
             item.set_price()
             item.save()
+
+        if instance.order_type:
+            if items_data or geom or validated_data['order_type']:
+                instance.set_price()
+                instance.save()
         return instance
 
 
@@ -289,16 +304,38 @@ class PricingSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class ProductSerializer(serializers.HyperlinkedModelSerializer):
+class ProductFormatSerializer(serializers.ModelSerializer):
+    product = serializers.SlugRelatedField(
+        queryset=Product.objects.all(),
+        slug_field='label')
+    data_format = serializers.SlugRelatedField(
+        required=False,
+        queryset=DataFormat.objects.all(),
+        slug_field='name',
+        label='format')
+    class Meta:
+        model = ProductFormat
+        fields = '__all__'
+
+
+class DataFormatListSerializer(ProductFormatSerializer):
+    product = None
+    class Meta:
+        model = ProductFormat
+        exclude = ['product']
+
+
+class ProductDigestSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Product
         exclude = ['ts']
 
 
-class ProductFormatSerializer(serializers.HyperlinkedModelSerializer):
+class ProductSerializer(serializers.HyperlinkedModelSerializer):
+    product_formats = DataFormatListSerializer(many=True)
     class Meta:
-        model = ProductFormat
-        fields = '__all__'
+        model = Product
+        exclude = ['ts']
 
 
 class RegisterSerializer(serializers.ModelSerializer):

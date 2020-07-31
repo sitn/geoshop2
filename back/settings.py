@@ -15,6 +15,19 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': os.environ.get('LOGGING_LEVEL', 'WARNING'),
+    },
+}
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
@@ -141,6 +154,8 @@ USE_L10N = True
 USE_TZ = True
 
 SITE_ID = 2
+
+VAT = 0.076
 
 # Django REST specific configuration
 # https://www.django-rest-framework.org/

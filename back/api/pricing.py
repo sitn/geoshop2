@@ -80,4 +80,4 @@ class ProductPriceCalculator():
 
     @staticmethod
     def _get_manual_price(**kwargs):
-        return 'Manual'
+        return None
