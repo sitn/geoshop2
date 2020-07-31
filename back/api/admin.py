@@ -3,7 +3,7 @@ from django.contrib.gis import admin
 from .models import (
     Copyright,
     Document,
-    Format,
+    DataFormat,
     Identity,
     Metadata,
     MetadataContact,
@@ -38,7 +38,7 @@ class PricingAdmin(admin.ModelAdmin):
 
 admin.site.register(Copyright)
 admin.site.register(Document)
-admin.site.register(Format)
+admin.site.register(DataFormat)
 admin.site.register(Identity, IdentityAdmin)
 admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(MetadataContact)

@@ -3,10 +3,13 @@ from django.contrib.gis.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex, BTreeIndex
+from djmoney.money import Money
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
 from .pricing import ProductPriceCalculator
 
+import logging
+logger = logging.getLogger(__name__)
 
 class AbstractIdentity(models.Model):
     """
@@ -70,12 +73,12 @@ class Document(models.Model):
         return self.name
 
 
-class Format(models.Model):
+class DataFormat(models.Model):
     name = models.CharField(_('name'), max_length=100, blank=True)
 
     class Meta:
-        db_table = 'format'
-        verbose_name = _('format')
+        db_table = 'data_format'
+        verbose_name = _('data_format')
 
     def __str__(self):
         return self.name
@@ -282,9 +285,14 @@ class Order(models.Model):
 
     title = models.CharField(_('title'), max_length=255)
     description = models.TextField(_('description'), blank=True)
-    processing_fee = MoneyField(_('processing_fee'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
-    total_cost = MoneyField(_('total_cost'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
-    part_vat = MoneyField(_('part_vat'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
+    processing_fee = MoneyField(
+        _('processing_fee'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
+    total_without_vat = MoneyField(
+        _('total_without_vat'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
+    part_vat = MoneyField(
+        _('part_vat'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
+    total_with_vat = MoneyField(
+        _('total_with_vat'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
     geom = models.PolygonField(_('geom'), srid=2056)
     client = models.ForeignKey(User, models.DO_NOTHING, verbose_name=_('client'), blank=True)
     order_contact = models.ForeignKey(
@@ -313,32 +321,80 @@ class Order(models.Model):
         ordering = ['-date_ordered']
         verbose_name = _('order')
 
-    # TODO - REFACTOR THAT
-    # Each time something is changed on an item
-    # we should do something about the order invoice
-    def get_price(self):
-        self.items
-        return 'gratuit'
+    def _reset_prices(self):
+        self.processing_fee = None
+        self.total_without_vat = None
+        self.part_vat = None
+        self.total_with_vat = None
 
+    def set_price(self):
+        self._reset_prices()
+        items = self.items.all()
+        if not items:
+            return
+        self.total_without_vat = Money(0, 'CHF')
+        for item in items:
+            if not item.base_fee:
+                self._reset_prices()
+                return
+            if item.base_fee > (self.processing_fee or Money(0, 'CHF')):
+                self.processing_fee = item.base_fee
+            self.total_without_vat += item.price
+        self.part_vat = self.total_without_vat * settings.VAT
+        self.total_with_vat = self.total_without_vat + self.part_vat
+
+    def get_price(self):
+        return 'gratuit'
 
     def __str__(self):
         return '%s - %s' % (self.id, self.title)
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, models.DO_NOTHING, related_name='items', verbose_name=_('order'), blank=True, null=True)
+    """
+    Cart item.
+    """
+
+    class PricingStatus(models.TextChoices):
+        PENDING = 'PENDING', _('Pending')
+        CALCULATED = 'CALCULATED', _('Calculated')
+        IMPORTED = 'IMPORTED', _('Imported')
+
+    order = models.ForeignKey(
+        Order, models.DO_NOTHING, related_name='items', verbose_name=_('order'), blank=True, null=True)
     product = models.ForeignKey(Product, models.DO_NOTHING, verbose_name=_('product'), blank=True, null=True)
-    format = models.ForeignKey(Format, models.DO_NOTHING, verbose_name=_('format'), blank=True, null=True)
+    data_format = models.ForeignKey(DataFormat, models.DO_NOTHING, verbose_name=_('data_format'), blank=True, null=True)
     last_download = models.DateTimeField(_('last_download'), blank=True, null=True)
-    price = MoneyField(_('price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
-    base_fee = MoneyField(_('base_fee'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
+    price_status = models.CharField(
+        _('price_status'), max_length=20, choices=PricingStatus.choices, default=PricingStatus.PENDING)
+    _price = MoneyField(_('price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
+    _base_fee = MoneyField(
+        _('base_fee'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
 
     class Meta:
         db_table = 'order_item'
         verbose_name = _('order_item')
 
+    def _get_price_values(self, price_value):
+        if self.price_status == OrderItem.PricingStatus.PENDING:
+            return None
+        return price_value
+
+    @property
+    def price(self):
+        return self._get_price_values(self._price)
+
+    @property
+    def base_fee(self):
+        return self._get_price_values(self._base_fee)
+
     def set_price(self):
-        self.price, self.base_fee = self.product.pricing.get_price(self.order.geom)
+        if self.product.pricing.pricing_type == Pricing.PricingType.MANUAL:
+            # send manual price notification request
+            pass
+        else:
+            self._price, self._base_fee = self.product.pricing.get_price(self.order.geom)
+            self.price_status = OrderItem.PricingStatus.CALCULATED
 
 
 class ProductField(models.Model):
@@ -361,7 +417,6 @@ class ProductField(models.Model):
     field_length = models.SmallIntegerField(_('field_length'), )
     product = models.ForeignKey(Product, verbose_name=_('product'), on_delete=models.CASCADE)
 
-
     class Meta:
         db_table = 'product_field'
         verbose_name = _('product_field')
@@ -381,13 +436,13 @@ class ProductValidation(models.Model):
 
 
 class ProductFormat(models.Model):
-    product = models.ForeignKey(Product, models.DO_NOTHING, verbose_name=_('product'))
-    format = models.ForeignKey(Format, models.DO_NOTHING, verbose_name=_('format'))
+    product = models.ForeignKey(Product, models.DO_NOTHING, verbose_name=_('product'), related_name='product_formats')
+    data_format = models.ForeignKey(DataFormat, models.DO_NOTHING, verbose_name=_('data_format'))
     is_manual = models.BooleanField(_('is_manual'), default=False) # extraction manuelle ou automatique
 
     class Meta:
         db_table = 'product_format'
-        unique_together = (('product', 'format'),)
+        unique_together = (('product', 'data_format'),)
         verbose_name = _('product_format')
 
 

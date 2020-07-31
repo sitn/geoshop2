@@ -115,17 +115,21 @@ class OrderTests(APITestCase):
         self.orderTypePrivate = OrderType.objects.create(
             name="Privé",
         )
-        self.format = Format.objects.create(
+        self.format = DataFormat.objects.create(
             name="Geobat NE complet (DXF)",
         )
         self.pricing = Pricing.objects.create(
             name="Gratuit",
             pricing_type="FREE"
         )
-        self.product = Product.objects.create(
-            label="MO - Cadastre complet (Format A4-A3-A2-A1-A0)",
-            pricing=self.pricing
-        )
+        self.product = Product.objects.bulk_create([
+            Product(
+                label="MO - Cadastre complet (Format A4-A3-A2-A1-A0)",
+                pricing=self.pricing),
+            Product(
+                label="Maquette 3D",
+                pricing=self.pricing),
+        ])
         url = reverse('token_obtain_pair')
         resp = self.client.post(url, {'username':'private_user_order', 'password':'testPa$$word'}, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -191,15 +195,45 @@ class OrderTests(APITestCase):
         # Update
         data = {
             "items": [{
-                "product": "MO - Cadastre complet (Format A4-A3-A2-A1-A0)",
-                "format": "Geobat NE complet (DXF)"}]
+                "product": "MO - Cadastre complet (Format A4-A3-A2-A1-A0)"}]
         }
 
         url = reverse('order-detail', kwargs={'pk':order_id})
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertEqual(response.data['items'][0]['product'], data['items'][0]['product'], 'Check product')
+        self.assertEqual(
+            response.data['items'][0]['price_status'], OrderItem.PricingStatus.CALCULATED, 'Check price is calculated')
 
+        order_item_id = response.data['items'][0]['id']
+        # Confirm order without format should not work
+        url = reverse('order-confirm', kwargs={'pk':order_item_id})
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.content)
+
+        # Choose format
+        data = {
+            "data_format": "Geobat NE complet (DXF)"
+        }
+        url = reverse('orderitem-detail', kwargs={'pk':order_item_id})
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        
+        # Confirm order with format should work
+        url = reverse('order-confirm', kwargs={'pk':order_item_id})
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+        # Confirm order that's already confimed, should not work
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
+        # Edit order that's already confimed, should not work
+        data = {
+            "items": [{
+                "product": "Maquette 3D"}]
+        }
+        url = reverse('order-detail', kwargs={'pk':order_id})
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
 
 class UserChangeTests(APITestCase):
     """
@@ -285,5 +319,4 @@ class UserContacts(APITestCase):
 
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        print(response.data)
         self.assertEqual(response.data['results'][0]['first_name'], self.contact['first_name'], 'Check contact first name')

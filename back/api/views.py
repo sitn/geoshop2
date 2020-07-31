@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
@@ -10,21 +11,22 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import filters, generics, views, viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from allauth.account.views import ConfirmEmailView
 
 from .models import (
-    Contact, Copyright, Document, Format, Identity, Metadata, MetadataContact,
+    Contact, Copyright, Document, DataFormat, Identity, Metadata, MetadataContact,
     Order, OrderItem, OrderType, Pricing, Product,
     ProductFormat, UserChange)
 
 from .serializers import (
-    ContactSerializer, CopyrightSerializer, DocumentSerializer, FormatSerializer,
+    ContactSerializer, CopyrightSerializer, DocumentSerializer, DataFormatSerializer,
     UserIdentitySerializer, MetadataIdentitySerializer,
     MetadataSerializer, MetadataContactSerializer, OrderDigestSerializer,
     OrderSerializer, OrderItemSerializer, OrderTypeSerializer,
     PasswordResetSerializer, PasswordResetConfirmSerializer,
-    PricingSerializer, ProductSerializer,
+    PricingSerializer, ProductSerializer, ProductDigestSerializer,
     ProductFormatSerializer, RegisterSerializer, UserChangeSerializer,
     VerifyEmailSerializer)
 
@@ -86,12 +88,12 @@ class DocumentViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class FormatViewSet(viewsets.ModelViewSet):
+class DataFormatViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows Format to be viewed or edited.
     """
-    queryset = Format.objects.all()
-    serializer_class = FormatSerializer
+    queryset = DataFormat.objects.all()
+    serializer_class = DataFormatSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
@@ -156,6 +158,17 @@ class OrderItemViewSet(viewsets.ModelViewSet):
     serializer_class = OrderItemSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    def get_queryset(self):
+        user = self.request.user
+        return OrderItem.objects.filter(order__client_id=user.id)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        order = instance.order
+        response = super(OrderItemViewSet, self).destroy(request, *args, **kwargs)
+        order.set_price()
+        return response
+
 
 class OrderTypeViewSet(viewsets.ModelViewSet):
     """
@@ -188,6 +201,13 @@ class OrderViewSet(MultiSerializerViewSet):
         user = self.request.user
         return Order.objects.filter(client_id=user.id)
 
+    def update(self, request, pk=None, *args, **kwargs):
+        queryset = self.get_queryset()
+        order = get_object_or_404(queryset, pk=pk)
+        if order.status == Order.OrderStatus.DRAFT:
+            return super(OrderViewSet, self).update(request, pk, *args, **kwargs)
+        raise PermissionDenied(detail='Order status is not DRAFT.')
+
     @action(detail=False, methods=['get'])
     def last_draft(self, request):
         """
@@ -199,6 +219,24 @@ class OrderViewSet(MultiSerializerViewSet):
             serializer = OrderSerializer(last_draft, context={'request': request}, partial=True)
             return Response(serializer.data)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['get'])
+    def confirm(self, request, pk=None):
+        """
+        Confirms order meaning it can not be edited anymore by user.
+        """
+        order = self.get_object()
+        if order.status != Order.OrderStatus.DRAFT:
+            raise PermissionDenied(detail='Order status is not DRAFT')
+        items = order.items.all()
+        if not items:
+            raise ValidationError(detail="This order has no item")
+        for item in items:
+            if not item.data_format:
+                raise ValidationError(detail="One or more items don't have data_format")
+        order.status = Order.OrderStatus.PENDING
+        order.save()
+        return Response(status=status.HTTP_202_ACCEPTED)
 
 
 # Copy from dj-rest-auth
@@ -258,7 +296,7 @@ class ProductFormatViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class ProductViewSet(viewsets.ModelViewSet):
+class ProductViewSet(MultiSerializerViewSet):
     """
     API endpoint that allows Product to be viewed or edited.
 
@@ -268,7 +306,10 @@ class ProductViewSet(viewsets.ModelViewSet):
     """
     queryset = Product.objects.all()
     filter_backends = (FullTextSearchFilter,)
-    serializer_class = ProductSerializer
+    serializers = {
+        'default':  ProductSerializer,
+        'list':    ProductDigestSerializer,
+    }
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     ts_field = 'ts'
 
