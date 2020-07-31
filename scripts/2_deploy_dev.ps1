@@ -12,7 +12,7 @@ foreach ($line in Get-Content $PSScriptRoot\..\back\.env) {
 $buildConfig = Read-Host -Prompt 'Input "back", "front" or "full"'
 
 # Backend
-If ($buildConfig -eq "back" || $buildConfig -eq "full") {
+If ($buildConfig -eq "back" -or $buildConfig -eq "full") {
     cd $PSScriptRoot\..\back
     $env:PIPENV_VENV_IN_PROJECT="True"
     pipenv install --skip-lock
@@ -33,7 +33,7 @@ If ($buildConfig -eq "back" || $buildConfig -eq "full") {
 }
 
 # Frontend
-If ($buildConfig -eq "front" || $buildConfig -eq "full") {
+If ($buildConfig -eq "front" -or $buildConfig -eq "full") {
 
     cd "$PSScriptRoot\..\front"
     npm install
