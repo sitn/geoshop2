@@ -22,9 +22,9 @@ If ($buildConfig -eq "back" -or $buildConfig -eq "full") {
     pipenv run python manage.py compilemessages
 
     If (Test-Path $PSScriptRoot\$env:PGDATABASE'.backup') {
+        $env:PGPASSWORD = $env:PGPOSTGRESPASSWORD
         psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$env:PGDATABASE';"
         psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS $env:PGDATABASE;"
-        $env:PGPASSWORD = $env:PGPOSTGRESPASSWORD
         pg_restore -C -U postgres -F c -d $env:PGDATABASE $PSScriptRoot'\'$env:PGDATABASE'.backup'
     } Else {
         Write-Host "pg_dump has not been done"
