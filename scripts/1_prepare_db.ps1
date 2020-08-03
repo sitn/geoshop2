@@ -39,7 +39,7 @@ $env:PGPASSWORD = $env:PGPOSTGRESPASSWORD
 If (Test-Path $dumpFile) {
     Remove-Item $dumpFile
 }
-pg_dump -U postgres -F c -b -v -f $dumpFile $env:PGDATABASE
+pg_dump -U postgres -F c -b -v --schema=$env:PGSCHEMA -f $dumpFile $env:PGDATABASE
 If (Test-Path $destFile) {
     Remove-Item $destFile
 }

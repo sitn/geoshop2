@@ -1,9 +1,6 @@
-#
-msgid ""
-msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-10 15:00+0200\n"
+"POT-Creation-Date: 2020-08-03 17:08+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -13,6 +10,18 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
+#: .\api\admin.py:78
+msgid "Personal info"
+msgstr "informations personnelles"
+
+#: .\api\admin.py:79
+msgid "Permissions"
+msgstr "permissions"
+
+#: .\api\admin.py:82
+msgid "Important dates"
+msgstr "dates importantes"
+
 #: .\api\filters.py:18
 msgid "Search"
 msgstr "Recherche"
@@ -21,400 +30,438 @@ msgstr "Recherche"
 msgid "A search term."
 msgstr "Entrez ici votre recherche"
 
-#: .\api\models.py:16 .\api\models.py:93
-msgid "copyright"
-msgstr "copyright"
+#: .\api\models.py:18
+msgid "first_name"
+msgstr "Prénom"
 
-#: .\api\models.py:23 .\api\models.py:39 .\api\models.py:50 .\api\models.py:86
-#: .\api\models.py:135
-msgid "name"
-msgstr "nom"
+#: .\api\models.py:19
+msgid "last_name"
+msgstr "Nom"
 
-#: .\api\models.py:25
-msgid "link"
-msgstr "lien"
+#: .\api\models.py:20
+msgid "email"
+msgstr "Email"
 
-#: .\api\models.py:26
-msgid "Please complete the above URL"
-msgstr "Veuillez compléter l'URL ci-dessus"
-
-#: .\api\models.py:32
-msgid "document"
-msgstr "document"
-
-#: .\api\models.py:43 .\api\models.py:281 .\api\models.py:323
-msgid "format"
-msgstr "format"
-
-#: .\api\models.py:54
-msgid "order type"
-msgstr "type de commande"
-
-#: .\api\models.py:55
-msgid "order types"
-msgstr "types de commande"
-
-#: .\api\models.py:65 .\api\models.py:336
+#: .\api\models.py:21
 msgid "street"
 msgstr "adresse"
 
-#: .\api\models.py:66 .\api\models.py:337
+#: .\api\models.py:22
 msgid "street2"
 msgstr "complément d'adresse"
 
-#: .\api\models.py:67 .\api\models.py:338
+#: .\api\models.py:23
 msgid "postcode"
 msgstr "NPA"
 
-#: .\api\models.py:68 .\api\models.py:339
+#: .\api\models.py:24
 msgid "city"
 msgstr "ville"
 
-#: .\api\models.py:69 .\api\models.py:340
+#: .\api\models.py:25
 msgid "country"
 msgstr "pays"
 
-#: .\api\models.py:70 .\api\models.py:341
+#: .\api\models.py:26
 msgid "company_name"
 msgstr "raison sociale"
 
-#: .\api\models.py:71 .\api\models.py:342
+#: .\api\models.py:27
 msgid "phone"
 msgstr "téléphone"
 
-#: .\api\models.py:72
+#: .\api\models.py:44
+msgid "belongs_to"
+msgstr "appartient à"
+
+#: .\api\models.py:48
+#| msgid "order_contact"
+msgid "contact"
+msgstr "contact"
+
+#: .\api\models.py:56 .\api\models.py:130
+msgid "copyright"
+msgstr "copyright"
+
+#: .\api\models.py:66 .\api\models.py:82 .\api\models.py:93 .\api\models.py:123
+#: .\api\models.py:185 .\api\models.py:226
+msgid "name"
+msgstr "nom"
+
+#: .\api\models.py:68
+msgid "link"
+msgstr "lien"
+
+#: .\api\models.py:69
+msgid "Please complete the above URL"
+msgstr "Veuillez compléter l'URL ci-dessus"
+
+#: .\api\models.py:75
+msgid "document"
+msgstr "document"
+
+#: .\api\models.py:86 .\api\models.py:378 .\api\models.py:452
+#| msgid "product_format"
+msgid "data_format"
+msgstr "format du produit"
+
+#: .\api\models.py:97
+msgid "order type"
+msgstr "type de commande"
+
+#: .\api\models.py:98
+msgid "order types"
+msgstr "types de commande"
+
+#: .\api\models.py:108
+msgid "user"
+msgstr "utilisateur"
+
+#: .\api\models.py:109
 msgid "sap_id"
 msgstr "Numéro SAP"
 
-#: .\api\models.py:73
+#: .\api\models.py:110
 msgid "contract_accepted"
 msgstr "Date d'acceptation du contrat"
 
-#: .\api\models.py:74
+#: .\api\models.py:111
 msgid "is_public"
-msgstr ""
+msgstr "public?"
 
-#: .\api\models.py:78
+#: .\api\models.py:115
 msgid "identity"
-msgstr "utilisateur"
+msgstr "identité"
 
-#: .\api\models.py:85
+#: .\api\models.py:122
 msgid "id_name"
 msgstr "nom unique"
 
-#: .\api\models.py:87
+#: .\api\models.py:124
 msgid "description_short"
 msgstr "description courte"
 
-#: .\api\models.py:88
+#: .\api\models.py:125
 msgid "description_long"
 msgstr "description longue"
 
-#: .\api\models.py:89
+#: .\api\models.py:126
 msgid "scale"
 msgstr "échelle"
 
-#: .\api\models.py:90
+#: .\api\models.py:127
 msgid "geocat_link"
 msgstr "lien Géocat"
 
-#: .\api\models.py:91
+#: .\api\models.py:128
 msgid "legend_link"
 msgstr "lien vers la légende"
 
-#: .\api\models.py:92
+#: .\api\models.py:129
 msgid "image_link"
 msgstr "lien vers l'image"
 
-#: .\api\models.py:94
+#: .\api\models.py:131
 msgid "documents"
 msgstr "documents"
 
-#: .\api\models.py:97
+#: .\api\models.py:134
 msgid "contact_persons"
 msgstr "contact"
 
-#: .\api\models.py:104
+#: .\api\models.py:141
 msgid "modified_user"
 msgstr "modifié par"
 
-#: .\api\models.py:109 .\api\models.py:119 .\api\models.py:206
+#: .\api\models.py:146 .\api\models.py:156 .\api\models.py:260
 msgid "metadata"
 msgstr "métadonnées"
 
-#: .\api\models.py:120
+#: .\api\models.py:158
 msgid "contact_person"
 msgstr "contact"
 
-#: .\api\models.py:121
+#: .\api\models.py:159
 msgid "role"
 msgstr "role"
 
-#: .\api\models.py:125
+#: .\api\models.py:163
 msgid "metadata_contact"
 msgstr "interlocuteur"
 
-#: .\api\models.py:136
-msgid "price"
-msgstr "prix"
-
-#: .\api\models.py:137 .\api\models.py:246
-msgid "geom"
-msgstr "géométrie"
-
-#: .\api\models.py:141
-#, fuzzy
-#| msgid "pricing"
-msgid "pricing_layer"
-msgstr "tarification"
-
-#: .\api\models.py:156
+#: .\api\models.py:178
 msgid "Free"
-msgstr ""
+msgstr "gratuit"
 
-#: .\api\models.py:157
+#: .\api\models.py:179
 msgid "Single"
-msgstr ""
+msgstr "unique"
 
-#: .\api\models.py:158
+#: .\api\models.py:180
+msgid "By number of objects"
+msgstr "selon le nombre d'objets"
+
+#: .\api\models.py:181
 msgid "By area"
-msgstr ""
+msgstr "selon la surface"
 
-#: .\api\models.py:159
+#: .\api\models.py:182
 msgid "From a pricing layer"
-msgstr ""
+msgstr "selon couche de tarification"
 
-#: .\api\models.py:160
-#, fuzzy
+#: .\api\models.py:183
 #| msgid "is_manual"
 msgid "Manual"
 msgstr "traitement manuel"
 
-#: .\api\models.py:162
-#, fuzzy
+#: .\api\models.py:186
 #| msgid "price_type"
 msgid "pricing_type"
 msgstr "type de tarification"
 
-#: .\api\models.py:163
+#: .\api\models.py:187 .\api\models.py:384
 msgid "base_fee"
 msgstr "taxe de base"
 
-#: .\api\models.py:164
-#, fuzzy
+#: .\api\models.py:189
 #| msgid "price"
 msgid "min_price"
-msgstr "prix"
+msgstr "prix minimum"
 
-#: .\api\models.py:165
-#, fuzzy
+#: .\api\models.py:191
 #| msgid "price"
 msgid "max_price"
-msgstr "prix"
+msgstr "prix maximum"
 
-#: .\api\models.py:166
-#, fuzzy
+#: .\api\models.py:193
 #| msgid "price"
 msgid "unit_price"
-msgstr "prix"
+msgstr "prix unitaire"
 
-#: .\api\models.py:201 .\api\models.py:232
-msgid "Draft"
-msgstr "Brouillon"
-
-#: .\api\models.py:202
-msgid "Published"
-msgstr "Publié"
-
-#: .\api\models.py:203
-msgid "Published only in group"
-msgstr "Seulement dans un groupe"
-
-#: .\api\models.py:204
-msgid "Deprecated"
-msgstr "Obsolète"
-
-#: .\api\models.py:207
-msgid "label"
-msgstr "étiquette"
-
-#: .\api\models.py:208 .\api\models.py:264
-msgid "status"
-msgstr "statut"
-
-#: .\api\models.py:209
-msgid "group"
-msgstr "groupe"
-
-#: .\api\models.py:210
+#: .\api\models.py:197 .\api\models.py:229 .\api\models.py:264
 msgid "pricing"
 msgstr "tarification"
 
-#: .\api\models.py:211 .\api\models.py:272 .\api\models.py:279
+#: .\api\models.py:227 .\api\models.py:382
+msgid "price"
+msgstr "prix"
+
+#: .\api\models.py:228 .\api\models.py:307
+msgid "geom"
+msgstr "géométrie"
+
+#: .\api\models.py:233
+#| msgid "pricing"
+msgid "pricing_layer"
+msgstr "couche de tarification"
+
+#: .\api\models.py:255 .\api\models.py:288
+msgid "Draft"
+msgstr "Brouillon"
+
+#: .\api\models.py:256
+msgid "Published"
+msgstr "Publié"
+
+#: .\api\models.py:257
+msgid "Published only in group"
+msgstr "Seulement dans un groupe"
+
+#: .\api\models.py:258
+msgid "Deprecated"
+msgstr "Obsolète"
+
+#: .\api\models.py:261
+msgid "label"
+msgstr "étiquette"
+
+#: .\api\models.py:262 .\api\models.py:325
+msgid "status"
+msgstr "statut"
+
+#: .\api\models.py:263
+msgid "group"
+msgstr "groupe"
+
+#: .\api\models.py:265 .\api\models.py:333 .\api\models.py:376
 msgid "order"
 msgstr "commande"
 
-#: .\api\models.py:216 .\api\models.py:280 .\api\models.py:304
-#: .\api\models.py:316 .\api\models.py:322
+#: .\api\models.py:267
+msgid "thumbnail_link"
+msgstr "lien vers l'aperçu"
+
+#: .\api\models.py:272 .\api\models.py:377 .\api\models.py:430
+#: .\api\models.py:441 .\api\models.py:451
 msgid "product"
 msgstr "produit"
 
-#: .\api\models.py:233
+#: .\api\models.py:289 .\api\models.py:371
 msgid "Pending"
 msgstr "En attente"
 
-#: .\api\models.py:234
+#: .\api\models.py:290
 msgid "Ready"
 msgstr "Prêt"
 
-#: .\api\models.py:235
+#: .\api\models.py:291
 msgid "Partially delivered"
 msgstr "Partiellement traité"
 
-#: .\api\models.py:236
+#: .\api\models.py:292
 msgid "Processed"
 msgstr "Traité"
 
-#: .\api\models.py:237
+#: .\api\models.py:293
 msgid "Downloaded"
 msgstr "Téléchargé"
 
-#: .\api\models.py:238
+#: .\api\models.py:294
 msgid "Archived"
 msgstr "Archivé"
 
-#: .\api\models.py:239
+#: .\api\models.py:295
 msgid "Rejected"
 msgstr "Rejeté"
 
-#: .\api\models.py:241
+#: .\api\models.py:297
 msgid "title"
 msgstr "titre"
 
-#: .\api\models.py:242
+#: .\api\models.py:298
 msgid "description"
 msgstr "description"
 
-#: .\api\models.py:243
+#: .\api\models.py:300
 msgid "processing_fee"
 msgstr "taxe de base"
 
-#: .\api\models.py:244
-msgid "total_cost"
-msgstr "total"
+#: .\api\models.py:302
+msgid "total_without_vat"
+msgstr "total sans TVA"
 
-#: .\api\models.py:245
+#: .\api\models.py:304
 msgid "part_vat"
 msgstr "dont TVA"
 
-#: .\api\models.py:247
+#: .\api\models.py:306
+msgid "total_with_vat"
+msgstr "total avec TVA"
+
+#: .\api\models.py:308
 msgid "client"
 msgstr "client"
 
-#: .\api\models.py:251
+#: .\api\models.py:312
 msgid "order_contact"
 msgstr "contact"
 
-#: .\api\models.py:258
+#: .\api\models.py:319
 msgid "invoice_contact"
 msgstr "facture"
 
-#: .\api\models.py:262
+#: .\api\models.py:323
 msgid "invoice_reference"
 msgstr "référence"
 
-#: .\api\models.py:263 .\api\models.py:317
+#: .\api\models.py:324 .\api\models.py:442
 msgid "order_type"
 msgstr "type de commande"
 
-#: .\api\models.py:265
+#: .\api\models.py:326
 msgid "date_ordered"
 msgstr "date de commande"
 
-#: .\api\models.py:266
+#: .\api\models.py:327
 msgid "date_downloaded"
 msgstr "date de téléchargement"
 
-#: .\api\models.py:267
+#: .\api\models.py:328
 msgid "date_processed"
 msgstr "date de traitement"
 
-#: .\api\models.py:282
+#: .\api\models.py:372
+msgid "Calculated"
+msgstr "calculé"
+
+#: .\api\models.py:373
+msgid "Imported"
+msgstr "importé"
+
+#: .\api\models.py:379
 msgid "last_download"
 msgstr "date du dernier téléchargement"
 
-#: .\api\models.py:286
+#: .\api\models.py:381
+#| msgid "status"
+msgid "price_status"
+msgstr "statut du prix"
+
+#: .\api\models.py:388
 msgid "order_item"
 msgstr "produit commandé"
 
-#: .\api\models.py:300
+#: .\api\models.py:426
 msgid "db_name"
 msgstr "nom de la bd"
 
-#: .\api\models.py:301
+#: .\api\models.py:427
 msgid "export_name"
 msgstr "nom d'export"
 
-#: .\api\models.py:302
+#: .\api\models.py:428
 msgid "field_type"
 msgstr "type de champ"
 
-#: .\api\models.py:303
+#: .\api\models.py:429
 msgid "field_length"
 msgstr "longueur du champ"
 
-#: .\api\models.py:309
+#: .\api\models.py:434
 msgid "product_field"
 msgstr "attribut"
 
-#: .\api\models.py:318
+#: .\api\models.py:443
 msgid "validator"
 msgstr "validateur"
 
-#: .\api\models.py:324
+#: .\api\models.py:447
+#| msgid "product_field"
+msgid "product_validation"
+msgstr "validation de produit"
+
+#: .\api\models.py:453
 msgid "is_manual"
 msgstr "traitement manuel"
 
-#: .\api\models.py:329
+#: .\api\models.py:458
 msgid "product_format"
 msgstr "format du produit"
 
-#: .\api\models.py:333
-msgid "first_name"
-msgstr "Prénom"
-
-#: .\api\models.py:334
-msgid "last_name"
-msgstr "Nom"
-
-#: .\api\models.py:335
-msgid "email"
-msgstr "Email"
-
-#: .\api\models.py:346
+#: .\api\models.py:468
 msgid "user_change"
 msgstr "changement d'un utilisateur"
 
-#: .\api\serializers.py:287
+#: .\api\serializers.py:361
 msgid "The two password fields didn't match."
 msgstr "Les deux mots de passe ne correspondent pas"
 
-#: .\api\views.py:205
+#: .\api\views.py:260
 msgid "Password reset e-mail has been sent."
 msgstr "L'email pour la réinitialisation du mot de passe a été envoyé"
 
-#: .\api\views.py:231
+#: .\api\views.py:286
 msgid "Password has been reset with the new password."
 msgstr "Votre nouveau mot de passe est sauvegardé"
 
-#: .\api\views.py:296
+#: .\api\views.py:360
 msgid "Geoshop - User change request"
 msgstr "Geoshop - Demande de modifications de la part d'un utilisateur"
 
-#: .\api\views.py:302
+#: .\api\views.py:366
 msgid "Your data was successfully submitted"
 msgstr "Vos données ont été correctement soumises"
 
-#: .\api\views.py:318
+#: .\api\views.py:382
 msgid "ok"
 msgstr "ok"

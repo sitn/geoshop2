@@ -1,15 +1,15 @@
+import logging
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex, BTreeIndex
-from djmoney.money import Money
 from django.utils.translation import gettext_lazy as _
+from djmoney.money import Money
 from djmoney.models.fields import MoneyField
 from .pricing import ProductPriceCalculator
 
-import logging
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 class AbstractIdentity(models.Model):
     """
@@ -28,6 +28,11 @@ class AbstractIdentity(models.Model):
 
     class Meta:
         abstract = True
+
+    def __str__(self):
+        if self.company_name:
+            return '%s %s (%s), %s' % (self.last_name, self.first_name, self.company_name, self.city)
+        return '%s %s, %s' % (self.last_name, self.first_name, self.city)
 
 
 class Contact(AbstractIdentity):
@@ -149,7 +154,8 @@ class MetadataContact(models.Model):
     Links Metadata with the persons to contact (Identity) depending on the role they play for metadata.
     """
     metadata = models.ForeignKey(Metadata, models.DO_NOTHING, verbose_name=_('metadata'))
-    contact_person = models.ForeignKey(Identity, models.DO_NOTHING, verbose_name=_('contact_person'))
+    contact_person = models.ForeignKey(
+        Identity, models.DO_NOTHING, verbose_name=_('contact_person'), limit_choices_to={'is_public': True})
     metadata_role = models.CharField(_('role'), max_length=150, blank=True)
 
     class Meta:
@@ -179,9 +185,12 @@ class Pricing(models.Model):
     name = models.CharField(_('name'), max_length=100, default='pricing_name', null=True, blank=True)
     pricing_type = models.CharField(_('pricing_type'), max_length=30, choices=PricingType.choices)
     base_fee = MoneyField(_('base_fee'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
-    min_price = MoneyField(_('min_price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
-    max_price = MoneyField(_('max_price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
-    unit_price = MoneyField(_('unit_price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
+    min_price = MoneyField(
+        _('min_price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
+    max_price = MoneyField(
+        _('max_price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
+    unit_price = MoneyField(
+        _('unit_price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
 
     class Meta:
         db_table = 'pricing'
@@ -254,7 +263,8 @@ class Product(models.Model):
     group = models.ForeignKey('self', models.DO_NOTHING, verbose_name=_('group'), null=True)
     pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'))
     order = models.BigIntegerField(_('order'), blank=True, null=True)
-    thumbnail_link = models.CharField(_('thumbnail_link'), max_length=250, default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL)
+    thumbnail_link = models.CharField(
+        _('thumbnail_link'), max_length=250, default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL)
     ts = SearchVectorField(null=True)
 
     class Meta:
@@ -329,6 +339,7 @@ class Order(models.Model):
         self.total_with_vat = None
 
     def set_price(self):
+        """Set price information if all items have prices"""
         self._reset_prices()
         items = self.items.all()
         if not items:

@@ -27,9 +27,10 @@ If ($buildConfig -eq "back" -or $buildConfig -eq "full") {
         psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$env:PGDATABASE';"
         psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS $env:PGDATABASE;"
         psql -U postgres -d postgres -c "CREATE DATABASE $env:PGDATABASE OWNER $env:PGUSER;"
+        psql -U postgres -d $env:PGDATABASE -c "CREATE EXTENSION postgis;"
         pg_restore -U postgres -F c -d $env:PGDATABASE $PSScriptRoot'\'$env:PGDATABASE'.backup'
     } Else {
-        Write-Host "pg_dump has not been done"
+        Write-Host "pg_restore has not been done"
     }
     pipenv run python manage.py setcustompassword
 }
@@ -53,4 +54,5 @@ If ($buildConfig -eq "front" -or $buildConfig -eq "full") {
     $path = "{0}://{1}{2}/" -f $env:FRONT_PROTOCOL, $env:FRONT_URL, $env:ROOTURL
     ((Get-Content -path ./config.json -Raw) -replace 'https://sitn.ne.ch/geoshop2_dev/',$path) | Set-Content -Path ./config.json
 }
+
 cd $pwd
