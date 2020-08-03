@@ -1,13 +1,16 @@
-from django.core.management.base import BaseCommand, CommandError
+import os
+from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
-from api.models import Contact, Order, OrderItem, OrderType
-import os
+from api.models import Contact, Order, OrderItem, OrderType, Product
 
 UserModel = get_user_model()
 
 
 class Command(BaseCommand):
+    """
+    This is a manage.py command that sets up basic objects allowing to proceed user tests.
+    """
     def handle(self, *args, **options):
         rincevent = UserModel.objects.create_user(
             username='rincevent', password='rincevent')
@@ -83,7 +86,16 @@ class Command(BaseCommand):
         order_type_prive = OrderType.objects.filter(name='Privé').first()
         order1 = Order.objects.create(
             title='Plan de situation pour enquête',
+            description='C''est un test',
             order_type=order_type_prive,
             client=rincevent,
             geom=order_geom)
         order1.save()
+        product1 = Product.objects.filter(label='MO - Cadastre complet').first()
+        product2 = Product.objects.filter(label='Maquette 3D').first()
+        orderitems = [
+            OrderItem.objects.create(order=order1, product=product1),
+            OrderItem.objects.create(order=order1, product=product2)
+        ]
+        for order_item in orderitems:
+            order_item.save()
