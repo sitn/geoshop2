@@ -19,7 +19,7 @@ If ($buildConfig -eq "back" -or $buildConfig -eq "full") {
     .\.venv\Scripts\activate
     pip install --disable-pip-version-check $env:GDAL_WHL
     pipenv run python manage.py collectstatic --noinput
-    pipenv run python manage.py compilemessages
+    pipenv run python manage.py compilemessages --locale=fr
 
     If (Test-Path $PSScriptRoot\$env:PGDATABASE'.backup') {
         $env:PGPASSWORD = $env:PGPOSTGRESPASSWORD

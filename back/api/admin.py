@@ -56,6 +56,7 @@ class MetadataAdmin(CustomModelAdmin):
 
 
 class OrderAdmin(admin.OSMGeoAdmin):
+    wms_url = 'https://vmap0.tiles.osgeo.org/wms/vmap0'
     ordering = ['-id']
 
 
