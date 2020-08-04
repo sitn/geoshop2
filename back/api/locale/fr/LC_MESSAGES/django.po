@@ -1,3 +1,10 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-08-03 17:08+0200\n"
@@ -75,7 +82,6 @@ msgid "belongs_to"
 msgstr "appartient à"
 
 #: .\api\models.py:48
-#| msgid "order_contact"
 msgid "contact"
 msgstr "contact"
 
@@ -101,7 +107,6 @@ msgid "document"
 msgstr "document"
 
 #: .\api\models.py:86 .\api\models.py:378 .\api\models.py:452
-#| msgid "product_format"
 msgid "data_format"
 msgstr "format du produit"
 
