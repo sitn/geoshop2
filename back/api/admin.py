@@ -31,7 +31,7 @@ class CustomModelAdmin(admin.ModelAdmin):
             'all': ('/static/api/admin-extra.css ',)
         }
 
-    def formfield_for_dbfield(self, db_field, request, **kwargs):
+    def formfield_for_dbfield(self, db_field, **kwargs):
         formfield = super(CustomModelAdmin, self).formfield_for_dbfield(db_field, **kwargs)
         if isinstance(db_field, models.CharField):
             if db_field.max_length > 300:
