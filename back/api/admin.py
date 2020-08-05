@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User, Group
@@ -28,7 +29,7 @@ class CustomModelAdmin(admin.ModelAdmin):
     """
     class Media:
         css = {
-            'all': ('/static/api/admin-extra.css ',)
+            'all': (settings.STATIC_URL + 'api/admin-extra.css ',)
         }
 
     def formfield_for_dbfield(self, db_field, **kwargs):
