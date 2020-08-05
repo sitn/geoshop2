@@ -190,3 +190,4 @@ CORS_ORIGIN_WHITELIST = [
 ]
 DEFAULT_PRODUCT_THUMBNAIL_URL = '/static/api/default_product_thumbnail.png'
 DEFAULT_METADATA_IMAGE_URL = '/static/api/default_metadata_image.png'
+AUTO_LEGEND_URL = os.environ.get('AUTO_LEGEND_URL', '')

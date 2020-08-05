@@ -44,7 +44,7 @@ class IdentityInline(admin.StackedInline):
     model = Identity
 
 
-class MetadataContactInline(admin.TabularInline):
+class MetadataContactInline(admin.StackedInline):
     model = MetadataContact
     extra = 1
     list_filter = ['contact_person']
@@ -53,6 +53,7 @@ class MetadataContactInline(admin.TabularInline):
 class MetadataAdmin(CustomModelAdmin):
     inlines = [MetadataContactInline]
     search_fields = ['name', 'id_name']
+    readonly_fields = ('image_tag', 'legend_tag')
 
 
 class OrderAdmin(admin.OSMGeoAdmin):
@@ -61,7 +62,11 @@ class OrderAdmin(admin.OSMGeoAdmin):
 
 
 class ProductAdmin(CustomModelAdmin):
+    raw_id_fields = ('metadata', 'group')
+    exclude = ('ts',)
     search_fields = ['label']
+    list_filter = ('status',)
+    readonly_fields = ('thumbnail_tag',)
 
 
 class AbstractIdentityAdmin(CustomModelAdmin):
