@@ -53,6 +53,7 @@ class MetadataContactInline(admin.StackedInline):
 class MetadataAdmin(CustomModelAdmin):
     inlines = [MetadataContactInline]
     search_fields = ['name', 'id_name']
+    list_display = ('id_name', 'name')
     readonly_fields = ('image_tag', 'legend_tag')
 
 

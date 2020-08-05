@@ -449,7 +449,7 @@ msgstr "traitement manuel"
 
 #: .\api\models.py:475
 msgid "product_format"
-msgstr "format du produit"
+msgstr "Relation format - produit"
 
 #: .\api\models.py:485
 msgid "user_change"
