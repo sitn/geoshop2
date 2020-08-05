@@ -34,8 +34,8 @@ class AbstractIdentity(models.Model):
 
     def __str__(self):
         if self.company_name:
-            return '%s %s (%s), %s' % (self.last_name, self.first_name, self.company_name, self.city)
-        return '%s %s, %s' % (self.last_name, self.first_name, self.city)
+            return '%s %s (%s)' % (self.last_name, self.first_name, self.company_name)
+        return '%s %s' % (self.last_name, self.first_name)
 
 
 class Contact(AbstractIdentity):
@@ -274,7 +274,7 @@ class Product(models.Model):
     metadata = models.ForeignKey(Metadata, models.DO_NOTHING, verbose_name=_('metadata'), blank=True, null=True)
     label = models.CharField(_('label'), max_length=250, blank=True)
     status = models.CharField(_('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
-    group = models.ForeignKey('self', models.DO_NOTHING, verbose_name=_('group'), null=True)
+    group = models.ForeignKey('self', models.DO_NOTHING, verbose_name=_('group'), blank=True, null=True)
     pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'))
     order = models.BigIntegerField(_('order_index'), blank=True, null=True)
     thumbnail_link = models.CharField(
