@@ -8,15 +8,16 @@ from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from djmoney.contrib.django_rest_framework import MoneyField
 
+from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+
+from allauth.account.adapter import get_adapter
+
 from .models import (
     Copyright, Contact, Document, DataFormat, Identity,
     Metadata, MetadataContact, Order, OrderItem, OrderType,
     Pricing, Product, ProductFormat, UserChange)
 
-from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
-
-from allauth.account.adapter import get_adapter
 
 
 # Get the UserModel

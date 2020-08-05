@@ -44,7 +44,7 @@ class IdentityInline(admin.StackedInline):
     model = Identity
 
 
-class MetadataContactInline(admin.TabularInline):
+class MetadataContactInline(admin.StackedInline):
     model = MetadataContact
     extra = 1
     list_filter = ['contact_person']
@@ -53,15 +53,20 @@ class MetadataContactInline(admin.TabularInline):
 class MetadataAdmin(CustomModelAdmin):
     inlines = [MetadataContactInline]
     search_fields = ['name', 'id_name']
+    readonly_fields = ('image_tag', 'legend_tag')
 
 
 class OrderAdmin(admin.OSMGeoAdmin):
-    wms_url = 'https://vmap0.tiles.osgeo.org/wms/vmap0'
+    map_template = 'admin/gis/osm.html'
     ordering = ['-id']
 
 
 class ProductAdmin(CustomModelAdmin):
+    raw_id_fields = ('metadata', 'group')
+    exclude = ('ts',)
     search_fields = ['label']
+    list_filter = ('status',)
+    readonly_fields = ('thumbnail_tag',)
 
 
 class AbstractIdentityAdmin(CustomModelAdmin):

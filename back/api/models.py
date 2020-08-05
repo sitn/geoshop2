@@ -1,21 +1,24 @@
 import logging
 from django.conf import settings
 from django.contrib.gis.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex, BTreeIndex
+from django.utils.html import mark_safe
 from django.utils.translation import gettext_lazy as _
 from djmoney.money import Money
 from djmoney.models.fields import MoneyField
 from .pricing import ProductPriceCalculator
 
 LOGGER = logging.getLogger(__name__)
+# Get the UserModel
+UserModel = get_user_model()
 
 class AbstractIdentity(models.Model):
     """
     Common properties for identities, addresses and temporary users
     """
-    first_name = models.CharField(_('first_name'), max_length=30, blank=True)
+    first_name = models.CharField(_('first_name'), max_length=50, blank=True)
     last_name = models.CharField(_('last_name'), max_length=150, blank=True)
     email = models.EmailField(_('email'), max_length=254, blank=True)
     street = models.CharField(_('street'), max_length=100, blank=True)
@@ -23,7 +26,7 @@ class AbstractIdentity(models.Model):
     postcode = models.CharField(_('postcode'), max_length=10, blank=True)
     city = models.CharField(_('city'), max_length=50, blank=True)
     country = models.CharField(_('country'), max_length=50, blank=True)
-    company_name = models.CharField(_('company_name'), max_length=100, blank=True)
+    company_name = models.CharField(_('company_name'), max_length=250, blank=True)
     phone = models.CharField(_('phone'), max_length=50, blank=True)
 
     class Meta:
@@ -41,7 +44,7 @@ class Contact(AbstractIdentity):
     previously filled by the user.
     """
     belongs_to = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, verbose_name=_('belongs_to'))
+        UserModel, on_delete=models.DO_NOTHING, verbose_name=_('belongs_to'))
 
     class Meta:
         db_table = 'contact'
@@ -105,7 +108,7 @@ class Identity(AbstractIdentity):
     """
     All users have an Identity but not all identities are users.
     """
-    user = models.OneToOneField(User, on_delete=models.DO_NOTHING, verbose_name=_('user'), blank=True, null=True)
+    user = models.OneToOneField(UserModel, on_delete=models.DO_NOTHING, verbose_name=_('user'), blank=True, null=True)
     sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
     contract_accepted = models.DateField(_('contract_accepted'), null=True, blank=True)
     is_public = models.BooleanField(_('is_public'), default=False)
@@ -136,7 +139,7 @@ class Metadata(models.Model):
         through='MetadataContact')
     modified_date = models.DateTimeField(auto_now=True)
     modified_user = models.ForeignKey(
-        User,
+        UserModel,
         models.DO_NOTHING,
         verbose_name=_('modified_user'),
         related_name='modified_user')
@@ -147,6 +150,17 @@ class Metadata(models.Model):
 
     def __str__(self):
         return self.id_name
+
+    def legend_tag(self):
+        """When legend_link is 0, returns legend from mapserver"""
+        if self.legend_link == '0':
+            return mark_safe('<img src="%s%s" />' % (settings.AUTO_LEGEND_URL, self.id_name))
+        return mark_safe('<img src="/%s" />' % self.legend_link)
+    legend_tag.short_description = _('legend')
+
+    def image_tag(self):
+        return mark_safe('<img src="/%s" />' % self.image_link)
+    image_tag.short_description = _('image')
 
 
 class MetadataContact(models.Model):
@@ -182,7 +196,7 @@ class Pricing(models.Model):
         FROM_PRICING_LAYER = 'FROM_PRICING_LAYER', _('From a pricing layer')
         MANUAL = 'MANUAL', _('Manual')
 
-    name = models.CharField(_('name'), max_length=100, default='pricing_name', null=True, blank=True)
+    name = models.CharField(_('name'), max_length=100, null=True, blank=True)
     pricing_type = models.CharField(_('pricing_type'), max_length=30, choices=PricingType.choices)
     base_fee = MoneyField(_('base_fee'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
     min_price = MoneyField(
@@ -262,10 +276,11 @@ class Product(models.Model):
     status = models.CharField(_('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     group = models.ForeignKey('self', models.DO_NOTHING, verbose_name=_('group'), null=True)
     pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'))
-    order = models.BigIntegerField(_('order'), blank=True, null=True)
+    order = models.BigIntegerField(_('order_index'), blank=True, null=True)
     thumbnail_link = models.CharField(
         _('thumbnail_link'), max_length=250, default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL)
     ts = SearchVectorField(null=True)
+
 
     class Meta:
         db_table = 'product'
@@ -274,10 +289,12 @@ class Product(models.Model):
         # https://www.postgresql.org/docs/10/gin-intro.html
         indexes = [GinIndex(fields=["ts"])]
 
-
     def __str__(self):
         return self.label
 
+    def thumbnail_tag(self):
+        return mark_safe('<img src="/%s" />' % self.thumbnail_link)
+    thumbnail_tag.short_description = _('thumbnail')
 
 class Order(models.Model):
     """
@@ -305,7 +322,7 @@ class Order(models.Model):
     total_with_vat = MoneyField(
         _('total_with_vat'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
     geom = models.PolygonField(_('geom'), srid=2056)
-    client = models.ForeignKey(User, models.DO_NOTHING, verbose_name=_('client'), blank=True)
+    client = models.ForeignKey(UserModel, models.DO_NOTHING, verbose_name=_('client'), blank=True)
     order_contact = models.ForeignKey(
         Identity,
         models.DO_NOTHING,
