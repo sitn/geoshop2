@@ -1,8 +1,10 @@
 
 from django.contrib import admin
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.urls import include, path, re_path
 from django.conf.urls import url
 from django.views.generic import TemplateView
+from django.views.generic.base import RedirectView
 from api.routers import GeoshopRouter
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -41,6 +43,7 @@ router.register_additional_route_to_root('auth/register', 'auth_register')
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
     # this url is used to generate email content
+    path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('api/favicon.ico'))),
     re_path(r'^auth/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
             TemplateView.as_view(),
             name='password_reset_confirm'),
