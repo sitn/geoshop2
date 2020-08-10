@@ -177,7 +177,10 @@ REST_FRAMEWORK = {
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = os.environ.get('ROOTURL', '') + '/static/'
+USE_X_FORWARDED_HOST = True
+FORCE_SCRIPT_NAME = os.environ.get('ROOTURL', '')
+
+STATIC_URL = FORCE_SCRIPT_NAME + '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 if os.environ.get('GDAL_IN_VENV', None) == "True":
