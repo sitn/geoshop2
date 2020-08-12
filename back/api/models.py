@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from djmoney.money import Money
 from djmoney.models.fields import MoneyField
 from .pricing import ProductPriceCalculator
+from .helpers import RandomFileName
 
 LOGGER = logging.getLogger(__name__)
 # Get the UserModel
@@ -356,7 +357,10 @@ class Order(models.Model):
         self.total_with_vat = None
 
     def set_price(self):
-        """Set price information if all items have prices"""
+        """
+        Sets price information if all items have prices
+        and updates order status accordingly
+        """
         self._reset_prices()
         items = self.items.all()
         if not items:
@@ -372,8 +376,32 @@ class Order(models.Model):
         self.part_vat = self.total_without_vat * settings.VAT
         self.total_with_vat = self.total_without_vat + self.part_vat
 
-    def get_price(self):
-        return 'gratuit'
+    def confirm(self):
+        items = self.items.all()
+        has_all_prices_calculated = True
+        for item in items:
+            if item.price_status == OrderItem.PricingStatus.PENDING:
+                item.ask_price()
+                has_all_prices_calculated = has_all_prices_calculated and False
+        if has_all_prices_calculated:
+            self.status = Order.OrderStatus.READY
+        else:
+            self.status = Order.OrderStatus.PENDING
+
+    def next_status_when_file_uploaded(self):
+        """Controls status when a file is uploaded"""
+        previous_accepted_status = [
+            Order.OrderStatus.READY,
+            Order.OrderStatus.PARTIALLY_DELIVERED
+        ]
+        if self.status not in previous_accepted_status:
+            raise Exception("Order has an innapropriate status for this operation")
+        items = self.items.all()
+        for item in items:
+            if not item.extract_result:
+                self.status = Order.OrderStatus.PARTIALLY_DELIVERED
+                return
+        self.status = Order.OrderStatus.PROCESSED
 
     def __str__(self):
         return '%s - %s' % (self.id, self.title)
@@ -399,6 +427,7 @@ class OrderItem(models.Model):
     _price = MoneyField(_('price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
     _base_fee = MoneyField(
         _('base_fee'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
+    extract_result = models.FileField(upload_to=RandomFileName('extract'), null=True, blank=True)
 
     class Meta:
         db_table = 'order_item'
@@ -418,12 +447,14 @@ class OrderItem(models.Model):
         return self._get_price_values(self._base_fee)
 
     def set_price(self):
-        if self.product.pricing.pricing_type == Pricing.PricingType.MANUAL:
-            # send manual price notification request
-            pass
-        else:
+        if self.product.pricing.pricing_type != Pricing.PricingType.MANUAL:
             self._price, self._base_fee = self.product.pricing.get_price(self.order.geom)
             self.price_status = OrderItem.PricingStatus.CALCULATED
+
+    def ask_price(self):
+        if self.product.pricing.pricing_type == Pricing.PricingType.MANUAL:
+            # Send email
+            pass
 
 
 class ProductField(models.Model):

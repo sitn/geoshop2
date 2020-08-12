@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
+from django.core import management
 
 
 from api.models import *
@@ -108,6 +109,7 @@ class OrderTests(APITestCase):
     """
 
     def setUp(self):
+        management.call_command('fixturize')
         self.userPrivate = User.objects.create_user(
             username="private_user_order",
             password="testPa$$word",
@@ -234,6 +236,16 @@ class OrderTests(APITestCase):
         url = reverse('order-detail', kwargs={'pk':order_id})
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
+
+        # Extract
+        url = reverse('token_obtain_pair')
+        resp = self.client.post(url, {'username':'extract', 'password':os.environ['EXTRACT_USER_PASSWORD']}, format='json')
+        extract_token = resp.data['access']
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + extract_token)
+        url = reverse('extract_order')
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(response.data['count'], 1, 'Check that previous confirmed order is available')
 
 class UserChangeTests(APITestCase):
     """

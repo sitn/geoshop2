@@ -1,4 +1,5 @@
 import os
+import copy
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
@@ -86,16 +87,29 @@ class Command(BaseCommand):
         order_type_prive = OrderType.objects.filter(name='Privé').first()
         order1 = Order.objects.create(
             title='Plan de situation pour enquête',
-            description='C''est un test',
+            description='C\'est un test',
             order_type=order_type_prive,
             client=rincevent,
             geom=order_geom)
         order1.save()
+        order2 = copy.copy(order1)
+        order2.pk = None
+        order3 = copy.copy(order2)
+        order2.save()
+        order3.save()
         product1 = Product.objects.filter(label='MO - Cadastre complet').first()
         product2 = Product.objects.filter(label='Maquette 3D').first()
         orderitems = [
             OrderItem.objects.create(order=order1, product=product1),
-            OrderItem.objects.create(order=order1, product=product2)
+            OrderItem.objects.create(order=order1, product=product2),
+            OrderItem.objects.create(order=order2, product=product1),
+            OrderItem.objects.create(order=order3, product=product1)
         ]
         for order_item in orderitems:
+            order_item.set_price()
             order_item.save()
+        order2.set_price()
+        order2.save()
+        order3.set_price()
+        order3.confirm()
+        order3.save()

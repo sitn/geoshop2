@@ -2,9 +2,8 @@ from django import forms
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import User, Group
+from django.contrib.auth import get_user_model
 from django.contrib.gis import admin
-from django.utils.translation import gettext_lazy as _
 
 
 from .models import (
@@ -21,6 +20,7 @@ from .models import (
     Product,
     ProductFormat)
 
+UserModel = get_user_model()
 
 class CustomModelAdmin(admin.ModelAdmin):
     """
@@ -80,22 +80,13 @@ class PricingAdmin(CustomModelAdmin):
 
 
 class UserAdmin(BaseUserAdmin):
-    """Overrides BaseUserAdmin in order to hide some defined but not used fields"""
-    fieldsets = (
-        (None, {'fields': ('username', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'email')}),
-        (_('Permissions'), {
-            'fields': ('is_active', 'is_staff', 'is_superuser'),
-        }),
-        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
-    )
-    filter_horizontal = []
+    """Overrides BaseUserAdmin"""
+
     inlines = [IdentityInline]
 
 
-admin.site.unregister(User)
-admin.site.unregister(Group)
-admin.site.register(User, UserAdmin)
+admin.site.unregister(UserModel)
+admin.site.register(UserModel, UserAdmin)
 
 admin.site.register(Copyright)
 admin.site.register(Document)
