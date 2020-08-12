@@ -29,6 +29,7 @@ fme $env:FMEDIR\03_order_item.fmw
 fme $env:FMEDIR\05_mo2geoshop.fmw
 
 & "$PSScriptRoot\reset_sequences.ps1"
+python manage.py fixturize
 If ($destConfig -eq "dev") {
     python manage.py prepareusertests
 }

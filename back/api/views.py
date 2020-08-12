@@ -12,6 +12,7 @@ from rest_framework import filters, generics, views, viewsets, permissions, stat
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.parsers import MultiPartParser
 
 from allauth.account.views import ConfirmEmailView
 
@@ -22,7 +23,7 @@ from .models import (
 
 from .serializers import (
     ContactSerializer, CopyrightSerializer, DocumentSerializer, DataFormatSerializer,
-    UserIdentitySerializer, MetadataIdentitySerializer,
+    ExtractOrderItemSerializer, UserIdentitySerializer, MetadataIdentitySerializer,
     MetadataSerializer, MetadataContactSerializer, OrderDigestSerializer,
     OrderSerializer, OrderItemSerializer, OrderTypeSerializer,
     PasswordResetSerializer, PasswordResetConfirmSerializer,
@@ -32,7 +33,7 @@ from .serializers import (
 
 from .filters import FullTextSearchFilter
 
-from .permissions import IsOwner
+from .permissions import ExtractGroupPermission
 
 sensitive_post_parameters_m = method_decorator(
     sensitive_post_parameters(
@@ -72,7 +73,7 @@ class CurrentUserView(views.APIView):
     """
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         user = request.user
         identity = Identity.objects.filter(user_id=user.id).first()
         ser = UserIdentitySerializer(identity, context={'request': request})
@@ -156,7 +157,7 @@ class OrderItemViewSet(viewsets.ModelViewSet):
     """
     queryset = OrderItem.objects.all()
     serializer_class = OrderItemSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
@@ -234,9 +235,42 @@ class OrderViewSet(MultiSerializerViewSet):
         for item in items:
             if not item.data_format:
                 raise ValidationError(detail="One or more items don't have data_format")
-        order.status = Order.OrderStatus.PENDING
+        order.confirm()
         order.save()
         return Response(status=status.HTTP_202_ACCEPTED)
+
+
+class ExtractOrderView(generics.ListAPIView):
+    """
+    API endpoint that allows Orders to be fetched by Extract
+    """
+    serializer_class = OrderSerializer
+    permission_classes = [ExtractGroupPermission]
+    queryset = Order.objects.filter(status=Order.OrderStatus.READY).all()
+
+
+class ExtractOrderItemView(generics.UpdateAPIView):
+    """
+    API endpoint that allows Orders to be fetched by Extract
+    """
+    parser_classes = [MultiPartParser]
+    serializer_class = ExtractOrderItemSerializer
+    permission_classes = [ExtractGroupPermission]
+    queryset = OrderItem.objects.filter(order__status=Order.OrderStatus.READY).all()
+    http_method_names = ['put']
+
+    def put(self, request, *args, **kwargs):
+        """
+        """
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            instance = self.get_object()
+            serializer.update(instance, serializer.validated_data)
+            return Response(
+                {"detail": _("File has been uploaded.")},
+                status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Copy from dj-rest-auth

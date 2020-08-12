@@ -2,17 +2,16 @@
 from django.contrib import admin
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.urls import include, path, re_path
-from django.conf.urls import url
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
-from api.routers import GeoshopRouter
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
     TokenVerifyView
 )
+from api.routers import GeoshopRouter
 from api import views
-from django.utils.translation import gettext_lazy as _
 
 admin.site.site_header = _("GeoShop Administration")
 admin.site.site_title = _("GeoShop Admin")
@@ -30,6 +29,8 @@ router.register(r'ordertype', views.OrderTypeViewSet)
 router.register(r'product', views.ProductViewSet)
 router.register(r'productformat', views.ProductFormatViewSet)
 router.register(r'pricing', views.PricingViewSet)
+router.register_additional_route_to_root('extract/order/', 'extract_order')
+router.register_additional_route_to_root('extract/orderitem/', 'extract_orderitem')
 router.register_additional_route_to_root('token', 'token_obtain_pair')
 router.register_additional_route_to_root('token/refresh', 'token_refresh')
 router.register_additional_route_to_root('token/verify', 'token_verify')
@@ -55,6 +56,10 @@ urlpatterns = [
     re_path(r'^auth/account-confirm-email/(?P<key>[-:\w]+)/$', TemplateView.as_view(),
             name='account_confirm_email'),
     path('auth/register/', views.RegisterView.as_view(), name='auth_register'),
+    path('extract/order/', views.ExtractOrderView.as_view(), name='extract_order'),
+    path('extract/orderitem/', views.ExtractOrderItemView.as_view(), name='extract_orderitem'),
+    re_path(r'^extract/orderitem/(?P<pk>[0-9]+)',
+            views.ExtractOrderItemView.as_view(), name='extract_orderitem'),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),

@@ -32,7 +32,6 @@ If ($buildConfig -eq "back" -or $buildConfig -eq "full") {
     } Else {
         Write-Host "pg_restore has not been done"
     }
-    pipenv run python manage.py setcustompassword
 }
 
 # Frontend

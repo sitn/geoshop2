@@ -57,6 +57,26 @@ class DataFormatSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
+class ExtractOrderItemSerializer(serializers.ModelSerializer):
+    """
+    Orderitem serializer for extract. Allows to upload file of orderitem.
+    """
+    extract_result = serializers.FileField()
+
+    class Meta:
+        model = OrderItem
+        fields = ['extract_result']
+
+    def update(self, instance, validated_data):
+        if instance.extract_result:
+            # deletes previous file in filesystem
+            instance.extract_result.delete()
+        instance.extract_result = validated_data.pop('extract_result')
+        instance.save()
+        instance.order.next_status_when_file_uploaded()
+        return instance
+
+
 class OrderTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderType
@@ -157,7 +177,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         exclude = ['_price_currency', '_price', '_base_fee_currency', '_base_fee', 'last_download']
-        read_only_fields = ['price_status', 'order']
+        read_only_fields = ['price_status', 'order', 'extract_result']
 
 
 class OrderItemTextualSerializer(OrderItemSerializer):
@@ -210,7 +230,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         if instance.status != Order.OrderStatus.DRAFT:
-            raise 
+            raise serializers.ValidationError()
 
         items_data = validated_data.pop('items', None)
         geom = validated_data.pop('geom', None)

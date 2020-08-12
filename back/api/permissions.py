@@ -1,11 +1,11 @@
 from rest_framework import permissions
 
 
-class IsOwner(permissions.BasePermission):
+class ExtractGroupPermission(permissions.BasePermission):
     """
-    Only allow owners of an object to read it.
-    TODO: Not working
+    Only allow users that are in a group named `extract`
     """
 
-    def has_object_permission(self, request, view, obj):
-        return obj.owner == request.user
+    def has_permission(self, request, view):
+        queryset = request.user.groups.values_list('name', flat=True)
+        return 'extract' in list(queryset)
