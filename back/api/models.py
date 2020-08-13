@@ -160,7 +160,7 @@ class Metadata(models.Model):
     legend_tag.short_description = _('legend')
 
     def image_tag(self):
-        return mark_safe('<img src="/%s" />' % self.image_link)
+        return mark_safe('<img src="%s%s" />' % (settings.STATIC_URL, self.image_link))
     image_tag.short_description = _('image')
 
 
@@ -294,7 +294,7 @@ class Product(models.Model):
         return self.label
 
     def thumbnail_tag(self):
-        return mark_safe('<img src="/%s" />' % self.thumbnail_link)
+        return mark_safe('<img src="%s%s" />' % (settings.STATIC_URL, self.thumbnail_link))
     thumbnail_tag.short_description = _('thumbnail')
 
 class Order(models.Model):
