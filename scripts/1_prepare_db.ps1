@@ -17,14 +17,21 @@ cd $PSScriptRoot\..\back
 python manage.py migrate
 If ($destConfig -eq "dev") {
     fme $env:FMEDIR\01_import_fake_data.fmw
+    fme $env:FMEDIR\02_fake_product_metadata_pricing.fmw
     $destFolder = $env:DEV_SERVER_PATH
     $destFile = ("{0}\{1}" -f $env:DEV_SERVER_PATH, $filename)
 } Else {
     fme $env:FMEDIR\01_import_real_data.fmw
+    & "$PSScriptRoot\reset_sequences.ps1"
+    $ok = Read-Host -Prompt "Please run latest migrations on $destConfig database, input 'yes' when done."
+    If ($ok -ne "yes") {
+        cd $pwd
+        exit
+    }
+    fme $env:FMEDIR\02_real_product_metadata_pricing.fmw
     $destFolder = $env:PREPUB_SERVER_PATH
     $destFile = ("{0}\{1}" -f $env:PREPUB_SERVER_PATH, $filename)
 }
-fme $env:FMEDIR\02_product_metadata_pricing.fmw
 fme $env:FMEDIR\03_order_item.fmw
 fme $env:FMEDIR\05_mo2geoshop.fmw
 
@@ -50,7 +57,7 @@ $env:PGPASSWORD = $previous_PGPASSWORD
 $errorlogs = Get-ChildItem -Recurse -Path $env:FMEDIR\*.log | Select-String "ERROR" -List
 
 If ($errorlogs) {
-    Write-Error Convert-Path($errorlogs.Path)
+    Write-Error $errorlogs
 }
 
 cd $pwd
