@@ -22,8 +22,10 @@ If ($destConfig -eq "dev") {
     $destFile = ("{0}\{1}" -f $env:DEV_SERVER_PATH, $filename)
 } Else {
     fme $env:FMEDIR\01_import_real_data.fmw
+    & "$PSScriptRoot\reset_sequences.ps1"
     $ok = Read-Host -Prompt "Please run latest migrations on $destConfig database, input 'yes' when done."
     If ($ok -ne "yes") {
+        cd $pwd
         exit
     }
     fme $env:FMEDIR\02_real_product_metadata_pricing.fmw
@@ -55,7 +57,7 @@ $env:PGPASSWORD = $previous_PGPASSWORD
 $errorlogs = Get-ChildItem -Recurse -Path $env:FMEDIR\*.log | Select-String "ERROR" -List
 
 If ($errorlogs) {
-    Write-Error -Message Convert-Path($errorlogs)
+    Write-Error $errorlogs
 }
 
 cd $pwd
