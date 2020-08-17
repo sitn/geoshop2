@@ -18,8 +18,6 @@ from .models import (
     Metadata, MetadataContact, Order, OrderItem, OrderType,
     Pricing, Product, ProductFormat, UserChange)
 
-
-
 # Get the UserModel
 UserModel = get_user_model()
 
@@ -27,7 +25,16 @@ UserModel = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
-        exclude = ['password', 'first_name', 'last_name', 'email']
+        exclude = [
+            'password', 'first_name', 'last_name', 'email',
+            'is_staff', 'is_superuser', 'is_active', 'groups',
+            'user_permissions']
+
+
+class IdentitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Identity
+        exclude = ['sap_id', 'contract_accepted', 'is_public', 'user']
 
 
 class CopyrightSerializer(serializers.HyperlinkedModelSerializer):
@@ -57,52 +64,27 @@ class DataFormatSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class ExtractOrderItemSerializer(serializers.ModelSerializer):
-    """
-    Orderitem serializer for extract. Allows to upload file of orderitem.
-    """
-    extract_result = serializers.FileField()
-
-    class Meta:
-        model = OrderItem
-        fields = ['extract_result']
-
-    def update(self, instance, validated_data):
-        if instance.extract_result:
-            # deletes previous file in filesystem
-            instance.extract_result.delete()
-        instance.extract_result = validated_data.pop('extract_result')
-        instance.save()
-        instance.order.next_status_when_file_uploaded()
-        return instance
-
-
 class OrderTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderType
         fields = '__all__'
 
 
-class UserIdentitySerializer(serializers.ModelSerializer):
+class UserIdentitySerializer(UserSerializer):
     """
     Flattens User and Identity.
     """
-    user = UserSerializer(many=False)
+    identity = IdentitySerializer(many=False)
 
-    class Meta:
-        model = Identity
-        fields = '__all__'
-
-    def to_representation(self, obj):
+    def to_representation(self, instance):
         """Move fields from user to identity representation."""
-        representation = super().to_representation(obj)
-        user_representation = representation.pop('user')
-        for user_key in user_representation:
-            new_key = user_key
+        representation = super().to_representation(instance)
+        identity_representation = representation.pop('identity')
+        for identity_key in identity_representation:
+            new_key = identity_key
             if new_key in representation:
-                new_key = 'user_' + user_key
-            representation[new_key] = user_representation[user_key]
-
+                new_key = 'identity_' + identity_key
+            representation[new_key] = identity_representation[identity_key]
         return representation
 
 class MetadataIdentitySerializer(serializers.HyperlinkedModelSerializer):
@@ -216,7 +198,7 @@ class OrderSerializer(serializers.ModelSerializer):
         items_data = validated_data.pop('items', None)
         geom = validated_data.pop('geom', None)
         order = Order(**validated_data)
-        order.geom = Polygon(geom.coords[0], srid=2056)
+        order.geom = Polygon(geom.coords[0], srid=settings.DEFAULT_SRID)
         order.save()
         for item_data in items_data:
             item = OrderItem.objects.create(order=order, **item_data)
@@ -236,7 +218,7 @@ class OrderSerializer(serializers.ModelSerializer):
         geom = validated_data.pop('geom', None)
 
         if geom:
-            instance.geom = Polygon(geom.coords[0], srid=2056)
+            instance.geom = Polygon(geom.coords[0], srid=settings.DEFAULT_SRID)
 
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get('description', instance.description)
@@ -252,6 +234,69 @@ class OrderSerializer(serializers.ModelSerializer):
                 instance.set_price()
                 instance.save()
         return instance
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    """
+    Product serializer
+    """
+
+    pricing = serializers.StringRelatedField(
+        read_only=True)
+
+    class Meta:
+        model = Product
+        read_only_fields = ['pricing', 'label', 'provider', 'group']
+        exclude = ['status', 'order', 'thumbnail_link', 'ts', 'metadata']
+
+
+class ExtractOrderItemSerializer(OrderItemSerializer):
+    """
+    Orderitem serializer for extract. Allows to upload file of orderitem.
+    """
+    extract_result = serializers.FileField()
+    product = ProductSerializer(read_only=True)
+    data_format = serializers.StringRelatedField(read_only=True)
+
+    class Meta(OrderItemSerializer.Meta):
+        exclude = ['_price_currency', '_base_fee_currency', '_price', '_base_fee', 'order']
+        read_only_fields = [
+            'id', 'price', 'data_format', 'product', 'srid', 'last_download', 'price_status']
+
+    def update(self, instance, validated_data):
+        if instance.extract_result:
+            # deletes previous file in filesystem
+            instance.extract_result.delete()
+        instance.extract_result = validated_data.pop('extract_result')
+        instance.save()
+        instance.order.next_status_when_file_uploaded()
+        return instance
+
+
+class ExtractOrderSerializer(serializers.ModelSerializer):
+    """
+    Order serializer for extract.
+    """
+    order_type = serializers.SlugRelatedField(
+        queryset=OrderType.objects.all(),
+        slug_field='name',
+        help_text='Input the translated string value, for example "Privé"')
+    items = ExtractOrderItemSerializer(many=True)
+    client = UserIdentitySerializer()
+    invoice_contact = IdentitySerializer()
+    geom_srid = serializers.IntegerField()
+
+    class Meta:
+        model = Order
+        exclude = [
+            'date_downloaded', 'processing_fee_currency',
+            'total_without_vat_currency', 'part_vat_currency', 'total_with_vat_currency']
+        read_only_fields = [
+            'date_ordered', 'date_processed',
+            'processing_fee_currency', 'processing_fee',
+            'total_cost_currency', 'total_cost',
+            'part_vat_currency', 'part_vat',
+            'status']
 
 
 class PasswordResetSerializer(serializers.Serializer):
@@ -347,13 +392,6 @@ class DataFormatListSerializer(ProductFormatSerializer):
 
 
 class ProductDigestSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Product
-        exclude = ['ts']
-
-
-class ProductSerializer(serializers.HyperlinkedModelSerializer):
-    product_formats = DataFormatListSerializer(many=True)
     class Meta:
         model = Product
         exclude = ['ts']

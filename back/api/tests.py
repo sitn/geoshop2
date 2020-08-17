@@ -245,7 +245,7 @@ class OrderTests(APITestCase):
         url = reverse('extract_order')
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.data['count'], 1, 'Check that previous confirmed order is available')
+        self.assertEqual(response.data[0]['title'], 'Test 1734', 'Check that previous confirmed order is available')
 
 class UserChangeTests(APITestCase):
     """

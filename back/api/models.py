@@ -46,6 +46,7 @@ class Contact(AbstractIdentity):
     """
     belongs_to = models.ForeignKey(
         UserModel, on_delete=models.DO_NOTHING, verbose_name=_('belongs_to'))
+    sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
 
     class Meta:
         db_table = 'contact'
@@ -240,7 +241,7 @@ class PricingArea(models.Model):
     """
     name = models.CharField(_('name'), max_length=300, null=True)
     unit_price = MoneyField(_('price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
-    geom = models.GeometryField(_('geom'), srid=2056)
+    geom = models.GeometryField(_('geom'), srid=settings.DEFAULT_SRID)
     pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'), null=True)
 
     class Meta:
@@ -276,6 +277,7 @@ class Product(models.Model):
     label = models.CharField(_('label'), max_length=250, blank=True)
     status = models.CharField(_('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     group = models.ForeignKey('self', models.DO_NOTHING, verbose_name=_('group'), blank=True, null=True)
+    provider = models.CharField(_('provider'), max_length=30, default='SITN')
     pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'))
     order = models.BigIntegerField(_('order_index'), blank=True, null=True)
     thumbnail_link = models.CharField(
@@ -322,15 +324,8 @@ class Order(models.Model):
         _('part_vat'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
     total_with_vat = MoneyField(
         _('total_with_vat'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
-    geom = models.PolygonField(_('geom'), srid=2056)
+    geom = models.PolygonField(_('geom'), srid=settings.DEFAULT_SRID)
     client = models.ForeignKey(UserModel, models.DO_NOTHING, verbose_name=_('client'), blank=True)
-    order_contact = models.ForeignKey(
-        Identity,
-        models.DO_NOTHING,
-        verbose_name=_('order_contact'),
-        related_name='order_contact',
-        blank=True,
-        null=True)
     invoice_contact = models.ForeignKey(
         Identity,
         models.DO_NOTHING,
@@ -377,6 +372,7 @@ class Order(models.Model):
         self.total_with_vat = self.total_without_vat + self.part_vat
 
     def confirm(self):
+        """Customer's confirmations he wants to proceed with the order"""
         items = self.items.all()
         has_all_prices_calculated = True
         for item in items:
@@ -403,6 +399,10 @@ class Order(models.Model):
                 return
         self.status = Order.OrderStatus.PROCESSED
 
+    @property
+    def geom_srid(self):
+        return self.geom.srid
+
     def __str__(self):
         return '%s - %s' % (self.id, self.title)
 
@@ -421,6 +421,7 @@ class OrderItem(models.Model):
         Order, models.DO_NOTHING, related_name='items', verbose_name=_('order'), blank=True, null=True)
     product = models.ForeignKey(Product, models.DO_NOTHING, verbose_name=_('product'), blank=True, null=True)
     data_format = models.ForeignKey(DataFormat, models.DO_NOTHING, verbose_name=_('data_format'), blank=True, null=True)
+    srid = models.IntegerField(_('srid'), default=settings.DEFAULT_SRID)
     last_download = models.DateTimeField(_('last_download'), blank=True, null=True)
     price_status = models.CharField(
         _('price_status'), max_length=20, choices=PricingStatus.choices, default=PricingStatus.PENDING)
