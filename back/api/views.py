@@ -23,6 +23,7 @@ from .models import (
 
 from .serializers import (
     ContactSerializer, CopyrightSerializer, DocumentSerializer, DataFormatSerializer,
+    ExtractOrderSerializer,
     ExtractOrderItemSerializer, UserIdentitySerializer, MetadataIdentitySerializer,
     MetadataSerializer, MetadataContactSerializer, OrderDigestSerializer,
     OrderSerializer, OrderItemSerializer, OrderTypeSerializer,
@@ -75,8 +76,7 @@ class CurrentUserView(views.APIView):
 
     def get(self, request):
         user = request.user
-        identity = Identity.objects.filter(user_id=user.id).first()
-        ser = UserIdentitySerializer(identity, context={'request': request})
+        ser = UserIdentitySerializer(user, context={'request': request})
         return Response(ser.data)
 
 
@@ -244,9 +244,10 @@ class ExtractOrderView(generics.ListAPIView):
     """
     API endpoint that allows Orders to be fetched by Extract
     """
-    serializer_class = OrderSerializer
+    serializer_class = ExtractOrderSerializer
     permission_classes = [ExtractGroupPermission]
     queryset = Order.objects.filter(status=Order.OrderStatus.READY).all()
+    pagination_class = None
 
 
 class ExtractOrderItemView(generics.UpdateAPIView):
@@ -260,8 +261,7 @@ class ExtractOrderItemView(generics.UpdateAPIView):
     http_method_names = ['put']
 
     def put(self, request, *args, **kwargs):
-        """
-        """
+        """Only allows to upload a file and destroys existing one"""
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             instance = self.get_object()
