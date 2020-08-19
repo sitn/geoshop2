@@ -18,5 +18,4 @@ RUN pip3 install -r requirements.txt
 RUN export $(egrep -v '^#' .env | xargs) && \
     python manage.py migrate && \
     python manage.py collectstatic --noinput && \
-    python manage.py compilemessages --locale=fr && \
-    python manage.py fixturize
+    python manage.py compilemessages --locale=fr
