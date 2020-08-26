@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {ElementRef, Injectable} from '@angular/core';
 import {ConfigService} from 'src/app/_services/config.service';
 import {MatSnackBar, MatSnackBarRef, SimpleSnackBar} from '@angular/material/snack-bar';
 
@@ -28,6 +28,7 @@ import Projection from 'ol/proj/Projection';
 import {boundingExtent, buffer, Extent, getArea} from 'ol/extent';
 import MultiPoint from 'ol/geom/MultiPoint';
 import {fromLonLat} from 'ol/proj';
+import KML from 'ol/format/KML';
 
 // @ts-ignore
 import Geocoder from 'ol-geocoder/dist/ol-geocoder.js';
@@ -41,7 +42,6 @@ import {IBasemap} from '../_models/IConfig';
 import {AppState, selectOrder} from '../_store';
 import {Store} from '@ngrx/store';
 import {updateOrder} from '../_store/cart/cart.action';
-import {KML} from 'ol/format';
 import {DragAndDropEvent} from 'ol/interaction/DragAndDrop';
 
 @Injectable({
@@ -164,6 +164,8 @@ export class MapService {
     if (this.snackBarRef) {
       this.snackBarRef.dismiss();
     }
+
+    this.store.dispatch(updateOrder({geom: ''}));
   }
 
   public toggleTracking() {
@@ -342,12 +344,23 @@ export class MapService {
     });
 
     dragAndDropInteraction.on('addfeatures', (event: DragAndDropEvent) => {
-      console.log(event.features);
+      console.log(event);
+
+      if (!event.file.name.endsWith('kml') || event.features.length === 0) {
+        this.snackBar.open(`Le fichier "${event.file.name}" ne contient aucune donnée exploitable. Le format supporté est le "kml".`, 'Ok', {
+          panelClass: 'notification-info'
+        });
+
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
 
       if (event.features.length > 0) {
         const feature = new Feature(event.features[0].getGeometry());
         this.addFeatureFromGeocoderToDrawing(feature);
       }
+
     });
 
     return dragAndDropInteraction;

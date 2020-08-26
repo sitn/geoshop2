@@ -28,12 +28,14 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {OverlayContainer} from '@angular/cdk/overlay';
 import {ActivatedRoute} from '@angular/router';
 import {CartEffects} from './_store/cart/cart.effects';
+import {CommonModule} from '@angular/common';
 
 export function initializeApp(configService: ConfigService) {
   return () => configService.load();
 }
 
 const MODULES = [
+  CommonModule,
   MatRippleModule,
   MatBadgeModule,
   MatMenuModule,

@@ -20,31 +20,4 @@ export class DialogMetadataComponent implements OnInit {
 
     ngOnInit(): void {
     }
-
-    openLegend(url: string) {
-        this.dialog.open(DialogLegendComponent, {
-            data: url,
-            autoFocus: false,
-            position: {right: '0'}
-        });
-    }
-
-}
-
-@Component({
-    selector: 'gs2-dialog-legend',
-    template: `<img [src]="data" alt="Légende">`,
-    styles: [`
-        img {
-            background: white;
-        }
-    `]
-})
-export class DialogLegendComponent implements OnInit {
-
-    constructor(@Inject(MAT_DIALOG_DATA) public data: string) {
-    }
-
-    ngOnInit(): void {
-    }
 }

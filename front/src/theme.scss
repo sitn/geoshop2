@@ -221,6 +221,7 @@ $primary: map-get($theme, primary);
 $accent: map-get($theme, accent);
 $warning: map-get($theme, warn);
 $dark: #393939;
+$info: #4177F6;
 
 .theme-alternate {
   @include angular-material-theme($altTheme);
@@ -240,7 +241,8 @@ $dark: #393939;
   }
 
   .order-item-container,
-  .list-group-item {
+  .list-group-item,
+  .items-container {
     .item-price {
       color: mat-color($primary);
     }
@@ -315,7 +317,6 @@ $dark: #393939;
 
 .as-split-gutter {
   background-color: mat-color($primary) !important;
-  flex-basis: 5px !important;
 }
 
 #geocoder-container {
@@ -333,6 +334,18 @@ $dark: #393939;
   }
 }
 
+.notification-info {
+  &.mat-snack-bar-container {
+    background: $info;
+    color: white;
+
+    .mat-button {
+      background: mat-color($primary);
+      color: white;
+    }
+  }
+}
+
 .notification-error {
   &.mat-snack-bar-container {
     background: mat-color($warning);
@@ -346,13 +359,14 @@ $dark: #393939;
 }
 
 .order-item-container,
-.list-group-item {
+.list-group-item,
+.items-container {
   &:nth-child(even) {
     background-color: white;
   }
 
   &:nth-child(odd) {
-    background-color: mat-color($accent, lighter);
+    background-color: #eee;
   }
 }
 
@@ -376,4 +390,12 @@ $dark: #393939;
   .mat-badge-content {
     font-family: 'Roboto';
   }
+}
+
+.mat-dialog-container {
+  background: #eee;
+}
+
+.mat-menu-content:not(:empty) {
+  padding: 8px;
 }

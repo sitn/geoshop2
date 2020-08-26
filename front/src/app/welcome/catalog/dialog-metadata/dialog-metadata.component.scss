@@ -5,13 +5,19 @@
   flex-direction: column;
   overflow: hidden;
 
+  .close-button {
+    position: fixed;
+    right: 18.5%;
+    top: 3%;
+    z-index: 10;
+  }
+
   .logo-image {
     height: 50px;
     width: 180px;
     position: fixed;
-    right: 20%;
-    top: 5%;
-    z-index: 10;
+    right: 22%;
+    bottom: 8%;
   }
 
   .contacts-container {
@@ -19,14 +25,20 @@
     margin: 10px 0;
 
     .person-container {
-      display: grid;
-      grid-template-rows: 1fr 1fr;
-      grid-template-columns: 1fr 1fr;
-      margin: 0 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
 
       .flex-row {
-        grid-row: 1 / span 2;
-        grid-column: 2;
+        flex: 1;
+      }
+
+      .line-height-36 {
+        line-height: 36px;
+      }
+
+      .m-r-5 {
+        margin-right: 5px;
       }
     }
   }
@@ -40,16 +52,22 @@
     .mat-card-content {
       flex: 1;
       overflow-y: auto;
-
-      img {
-        margin-left: 25%;
-        margin-bottom: 5px;
-      }
     }
   }
 
   .header-image {
     background-size: cover;
+  }
+
+  .image-center-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 16px;
+
+    img {
+      width: 100%;
+    }
   }
 
   .long-description {
