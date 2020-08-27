@@ -9,3 +9,12 @@ services:
     command: "gunicorn wsgi -b :8000"
     ports:
       - "5004:8000"
+
+  front:
+    image: front
+    build:
+      context: ./front/
+    ports:
+      - "5005:80"
+    volumes:
+      - ./logs:/usr/local/apache2/logs
