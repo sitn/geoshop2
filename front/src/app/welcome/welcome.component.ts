@@ -35,10 +35,6 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    const user = this.user$.getValue();
-    if (user && user.tokenRefresh) {
-      this.store.dispatch(fromAuth.refreshToken({token: user.tokenRefresh}));
-    }
   }
 
   ngOnDestroy(): void {

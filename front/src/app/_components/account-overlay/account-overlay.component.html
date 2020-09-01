@@ -1,7 +1,7 @@
 <ng-container *ngIf="isLoggedIn$|async">
   <div class="flex-row name-container">
     <mat-icon>face</mat-icon>
-    <span>{{(user$|async)?.first_name && (user$|async)?.last_name ?
+    <span>{{(user$|async) && (user$|async)?.first_name && (user$|async)?.last_name ?
       (user$|async)?.first_name + ' ' + (user$|async)?.last_name :
       (user$|async)?.username}}</span>
   </div>
