@@ -1,16 +1,21 @@
-import {Component} from '@angular/core';
-import {AppState, selectOrder, selectProductTotal} from './_store';
+import {Component, OnDestroy} from '@angular/core';
+import {AppState, getUser, selectOrder, selectProductTotal} from './_store';
 import {Store} from '@ngrx/store';
 import {NavigationEnd, Router} from '@angular/router';
 import {filter} from 'rxjs/operators';
 import {combineLatest} from 'rxjs';
+import {refreshToken} from './_store/auth/auth.action';
+import * as fromAuth from './_store/auth/auth.action';
 
 @Component({
   selector: 'gs2-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements OnDestroy {
+
+  private refreshTokenInterval: number;
+
   title = 'front';
   subTitle = '';
 
@@ -35,5 +40,25 @@ export class AppComponent {
           }
         }
       });
+
+    this.store.select(getUser).subscribe(user => {
+      if (this.refreshTokenInterval) {
+        clearInterval(this.refreshTokenInterval);
+      }
+
+      if (user && user.tokenRefresh) {
+        this.refreshTokenInterval = setInterval(() => {
+          if (user.tokenRefresh) {
+            this.store.dispatch(fromAuth.refreshToken({token: user.tokenRefresh}));
+          }
+        }, 120000);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.refreshTokenInterval) {
+      clearInterval(this.refreshTokenInterval);
+    }
   }
 }

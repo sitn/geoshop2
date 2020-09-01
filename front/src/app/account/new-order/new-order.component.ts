@@ -125,10 +125,11 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       company_name: new FormControl(this.currentOrder.orderContact?.company_name, Validators.required),
       first_name: new FormControl(this.currentOrder.orderContact?.first_name, Validators.required),
       last_name: new FormControl(this.currentOrder.orderContact?.last_name, Validators.required),
-      email: new FormControl(this.currentOrder.orderContact?.email, Validators.compose([Validators.required, Validators.email])),
+      email: new FormControl(this.currentOrder.orderContact?.email, Validators.compose(
+        [Validators.required, Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$')])),
       phone: new FormControl(this.currentOrder.orderContact?.phone, Validators.pattern(PHONE_REGEX)),
       street: new FormControl(this.currentOrder.orderContact?.street, Validators.required),
-      street2: new FormControl(this.currentOrder.orderContact?.street2, Validators.required),
+      street2: new FormControl(this.currentOrder.orderContact?.street2),
       postcode: new FormControl(this.currentOrder.orderContact?.postcode, Validators.required),
       city: new FormControl(this.currentOrder.orderContact?.city, Validators.required),
       country: new FormControl(this.currentOrder.orderContact?.country, Validators.required),
@@ -184,7 +185,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.step2FormGroup.get('street2')?.setValue('');
     this.step2FormGroup.get('postcode')?.setValue('');
     this.step2FormGroup.get('city')?.setValue('');
-    this.step2FormGroup.get('country')?.setValue('');
+    this.step2FormGroup.get('country')?.setValue('Suisse');
   }
 
   updateDescription(orderType: IOrderType) {
@@ -218,7 +219,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       this.step2FormGroup.get('first_name')?.updateValueAndValidity();
       this.step2FormGroup.get('last_name')?.clearValidators();
       this.step2FormGroup.get('last_name')?.updateValueAndValidity();
-      this.step2FormGroup.get('email')?.clearValidators();
+      this.step2FormGroup.get('email')?.setValidators(Validators.compose([Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$')]));
       this.step2FormGroup.get('email')?.updateValueAndValidity();
       this.step2FormGroup.get('phone')?.clearValidators();
       this.step2FormGroup.get('phone')?.updateValueAndValidity();
@@ -242,13 +243,12 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       this.step2FormGroup.get('first_name')?.updateValueAndValidity();
       this.step2FormGroup.get('last_name')?.setValidators(Validators.required);
       this.step2FormGroup.get('last_name')?.updateValueAndValidity();
-      this.step2FormGroup.get('email')?.setValidators(Validators.compose([Validators.required, Validators.email]));
+      this.step2FormGroup.get('email')?.setValidators(Validators.compose([Validators.required, Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$')]));
       this.step2FormGroup.get('email')?.updateValueAndValidity();
       this.step2FormGroup.get('phone')?.setValidators(Validators.pattern(PHONE_REGEX));
       this.step2FormGroup.get('phone')?.updateValueAndValidity();
       this.step2FormGroup.get('street')?.setValidators(Validators.required);
       this.step2FormGroup.get('street')?.updateValueAndValidity();
-      this.step2FormGroup.get('street2')?.setValidators(Validators.required);
       this.step2FormGroup.get('street2')?.updateValueAndValidity();
       this.step2FormGroup.get('postcode')?.setValidators(Validators.required);
       this.step2FormGroup.get('postcode')?.updateValueAndValidity();
