@@ -32,6 +32,7 @@ from .serializers import (
     ProductFormatSerializer, RegisterSerializer, UserChangeSerializer,
     VerifyEmailSerializer)
 
+from .faker import generate_fake_order
 from .filters import FullTextSearchFilter
 
 from .permissions import ExtractGroupPermission
@@ -238,6 +239,21 @@ class OrderViewSet(MultiSerializerViewSet):
         order.confirm()
         order.save()
         return Response(status=status.HTTP_202_ACCEPTED)
+
+
+class ExtractOrderFake(views.APIView):
+    """
+    Generates a fake order for testing purposes
+    """
+    permission_classes = [ExtractGroupPermission]
+
+    def get(self, request):
+        """
+        Generates a fake order for testing purposes
+        """
+        order = generate_fake_order()
+        order_data = OrderSerializer(order).data
+        return Response(order_data, status=status.HTTP_201_CREATED)
 
 
 class ExtractOrderView(generics.ListAPIView):
