@@ -30,6 +30,7 @@ router.register(r'product', views.ProductViewSet)
 router.register(r'productformat', views.ProductFormatViewSet)
 router.register(r'pricing', views.PricingViewSet)
 router.register_additional_route_to_root('extract/order/', 'extract_order')
+router.register_additional_route_to_root('extract/order/fake', 'extract_order_fake')
 router.register_additional_route_to_root('extract/orderitem/', 'extract_orderitem')
 router.register_additional_route_to_root('token', 'token_obtain_pair')
 router.register_additional_route_to_root('token/refresh', 'token_refresh')
@@ -57,6 +58,7 @@ urlpatterns = [
             name='account_confirm_email'),
     path('auth/register/', views.RegisterView.as_view(), name='auth_register'),
     path('extract/order/', views.ExtractOrderView.as_view(), name='extract_order'),
+    path('extract/order/fake/', views.ExtractOrderFake.as_view(), name='extract_order_fake'),
     path('extract/orderitem/', views.ExtractOrderItemView.as_view(), name='extract_orderitem'),
     re_path(r'^extract/orderitem/(?P<pk>[0-9]+)',
             views.ExtractOrderItemView.as_view(), name='extract_orderitem'),

@@ -418,7 +418,7 @@ class OrderItem(models.Model):
         IMPORTED = 'IMPORTED', _('Imported')
 
     order = models.ForeignKey(
-        Order, models.DO_NOTHING, related_name='items', verbose_name=_('order'), blank=True, null=True)
+        Order, models.CASCADE, related_name='items', verbose_name=_('order'), blank=True, null=True)
     product = models.ForeignKey(Product, models.DO_NOTHING, verbose_name=_('product'), blank=True, null=True)
     data_format = models.ForeignKey(DataFormat, models.DO_NOTHING, verbose_name=_('data_format'), blank=True, null=True)
     srid = models.IntegerField(_('srid'), default=settings.DEFAULT_SRID)
