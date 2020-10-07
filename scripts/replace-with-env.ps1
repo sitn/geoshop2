@@ -16,7 +16,7 @@ Function Replace-With-Env {
         [Parameter(Mandatory)]
         [string]$OutFile
     )
-    $file_content = (Get-Content -path $InFile) -join "`n"
+    $file_content = (Get-Content -Encoding "utf8" -path $InFile) -join "`n"
     $file_content = [regex]::Replace($file_content,'\$\{([A-Z_]+)\}',$callback)
-    [IO.File]::WriteAllLines($OutFile, $file_content)
+    [IO.File]::WriteAllText($OutFile, $file_content)
 }
