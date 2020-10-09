@@ -45,4 +45,6 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# templated files
 httpd.conf
+src/assets/configs/config.json

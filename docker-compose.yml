@@ -5,7 +5,9 @@ services:
     image: api
     build:
       context: ./back/
-    env_file: ./back/.env
+      args:
+        ENV_FILE: ${ENV_FILE}
+    env_file: ./back/${ENV_FILE}
     command: "gunicorn wsgi -b :8000"
     ports:
       - "5004:8000"
@@ -16,5 +18,4 @@ services:
       context: ./front/
     ports:
       - "5005:80"
-    volumes:
-      - ./logs:/usr/local/apache2/logs
+

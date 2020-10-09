@@ -178,6 +178,7 @@ REST_FRAMEWORK = {
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 FORCE_SCRIPT_NAME = os.environ.get('ROOTURL', '')
 
 STATIC_URL = FORCE_SCRIPT_NAME + '/static/'

@@ -114,25 +114,14 @@ Then open a browser and go to [Geoshop2](http://localhost:4200)
 
 ## Deploy
 
-collect static files:
+Create an `env.prod` file base on `env.sample`.
+
+### Database setup
+
+Migrate database from old geoshop. This is not covered by documentation.
+
+### Application deployment
 
 ```powershell
-python .\manage.py collectstatic
-```
-
-configure apache
-
-```apache
-Alias /back_enpoint/static "/path/to/folder/back/static/"
-<Directory "/path/to/folder/back/static/">
-    Require all granted
-</Directory>
-
-WSGIScriptAlias /back_enpoint /path/to/file/back/apache/app.wsgi
-
-<Directory /path/to/file/back/apache>
-    <Files app.wsgi>
-		    Require all granted
-	  </Files>
-</Directory>
+.\scripts\4_deploy_prod.ps1
 ```
