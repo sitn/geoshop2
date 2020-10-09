@@ -15,20 +15,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': os.environ.get('LOGGING_LEVEL', 'WARNING'),
-    },
-}
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
@@ -146,7 +132,7 @@ LOCALE_PATHS = [
     './api/locale',
 ]
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Zurich'
 
 USE_I18N = True
 
@@ -183,7 +169,7 @@ FORCE_SCRIPT_NAME = os.environ.get('ROOTURL', '')
 
 STATIC_URL = FORCE_SCRIPT_NAME + '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-MEDIA_ROOT = os.path.join(BASE_DIR, 'files')
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', 'files')
 MEDIA_URL = FORCE_SCRIPT_NAME + '/files/'
 
 if os.environ.get('GDAL_IN_VENV', None) == "True":

@@ -86,6 +86,12 @@ Translations can be generated with:
 python manage.py compilemessages
 ```
 
+### Run tests
+
+```powershell
+python manage.py test api
+```
+
 ### Frontend
 
 Install the current LTS version of [Nodejs](https://nodejs.org/en/).

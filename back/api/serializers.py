@@ -47,6 +47,7 @@ class ContactSerializer(serializers.HyperlinkedModelSerializer):
     belongs_to = serializers.HiddenField(
         default=serializers.CurrentUserDefault(),
     )
+
     class Meta:
         model = Contact
         fields = '__all__'
@@ -87,6 +88,7 @@ class UserIdentitySerializer(UserSerializer):
             representation[new_key] = identity_representation[identity_key]
         return representation
 
+
 class MetadataIdentitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Identity
@@ -100,6 +102,7 @@ class MetadataIdentitySerializer(serializers.HyperlinkedModelSerializer):
 
 class MetadataContactSerializer(serializers.HyperlinkedModelSerializer):
     contact_person = MetadataIdentitySerializer(read_only=True)
+
     class Meta:
         model = MetadataContact
         fields = [
@@ -107,6 +110,8 @@ class MetadataContactSerializer(serializers.HyperlinkedModelSerializer):
             'metadata_role']
 
 # TODO: Test this, check for passing contexts ! Check public identities
+
+
 class MetadataSerializer(serializers.HyperlinkedModelSerializer):
     contact_persons = serializers.SerializerMethodField()
     modified_user = serializers.StringRelatedField(read_only=True)
@@ -123,7 +128,7 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
         return [
             MetadataContactSerializer(m, context={
                 'request': self.context['request']
-                }).data for m in qset]
+            }).data for m in qset]
 
 
 class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):
@@ -133,20 +138,22 @@ class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):
     orders and performance can be impacted.
     """
     order_type = serializers.StringRelatedField()
+
     class Meta:
         model = Order
         exclude = [
             'geom', 'date_downloaded', 'client',
             'processing_fee_currency', 'processing_fee',
             'part_vat_currency', 'part_vat',
-            'order_contact', 'invoice_contact']
+            'invoice_contact']
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
     """
     A Basic serializer for order items
     """
-    price = MoneyField(max_digits=14, decimal_places=2, required=False, allow_null=True, read_only=True)
+    price = MoneyField(max_digits=14, decimal_places=2,
+                       required=False, allow_null=True, read_only=True)
     data_format = serializers.SlugRelatedField(
         required=False,
         queryset=DataFormat.objects.all(),
@@ -158,8 +165,9 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        exclude = ['_price_currency', '_price', '_base_fee_currency', '_base_fee', 'last_download']
-        read_only_fields = ['price_status', 'order', 'extract_result']
+        exclude = ['_price_currency', '_price', '_base_fee_currency',
+                   '_base_fee', 'last_download', 'extract_result']
+        read_only_fields = ['price_status', 'order']
 
 
 class OrderItemTextualSerializer(OrderItemSerializer):
@@ -221,7 +229,8 @@ class OrderSerializer(serializers.ModelSerializer):
             instance.geom = Polygon(geom.coords[0], srid=settings.DEFAULT_SRID)
 
         instance.title = validated_data.get('title', instance.title)
-        instance.description = validated_data.get('description', instance.description)
+        instance.description = validated_data.get(
+            'description', instance.description)
 
         instance.save()
         for item_data in items_data:
@@ -259,7 +268,8 @@ class ExtractOrderItemSerializer(OrderItemSerializer):
     data_format = serializers.StringRelatedField(read_only=True)
 
     class Meta(OrderItemSerializer.Meta):
-        exclude = ['_price_currency', '_base_fee_currency', '_price', '_base_fee', 'order']
+        exclude = ['_price_currency', '_base_fee_currency',
+                   '_price', '_base_fee', 'order']
         read_only_fields = [
             'id', 'price', 'data_format', 'product', 'srid', 'last_download', 'price_status']
 
@@ -270,6 +280,7 @@ class ExtractOrderItemSerializer(OrderItemSerializer):
         instance.extract_result = validated_data.pop('extract_result')
         instance.save()
         instance.order.next_status_when_file_uploaded()
+        instance.order.save()
         return instance
 
 
@@ -309,7 +320,8 @@ class PasswordResetSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         # Create PasswordResetForm with the serializer
-        self.reset_form = self.password_reset_form_class(data=self.initial_data)
+        self.reset_form = self.password_reset_form_class(
+            data=self.initial_data)
         if not self.reset_form.is_valid():
             raise serializers.ValidationError(self.reset_form.errors)
 
@@ -379,6 +391,7 @@ class ProductFormatSerializer(serializers.ModelSerializer):
         queryset=DataFormat.objects.all(),
         slug_field='name',
         label='format')
+
     class Meta:
         model = ProductFormat
         fields = '__all__'
@@ -386,6 +399,7 @@ class ProductFormatSerializer(serializers.ModelSerializer):
 
 class DataFormatListSerializer(ProductFormatSerializer):
     product = None
+
     class Meta:
         model = ProductFormat
         exclude = ['product']
@@ -417,7 +431,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if data['password1'] != data['password2']:
-            raise serializers.ValidationError(_("The two password fields didn't match."))
+            raise serializers.ValidationError(
+                _("The two password fields didn't match."))
         return data
 
     def create(self, validated_data):
