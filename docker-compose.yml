@@ -10,12 +10,12 @@ services:
     env_file: ./back/${ENV_FILE}
     command: "gunicorn wsgi -b :8000"
     ports:
-      - "5004:8000"
+      - "${DOCKER_BACK_PORT}:8000"
 
   front:
     image: front
     build:
       context: ./front/
     ports:
-      - "5005:80"
+      - "${DOCKER_FRONT_PORT}:80"
 

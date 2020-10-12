@@ -181,8 +181,10 @@ class OrderItemViewSet(viewsets.ModelViewSet):
         if instance.extract_result:
             instance.last_download = timezone.now()
             instance.save()
+            file_url = getattr(settings, 'DOCUMENT_BASE_URL') + getattr(
+                settings, 'FORCE_SCRIPT_NAME') + instance.extract_result.url
             return Response({
-                'download_link' : instance.extract_result.url})
+                'download_link' : file_url})
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
@@ -265,9 +267,11 @@ class ExtractOrderFake(views.APIView):
         """
         Generates a fake order for testing purposes
         """
-        order = generate_fake_order()
-        order_data = OrderSerializer(order).data
-        return Response(order_data, status=status.HTTP_201_CREATED)
+        generate_fake_order()
+        return Response(
+            {"detail": _("Fake orders have been generated")},
+            status=status.HTTP_201_CREATED)
+
 
 
 class ExtractOrderView(generics.ListAPIView):

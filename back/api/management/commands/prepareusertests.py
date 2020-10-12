@@ -14,6 +14,10 @@ class Command(BaseCommand):
     This is a manage.py command that sets up basic objects allowing to proceed user tests.
     """
     def handle(self, *args, **options):
+        orders_ready = Order.objects.filter(status=Order.OrderStatus.READY).all()
+        for order in orders_ready:
+            order.status = Order.OrderStatus.ARCHIVED
+            order.save()
         rincevent = UserModel.objects.create_user(
             username='rincevent', password='rincevent')
         rincevent.identity.email = os.environ.get('EMAIL_TEST_TO', 'admin@admin.com')
@@ -132,5 +136,5 @@ class Command(BaseCommand):
         order2.save()
         order3.set_price()
         order3.confirm()
-        order3.invoice_contact = mmi.identity
+        order3.invoice_contact = contact1
         order3.save()
