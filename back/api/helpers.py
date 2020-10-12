@@ -1,6 +1,6 @@
 import os
 import uuid
-from datetime import datetime
+from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 
 @deconstructible
@@ -13,7 +13,7 @@ class RandomFileName(object):
         self.path_suffix = path_suffix
 
     def __call__(self, _, filename):
-        extension = os.path.splitext(filename)[1]
-        today = datetime.today()
+        today = timezone.now()
         current_path = os.path.join(self.path_suffix, str(today.year), str(today.month), "{}{}")
-        return current_path.format(uuid.uuid4(), extension)
+        first_part = str(uuid.uuid4())[0:9]
+        return current_path.format(first_part, filename)

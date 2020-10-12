@@ -4,6 +4,7 @@ from django.core.mail import send_mail
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
 from django.utils.translation import gettext_lazy as _
@@ -170,6 +171,19 @@ class OrderItemViewSet(viewsets.ModelViewSet):
         response = super(OrderItemViewSet, self).destroy(request, *args, **kwargs)
         order.set_price()
         return response
+
+    @action(detail=True, methods=['get'])
+    def download_link(self, request, pk=None):
+        """
+        Returns the download link
+        """
+        instance = self.get_object()
+        if instance.extract_result:
+            instance.last_download = timezone.now()
+            instance.save()
+            return Response({
+                'download_link' : instance.extract_result.url})
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class OrderTypeViewSet(viewsets.ModelViewSet):

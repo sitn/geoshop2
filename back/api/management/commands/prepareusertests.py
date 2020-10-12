@@ -1,6 +1,6 @@
 import os
 import copy
-import datetime
+from django.utils import timezone
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
@@ -109,7 +109,7 @@ class Command(BaseCommand):
             client=rincevent,
             geom=order_geom,
             invoice_reference='Dossier n°545454',
-            date_ordered=datetime.datetime.now())
+            date_ordered=timezone.now())
         order1.save()
         order2 = copy.copy(order1)
         order2.pk = None
