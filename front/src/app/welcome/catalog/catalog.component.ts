@@ -1,6 +1,7 @@
 import {Component, OnInit, ElementRef, ViewChild} from '@angular/core';
 import {IProduct, Product} from 'src/app/_models/IProduct';
 import {ApiService} from 'src/app/_services/api.service';
+import {ConfigService} from 'src/app/_services/config.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogMetadataComponent} from './dialog-metadata/dialog-metadata.component';
 import {FormControl} from '@angular/forms';
@@ -32,11 +33,13 @@ export class CatalogComponent implements OnInit {
   // Filtering
   catalogInputControl = new FormControl('');
 
+  mediaUrl = '';
   constructor(private apiService: ApiService,
               public dialog: MatDialog,
               private store: Store<AppState>,
               private elRef: ElementRef,
-              private snackBar: MatSnackBar) {
+              private snackBar: MatSnackBar,
+              private configService: ConfigService) {
 
     const batchMap = this.offset.pipe(
       throttleTime(500),
@@ -45,6 +48,8 @@ export class CatalogComponent implements OnInit {
         return {...acc, ...batch};
       }, {})
     );
+
+    this.mediaUrl = this.configService.config.mediaUrl;
 
     this.infinite = merge(
       batchMap.pipe(map(v => Object.values(v))),

@@ -1,4 +1,5 @@
 import {Component, ElementRef, Input, OnInit} from '@angular/core';
+import {ConfigService} from 'src/app/_services/config.service';
 import {MapService} from '../../_services/map.service';
 import {IBasemap} from 'src/app/_models/IConfig';
 import {FormControl, FormGroup} from '@angular/forms';
@@ -59,7 +60,8 @@ export class MapComponent implements OnInit {
     return this.formGeocoder.get('search');
   }
 
-  constructor(private mapService: MapService) {
+  constructor(private mapService: MapService,
+              private configService: ConfigService) {
   }
 
   ngOnInit(): void {
@@ -89,7 +91,7 @@ export class MapComponent implements OnInit {
 
           for (const feature of features) {
             const categoryId = feature.get('layer_name');
-            if (!categoryId) {
+            if (this.configService.config.geocoderLayers.indexOf(categoryId) < 0) {
               continue;
             }
 

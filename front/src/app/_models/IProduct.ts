@@ -7,6 +7,7 @@ export interface IProduct {
   order: number;
   metadata?: string;
   group: any;
+  thumbnail_link: string;
 }
 
 export class Product {
@@ -19,6 +20,7 @@ export class Product {
    */
   public readonly metadata: string;
   public readonly group: any;
+  public readonly thumbnail_link: string;
 
   public metadataObject: IMetadata;
 
