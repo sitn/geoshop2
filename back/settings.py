@@ -181,7 +181,7 @@ CSRF_TRUSTED_ORIGINS = os.environ["ALLOWED_HOST"].split(",")
 CORS_ORIGIN_WHITELIST = [
     os.environ["FRONT_PROTOCOL"] + '://' + os.environ["FRONT_URL"],
 ]
-DEFAULT_PRODUCT_THUMBNAIL_URL = 'api/default_product_thumbnail.png'
-DEFAULT_METADATA_IMAGE_URL = 'api/default_metadata_image.png'
+DEFAULT_PRODUCT_THUMBNAIL_URL = 'default_product_thumbnail.png'
+DEFAULT_METADATA_IMAGE_URL = 'default_metadata_image.png'
 AUTO_LEGEND_URL = os.environ.get('AUTO_LEGEND_URL', '')
 DEFAULT_SRID = 2056

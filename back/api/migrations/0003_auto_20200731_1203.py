@@ -13,17 +13,17 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='product',
             name='thumbnail',
-            field=models.URLField(default='/geoshop2_dev/static/default_product_thumbnail.png', verbose_name='thumbnail'),
+            field=models.URLField(default='default_product_thumbnail.png', verbose_name='thumbnail'),
         ),
         migrations.AlterField(
             model_name='document',
             name='link',
-            field=models.URLField(default='/geoshop2_dev/static/default_product_thumbnail.png', help_text='Please complete the above URL', verbose_name='link'),
+            field=models.URLField(default='default_product_thumbnail.png', help_text='Please complete the above URL', verbose_name='link'),
         ),
         migrations.AlterField(
             model_name='metadata',
             name='image_link',
-            field=models.URLField(default='/geoshop2_dev/static/default_metadata_image.png', verbose_name='image_link'),
+            field=models.URLField(default='default_metadata_image.png', verbose_name='image_link'),
         ),
         migrations.AlterField(
             model_name='orderitem',
