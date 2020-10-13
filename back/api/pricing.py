@@ -1,7 +1,11 @@
+import logging
 from django.contrib.gis.db.models.functions import Area, Intersection
 from django.db.models import ExpressionWrapper, F, Sum
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money
+
+LOGGER = logging.getLogger(__name__)
+
 
 class ProductPriceCalculator():
     """
@@ -16,8 +20,14 @@ class ProductPriceCalculator():
         """
         pricing_instance = kwargs.get('pricing_instance')
         method_name = '_get_{}_price'.format(pricing_instance.pricing_type.lower())
-        method = getattr(cls, method_name, lambda: '{} is not defined'.format(method_name))
+        method = getattr(cls, method_name, cls._get_undefined_price)
         return method(**kwargs)
+
+    @classmethod
+    def _get_undefined_price(cls, **kwargs):
+        pricing_instance = kwargs.get('pricing_instance')
+        LOGGER.error('%s PRICE IS NOT DEFINED', pricing_instance.pricing_type.lower())
+        return cls._get_manual_price(**kwargs)
 
     @staticmethod
     def _get_free_price(**kwargs):
@@ -25,8 +35,8 @@ class ProductPriceCalculator():
 
     @staticmethod
     def _get_single_price(**kwargs):
-        unit_price = kwargs.get('unit_price')
-        return unit_price
+        pricing_instance = kwargs.get('pricing_instance')
+        return pricing_instance.unit_price
 
     @staticmethod
     def _get_by_object_number_price(**kwargs):
@@ -80,4 +90,5 @@ class ProductPriceCalculator():
 
     @staticmethod
     def _get_manual_price(**kwargs):
+        LOGGER.error('MANUAL PRICE NOT DEFINED YET')
         return None

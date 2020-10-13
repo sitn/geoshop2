@@ -327,7 +327,7 @@ class Order(models.Model):
     geom = models.PolygonField(_('geom'), srid=settings.DEFAULT_SRID)
     client = models.ForeignKey(UserModel, models.DO_NOTHING, verbose_name=_('client'), blank=True)
     invoice_contact = models.ForeignKey(
-        Identity,
+        Contact,
         models.DO_NOTHING,
         verbose_name=_('invoice_contact'),
         related_name='invoice_contact',
