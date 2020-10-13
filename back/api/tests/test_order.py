@@ -168,3 +168,7 @@ class OrderTests(APITestCase):
         url = reverse('orderitem-download-link', kwargs={'pk':order_item_id})
         response = self.client.get(url)
         self.assertIsNotNone(response.data['download_link'], 'Check file is visible for user')
+
+        # check if file has been downloaded
+        order_item = OrderItem.objects.get(pk=order_item_id)
+        self.assertIsNotNone(order_item.last_download, 'Check if theres a last_download date')
