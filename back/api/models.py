@@ -188,7 +188,7 @@ class Pricing(models.Model):
     For free products, set base_fee and unit_price both to 0.
     For unique price set base_fee to desired amount and unit_price to 0.
     For price based on area, provide unit_price
-    For price base on a PricingArea, create the princing layer and link it to pricing_layer field.
+    For price base on a PricingGeometry, create the princing layer and link it to pricing_layer field.
     """
     class PricingType(models.TextChoices):
         FREE = 'FREE', _('Free')
@@ -235,7 +235,7 @@ class Pricing(models.Model):
         return '%s - %s' % (self.id, self.name)
 
 
-class PricingArea(models.Model):
+class PricingGeometry(models.Model):
     """
     Areas defining prices must be grouped by name.
     """

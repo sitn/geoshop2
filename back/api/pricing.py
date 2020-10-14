@@ -41,16 +41,16 @@ class ProductPriceCalculator():
     @staticmethod
     def _get_by_object_number_price(**kwargs):
         """
-        The objects have all to be in PricingArea.
+        The objects have all to be in PricingGeometry.
         The objects have to be completely inside of the polygon (within).
         The Unit price is taken on the pricing instance, not
         the pricing area instance
         """
         pricing_instance = kwargs.get('pricing_instance')
-        pricing_area_instance = pricing_instance.pricingarea_set
+        pricing_geometry_instance = pricing_instance.pricinggeometry_set
         polygon = kwargs.get('polygon')
         unit_price = pricing_instance.unit_price
-        nbr_objects = pricing_area_instance.filter(
+        nbr_objects = pricing_geometry_instance.filter(
             pricing=pricing_instance.id
         ).filter(geom__within=polygon).count()
         return unit_price * nbr_objects
@@ -59,7 +59,7 @@ class ProductPriceCalculator():
     @staticmethod
     def _get_by_area_price(**kwargs):
         """
-        The price is expected to be in hectares
+        The area is expected to be in hectares
         """
         polygon = kwargs.get('polygon')
         pricing_instance = kwargs.get('pricing_instance')
@@ -70,15 +70,15 @@ class ProductPriceCalculator():
     @staticmethod
     def _get_from_pricing_layer_price(**kwargs):
         """
-        The price is expected to be in hectares
+        The area is expected to be in hectares
         As the price may vary from one polygon to
         the other, it has to be taken in the
         pricing layer
         """
         polygon = kwargs.get('polygon')
         pricing_instance = kwargs.get('pricing_instance')
-        pricing_area_instance = pricing_instance.pricingarea_set
-        total = pricing_area_instance.filter(
+        pricing_geometry_instance = pricing_instance.pricinggeometry_set
+        total = pricing_geometry_instance.filter(
             pricing=pricing_instance.id
         ).filter(
             geom__intersects=polygon
