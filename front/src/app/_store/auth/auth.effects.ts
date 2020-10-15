@@ -84,9 +84,9 @@ export class AuthEffects {
                     this.storeService.IsLastDraftAlreadyLoaded = false;
                   }
                   dialogRef = null;
-                  this.router.navigate([payload.callbackUrl || '/']);
                 });
               }
+              this.router.navigate([payload.callbackUrl || '/']);
             });
         })
       ), {

@@ -239,7 +239,7 @@ export class MapService {
       return of([]);
     }
     const url = new URL(this.configService.config.geocoderUrl);
-    url.searchParams.append('limit', '20');
+    url.searchParams.append('partitionlimit', '10');
     url.searchParams.append('query', inputText);
     return this.httpClient.get(url.toString()).pipe(
       map(featureCollection => this.geoJsonFormatter.readFeatures(featureCollection))

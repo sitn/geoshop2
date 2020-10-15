@@ -15,7 +15,7 @@ COPY . /app/geoshop_back/
 WORKDIR /app/geoshop_back/
 
 ARG ENV_FILE
-RUN mv ${ENV_FILE} .env
+RUN mv ${ENV_FILE} .env && mkdir /mnt/geoshop_data
 
 RUN pip3 install -r requirements.txt
 RUN export $(egrep -v '^#' .env | xargs) && \

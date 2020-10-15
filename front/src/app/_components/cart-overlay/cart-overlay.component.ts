@@ -79,12 +79,7 @@ export class CartOverlayComponent implements OnInit, OnDestroy {
     }
   }
 
-  tryGetLastDraft() {
-    if (this.storeService.IsLastDraftAlreadyLoaded) {
-      this.naviguateToNewOrder();
-      return;
-    }
-
+  private tryGetLastDraft() {
     this.apiOrderService.getLastDraft()
       .pipe(takeUntil(this.onDestroy$))
       .subscribe(order => {
@@ -126,8 +121,12 @@ export class CartOverlayComponent implements OnInit, OnDestroy {
     });
   }
 
-  private naviguateToNewOrder() {
+  naviguateToNewOrder() {
     if (this.isUserLoggedIn) {
+      if (!this.storeService.IsLastDraftAlreadyLoaded) {
+        this.tryGetLastDraft();
+        return;
+      }
       this.router.navigate(['/account/new-order'], {
         queryParams: {
           callback: '/account/new-order'

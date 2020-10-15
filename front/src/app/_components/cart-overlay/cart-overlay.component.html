@@ -18,7 +18,7 @@
 </button>
 
 <button [disabled]="(order$|async) && !(order$|async)?.geom" mat-raised-button color="primary" class="action-button"
-        (click)="tryGetLastDraft()">
+        (click)="naviguateToNewOrder()">
   Passer la commande
 </button>
 
