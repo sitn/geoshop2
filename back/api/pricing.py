@@ -3,6 +3,9 @@ from django.contrib.gis.db.models.functions import Area, Intersection
 from django.db.models import ExpressionWrapper, F, Sum
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money
+from django.utils.translation import gettext_lazy as _
+
+from .helpers import send_email_to_admin
 
 LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +29,11 @@ class ProductPriceCalculator():
     @classmethod
     def _get_undefined_price(cls, **kwargs):
         pricing_instance = kwargs.get('pricing_instance')
-        LOGGER.error('%s PRICE IS NOT DEFINED', pricing_instance.pricing_type.lower())
+        LOGGER.error('%s PRICING IS NOT DEFINED', pricing_instance.pricing_type)
+        send_email_to_admin(
+            _('PRICE NOT DEFINED'),
+            _('{} is not defined in pricing module.').format(pricing_instance.pricing_type)
+        )
         return cls._get_manual_price(**kwargs)
 
     @staticmethod
@@ -90,5 +97,4 @@ class ProductPriceCalculator():
 
     @staticmethod
     def _get_manual_price(**kwargs):
-        LOGGER.error('MANUAL PRICE NOT DEFINED YET')
         return None

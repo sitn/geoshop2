@@ -1,8 +1,12 @@
+from django.core import mail
+from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon, Point
 from djmoney.money import Money
 from rest_framework.test import APITestCase
-from api.models import Pricing, Product, PricingGeometry
+from api.models import Pricing, Product, PricingGeometry, Order, OrderItem
 from api.pricing import ProductPriceCalculator
+
+UserModel = get_user_model()
 
 
 class PricingTests(APITestCase):
@@ -11,30 +15,36 @@ class PricingTests(APITestCase):
     """
 
     def setUp(self):
+        rincevent = UserModel.objects.create_user(
+            username='rincevent', password='rincevent')
+        rincevent.identity.email = 'admin@admin.com'
         self.base_fee = Money(50, 'CHF')
         self.unit_price = Money(150, 'CHF')
         self.pricings = Pricing.objects.bulk_create([
             Pricing(
-                name="Gratuit",
+                name="Gratuit", # 0
                 pricing_type="FREE"),
             Pricing(
-                name="Forfait",
+                name="Forfait", # 1
                 pricing_type="SINGLE",
                 unit_price=self.unit_price),
             Pricing(
-                name="Par nombre d'objets",
+                name="Par nombre d'objets", # 2
                 pricing_type="BY_OBJECT_NUMBER",
                 unit_price=self.unit_price),
             Pricing(
-                name="Par surface",
+                name="Par surface", # 3
                 pricing_type="BY_AREA",
                 unit_price=self.unit_price),
             Pricing(
-                name="Par couche géométrique",
+                name="Par couche géométrique", # 4
                 pricing_type="FROM_PRICING_LAYER"),
             Pricing(
-                name="Style de prix non connu de l'application",
-                pricing_type="VERY_FUNNY")
+                name="Devis manuel", # 5
+                pricing_type="MANUAL"),
+            Pricing(
+                name="Style de prix non connu de l'application", #6
+                pricing_type="YET_UNKNOWN_PRICING")
         ])
 
         self.products = Product.objects.bulk_create([
@@ -42,7 +52,7 @@ class PricingTests(APITestCase):
                 label="Produit gratuit",
                 pricing=self.pricings[0]),
             Product(
-                label="Maquette 3D",
+                label="Produit forfaitaire",
                 pricing=self.pricings[1]),
             Product(
                 label="Bâtiments 3D",
@@ -54,8 +64,11 @@ class PricingTests(APITestCase):
                 label="MO",
                 pricing=self.pricings[4]),
             Product(
-                label="Produit facturé au Mb (non implémenté)",
+                label="Maquette 3D",
                 pricing=self.pricings[5]),
+            Product(
+                label="Produit facturé au Mb (non implémenté)",
+                pricing=self.pricings[6]),
         ])
 
         self.order_geom = Polygon((
@@ -114,6 +127,17 @@ class PricingTests(APITestCase):
             )
         ])
 
+        self.order = Order.objects.create(
+            client=rincevent,
+            title="Test pricing order",
+            geom=self.order_geom
+        )
+        self.order_item = OrderItem.objects.create(
+            order=self.order,
+            product=self.products[5]
+        )
+        self.order.save()
+
         for geom in self.building_pricing_geometry:
             geom.pricing = Pricing.objects.filter(
                 name="Par nombre d'objets").first()
@@ -152,7 +176,32 @@ class PricingTests(APITestCase):
             (expected_price_part1 + expected_price_part2).round(2))
 
     def test_manual_price(self):
-        pass
+        manual_price = self.products[5].pricing.get_price(self.order_geom)
+        self.assertIsNone(manual_price[0], 'Manual price has None price when pricing is called')
+        self.assertEqual(self.order.status, Order.OrderStatus.DRAFT)
+        self.assertEqual(self.order_item.price_status, OrderItem.PricingStatus.PENDING, 'princing status stays pending')
+
+        # Client asks for a quote bescause order item pricing status is PENDING
+        self.order.confirm()
+        # An email is sent to admins, asking them to set a manual price
+        self.assertEqual(len(mail.outbox), 1, 'An email has been sent to admins')
+        self.assertEqual(self.order.status, Order.OrderStatus.PENDING, 'Order status is now pending')
+        # An admin sets price manually, this is normally done in admin interface
+        self.order_item.set_price(
+            price=self.unit_price,
+            base_fee=self.base_fee,
+        )
+        self.order_item.save()
+        # The admin confirms he's done with the quote
+        self.order.quote_done()
+        self.assertEqual(len(mail.outbox), 2, 'An email has been sent to the client')
+        self.assertEqual(self.order.status, Order.OrderStatus.PENDING, 'Order status is still pending')
+        self.assertEqual(self.order_item.price_status, OrderItem.PricingStatus.CALCULATED, 'Price is calculated')
+        self.order.confirm()
+        self.assertEqual(self.order.status, Order.OrderStatus.READY, 'Order is ready for Extract')
 
     def test_undefined_price(self):
-        pass
+        undefined_price = self.products[6].pricing.get_price(self.order_geom)
+        self.assertIsNone(undefined_price[0])
+        self.assertLogs('pricing', level='ERROR')
+        self.assertEqual(len(mail.outbox), 1, 'An email has been sent to admins')

@@ -30,6 +30,7 @@ DOCUMENT_BASE_URL = os.environ.get('DOCUMENT_BASE_URL', 'http://example.com')
 
 #
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@ne.ch')
+ADMIN_EMAIL_LIST = os.environ.get('ADMIN_EMAIL_LIST', 'no-reply@ne.ch')
 
 # Application definition
 
