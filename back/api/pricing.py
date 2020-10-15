@@ -31,7 +31,7 @@ class ProductPriceCalculator():
         pricing_instance = kwargs.get('pricing_instance')
         LOGGER.error('%s PRICING IS NOT DEFINED', pricing_instance.pricing_type)
         send_email_to_admin(
-            _('PRICE NOT DEFINED'),
+            _('PRICING NOT DEFINED'),
             _('{} is not defined in pricing module.').format(pricing_instance.pricing_type)
         )
         return cls._get_manual_price(**kwargs)

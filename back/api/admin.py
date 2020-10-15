@@ -98,7 +98,7 @@ class OrderAdmin(admin.OSMGeoAdmin):
             '%d orders had their quotes done.',
             updated,
         ) % updated, status)
-    quote.short_description = _("Confirm selected orders")
+    quote.short_description = _("Confirm quotes for selected orders")
 
 
 class ProductAdmin(CustomModelAdmin):
