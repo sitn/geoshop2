@@ -14,6 +14,7 @@ $today = Get-Date
 $todayString = $today.ToString('yyyy.MM.dd-hh:mm')
 
 $env:API_URL = ("{0}{1}" -f $env:DOCUMENT_BASE_URL, $env:ROOTURL)
+$env:MEDIA_URL = ("{0}{1}_media/images" -f $env:DOCUMENT_BASE_URL, $env:FRONT_HREF)
 if ($destConfig -eq "prod") {
     $env:GEOSHOP_DATA = "/mnt/geoshop_data"
 } else {
