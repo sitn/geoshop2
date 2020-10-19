@@ -18,6 +18,8 @@ services:
     image: front
     build:
       context: ./front/
+      args:
+        FRONT_HREF: ${FRONT_HREF}
     ports:
       - "${DOCKER_FRONT_PORT}:80"
 
