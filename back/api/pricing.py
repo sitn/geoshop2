@@ -3,6 +3,9 @@ from django.contrib.gis.db.models.functions import Area, Intersection
 from django.db.models import ExpressionWrapper, F, Sum
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money
+from django.utils.translation import gettext_lazy as _
+
+from .helpers import send_email_to_admin
 
 LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +29,11 @@ class ProductPriceCalculator():
     @classmethod
     def _get_undefined_price(cls, **kwargs):
         pricing_instance = kwargs.get('pricing_instance')
-        LOGGER.error('%s PRICE IS NOT DEFINED', pricing_instance.pricing_type.lower())
+        LOGGER.error('%s PRICING IS NOT DEFINED', pricing_instance.pricing_type)
+        send_email_to_admin(
+            _('PRICING NOT DEFINED'),
+            _('{} is not defined in pricing module.').format(pricing_instance.pricing_type)
+        )
         return cls._get_manual_price(**kwargs)
 
     @staticmethod
@@ -41,16 +48,16 @@ class ProductPriceCalculator():
     @staticmethod
     def _get_by_object_number_price(**kwargs):
         """
-        The objects have all to be in PricingArea.
+        The objects have all to be in PricingGeometry.
         The objects have to be completely inside of the polygon (within).
         The Unit price is taken on the pricing instance, not
         the pricing area instance
         """
         pricing_instance = kwargs.get('pricing_instance')
-        pricing_area_instance = pricing_instance.pricingarea_set
+        pricing_geometry_instance = pricing_instance.pricinggeometry_set
         polygon = kwargs.get('polygon')
         unit_price = pricing_instance.unit_price
-        nbr_objects = pricing_area_instance.filter(
+        nbr_objects = pricing_geometry_instance.filter(
             pricing=pricing_instance.id
         ).filter(geom__within=polygon).count()
         return unit_price * nbr_objects
@@ -59,7 +66,7 @@ class ProductPriceCalculator():
     @staticmethod
     def _get_by_area_price(**kwargs):
         """
-        The price is expected to be in hectares
+        The area is expected to be in hectares
         """
         polygon = kwargs.get('polygon')
         pricing_instance = kwargs.get('pricing_instance')
@@ -70,15 +77,15 @@ class ProductPriceCalculator():
     @staticmethod
     def _get_from_pricing_layer_price(**kwargs):
         """
-        The price is expected to be in hectares
+        The area is expected to be in hectares
         As the price may vary from one polygon to
         the other, it has to be taken in the
         pricing layer
         """
         polygon = kwargs.get('polygon')
         pricing_instance = kwargs.get('pricing_instance')
-        pricing_area_instance = pricing_instance.pricingarea_set
-        total = pricing_area_instance.filter(
+        pricing_geometry_instance = pricing_instance.pricinggeometry_set
+        total = pricing_geometry_instance.filter(
             pricing=pricing_instance.id
         ).filter(
             geom__intersects=polygon
@@ -90,5 +97,4 @@ class ProductPriceCalculator():
 
     @staticmethod
     def _get_manual_price(**kwargs):
-        LOGGER.error('MANUAL PRICE NOT DEFINED YET')
         return None

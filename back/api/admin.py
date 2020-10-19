@@ -1,9 +1,12 @@
 from django import forms
 from django.conf import settings
 from django.db import models
+from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth import get_user_model
 from django.contrib.gis import admin
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext
 
 
 from .models import (
@@ -58,9 +61,44 @@ class MetadataAdmin(CustomModelAdmin):
     readonly_fields = ('image_tag', 'legend_tag')
 
 
+class OrderItemInline(admin.StackedInline):
+    raw_id_fields = ['product']
+    model = OrderItem
+    extra = 0
+
+
 class OrderAdmin(admin.OSMGeoAdmin):
+    inlines = [OrderItemInline]
+    raw_id_fields = ['client']
     map_template = 'admin/gis/osm.html'
     ordering = ['-id']
+    actions = ['quote']
+
+    def quote(self, request, queryset):
+        """
+        Custom admin action that allows to quote an order.
+        This is typically called after a quote is requested by a customer
+        Once manual price is setted, this can be called and will trigger
+        an email to customer saying quote has been done.
+        """
+        orders = queryset.all()
+        to_be_updated = orders.count()
+        updated = 0
+        for order in orders:
+            quote_done = order.quote_done()
+            order.save()
+            if quote_done:
+                updated = updated + 1
+        if updated == to_be_updated:
+            status = messages.SUCCESS
+        else:
+            status = messages.ERROR
+        self.message_user(request, ngettext(
+            '%d order had its quote done.',
+            '%d orders had their quotes done.',
+            updated,
+        ) % updated, status)
+    quote.short_description = _("Confirm quotes for selected orders")
 
 
 class ProductAdmin(CustomModelAdmin):

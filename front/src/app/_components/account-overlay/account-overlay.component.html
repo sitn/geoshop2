@@ -30,7 +30,7 @@
 <ng-container *ngIf="!(isLoggedIn$|async)">
   <div class="flex-row info-container">
     <mat-icon>info</mat-icon>
-    <span>Pour commander vous devez obligatoirement vous authentifiez.</span>
+    <span>Pour commander vous devez obligatoirement vous authentifier.</span>
   </div>
 
   <button mat-button color="primary" [routerLink]="['auth/login']">

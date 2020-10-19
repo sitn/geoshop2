@@ -6,14 +6,17 @@ from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex, BTreeIndex
 from django.utils.html import mark_safe
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
 from djmoney.money import Money
 from djmoney.models.fields import MoneyField
+
 from .pricing import ProductPriceCalculator
-from .helpers import RandomFileName
+from .helpers import RandomFileName, send_email_to_admin, send_email_to_identity
 
 LOGGER = logging.getLogger(__name__)
 # Get the UserModel
 UserModel = get_user_model()
+
 
 class AbstractIdentity(models.Model):
     """
@@ -27,7 +30,8 @@ class AbstractIdentity(models.Model):
     postcode = models.CharField(_('postcode'), max_length=10, blank=True)
     city = models.CharField(_('city'), max_length=50, blank=True)
     country = models.CharField(_('country'), max_length=50, blank=True)
-    company_name = models.CharField(_('company_name'), max_length=250, blank=True)
+    company_name = models.CharField(
+        _('company_name'), max_length=250, blank=True)
     phone = models.CharField(_('phone'), max_length=50, blank=True)
 
     class Meta:
@@ -110,7 +114,8 @@ class Identity(AbstractIdentity):
     """
     All users have an Identity but not all identities are users.
     """
-    user = models.OneToOneField(UserModel, on_delete=models.DO_NOTHING, verbose_name=_('user'), blank=True, null=True)
+    user = models.OneToOneField(
+        UserModel, on_delete=models.DO_NOTHING, verbose_name=_('user'), blank=True, null=True)
     sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
     contract_accepted = models.DateField(_('contract_accepted'), null=True, blank=True)
     is_public = models.BooleanField(_('is_public'), default=False)
@@ -132,7 +137,8 @@ class Metadata(models.Model):
     geocat_link = models.CharField(_('geocat_link'), max_length=2000, blank=True)
     legend_link = models.CharField(_('legend_link'), max_length=2000, blank=True)
     image_link = models.CharField(_('image_link'), max_length=250, default=settings.DEFAULT_METADATA_IMAGE_URL)
-    copyright = models.ForeignKey(Copyright, models.DO_NOTHING, verbose_name=_('copyright'), blank=True, null=True)
+    copyright = models.ForeignKey(
+        Copyright, models.DO_NOTHING, verbose_name=_('copyright'), blank=True, null=True)
     documents = models.ManyToManyField(Document, verbose_name=_('documents'), blank=True)
     contact_persons = models.ManyToManyField(
         Identity,
@@ -188,7 +194,8 @@ class Pricing(models.Model):
     For free products, set base_fee and unit_price both to 0.
     For unique price set base_fee to desired amount and unit_price to 0.
     For price based on area, provide unit_price
-    For price base on a PricingArea, create the princing layer and link it to pricing_layer field.
+    For price base on a PricingGeometry, create the princing layer and 
+    link it to pricing_layer field.
     """
     class PricingType(models.TextChoices):
         FREE = 'FREE', _('Free')
@@ -199,8 +206,10 @@ class Pricing(models.Model):
         MANUAL = 'MANUAL', _('Manual')
 
     name = models.CharField(_('name'), max_length=100, null=True, blank=True)
-    pricing_type = models.CharField(_('pricing_type'), max_length=30, choices=PricingType.choices)
-    base_fee = MoneyField(_('base_fee'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
+    pricing_type = models.CharField(
+        _('pricing_type'), max_length=30, choices=PricingType.choices)
+    base_fee = MoneyField(
+        _('base_fee'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
     min_price = MoneyField(
         _('min_price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
     max_price = MoneyField(
@@ -222,7 +231,7 @@ class Pricing(models.Model):
         )
 
         if price is None:
-            raise ValueError("Price has not been calculated")
+            return None, None
 
         if self.min_price and price < self.min_price:
             return self.min_price
@@ -235,12 +244,13 @@ class Pricing(models.Model):
         return '%s - %s' % (self.id, self.name)
 
 
-class PricingArea(models.Model):
+class PricingGeometry(models.Model):
     """
     Areas defining prices must be grouped by name.
     """
     name = models.CharField(_('name'), max_length=300, null=True)
-    unit_price = MoneyField(_('price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
+    unit_price = MoneyField(
+        _('price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
     geom = models.GeometryField(_('geom'), srid=settings.DEFAULT_SRID)
     pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'), null=True)
 
@@ -273,17 +283,19 @@ class Product(models.Model):
         PUBLISHED_ONLY_IN_GROUP = 'PUBLISHED_ONLY_IN_GROUP', _('Published only in group')
         DEPRECATED = 'DEPRECATED', _('Deprecated')
 
-    metadata = models.ForeignKey(Metadata, models.DO_NOTHING, verbose_name=_('metadata'), blank=True, null=True)
+    metadata = models.ForeignKey(
+        Metadata, models.DO_NOTHING, verbose_name=_('metadata'), blank=True, null=True)
     label = models.CharField(_('label'), max_length=250, blank=True)
-    status = models.CharField(_('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
-    group = models.ForeignKey('self', models.DO_NOTHING, verbose_name=_('group'), blank=True, null=True)
+    status = models.CharField(
+        _('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
+    group = models.ForeignKey(
+        'self', models.DO_NOTHING, verbose_name=_('group'), blank=True, null=True)
     provider = models.CharField(_('provider'), max_length=30, default='SITN')
     pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'))
     order = models.BigIntegerField(_('order_index'), blank=True, null=True)
     thumbnail_link = models.CharField(
         _('thumbnail_link'), max_length=250, default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL)
     ts = SearchVectorField(null=True)
-
 
     class Meta:
         db_table = 'product'
@@ -298,6 +310,7 @@ class Product(models.Model):
     def thumbnail_tag(self):
         return mark_safe('<img src="%s%s" />' % (settings.STATIC_URL, self.thumbnail_link))
     thumbnail_tag.short_description = _('thumbnail')
+
 
 class Order(models.Model):
     """
@@ -334,8 +347,10 @@ class Order(models.Model):
         blank=True,
         null=True)
     invoice_reference = models.CharField(_('invoice_reference'), max_length=255, blank=True)
-    order_type = models.ForeignKey(OrderType, models.DO_NOTHING, verbose_name=_('order_type'), blank=True, null=True)
-    status = models.CharField(_('status'), max_length=20, choices=OrderStatus.choices, default=OrderStatus.DRAFT)
+    order_type = models.ForeignKey(
+        OrderType, models.DO_NOTHING, verbose_name=_('order_type'), blank=True, null=True)
+    status = models.CharField(
+        _('status'), max_length=20, choices=OrderStatus.choices, default=OrderStatus.DRAFT)
     date_ordered = models.DateTimeField(_('date_ordered'), blank=True, null=True)
     date_downloaded = models.DateTimeField(_('date_downloaded'), blank=True, null=True)
     date_processed = models.DateTimeField(_('date_processed'), blank=True, null=True)
@@ -354,22 +369,33 @@ class Order(models.Model):
     def set_price(self):
         """
         Sets price information if all items have prices
-        and updates order status accordingly
         """
         self._reset_prices()
         items = self.items.all()
         if not items:
-            return
+            return False
         self.total_without_vat = Money(0, 'CHF')
         for item in items:
             if not item.base_fee:
                 self._reset_prices()
-                return
+                return False
             if item.base_fee > (self.processing_fee or Money(0, 'CHF')):
                 self.processing_fee = item.base_fee
             self.total_without_vat += item.price
         self.part_vat = self.total_without_vat * settings.VAT
         self.total_with_vat = self.total_without_vat + self.part_vat
+        return True
+
+    def quote_done(self):
+        """Admins confirmation they have given a manual price"""
+        price_is_set = self.set_price()
+        if price_is_set:
+            send_email_to_identity(
+                _('Quote has been done'),
+                _('Your quote request has been done'),
+                self.client.identity
+            )
+        return price_is_set
 
     def confirm(self):
         """Customer's confirmations he wants to proceed with the order"""
@@ -415,17 +441,20 @@ class OrderItem(models.Model):
     class PricingStatus(models.TextChoices):
         PENDING = 'PENDING', _('Pending')
         CALCULATED = 'CALCULATED', _('Calculated')
-        IMPORTED = 'IMPORTED', _('Imported')
+        IMPORTED = 'IMPORTED', _('Imported')  # from old database
 
     order = models.ForeignKey(
         Order, models.CASCADE, related_name='items', verbose_name=_('order'), blank=True, null=True)
-    product = models.ForeignKey(Product, models.DO_NOTHING, verbose_name=_('product'), blank=True, null=True)
-    data_format = models.ForeignKey(DataFormat, models.DO_NOTHING, verbose_name=_('data_format'), blank=True, null=True)
+    product = models.ForeignKey(
+        Product, models.DO_NOTHING, verbose_name=_('product'), blank=True, null=True)
+    data_format = models.ForeignKey(
+        DataFormat, models.DO_NOTHING, verbose_name=_('data_format'), blank=True, null=True)
     srid = models.IntegerField(_('srid'), default=settings.DEFAULT_SRID)
     last_download = models.DateTimeField(_('last_download'), blank=True, null=True)
     price_status = models.CharField(
         _('price_status'), max_length=20, choices=PricingStatus.choices, default=PricingStatus.PENDING)
-    _price = MoneyField(_('price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
+    _price = MoneyField(
+        _('price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
     _base_fee = MoneyField(
         _('base_fee'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
     extract_result = models.FileField(upload_to=RandomFileName('extract'), null=True, blank=True)
@@ -447,15 +476,20 @@ class OrderItem(models.Model):
     def base_fee(self):
         return self._get_price_values(self._base_fee)
 
-    def set_price(self):
+    def set_price(self, **kwargs):
         if self.product.pricing.pricing_type != Pricing.PricingType.MANUAL:
             self._price, self._base_fee = self.product.pricing.get_price(self.order.geom)
-            self.price_status = OrderItem.PricingStatus.CALCULATED
+        else:
+            self._price = kwargs.get('price')
+            self._base_fee = kwargs.get('base_fee')
+        self.price_status = OrderItem.PricingStatus.CALCULATED
 
     def ask_price(self):
         if self.product.pricing.pricing_type == Pricing.PricingType.MANUAL:
-            # Send email
-            pass
+            send_email_to_admin(
+                _('Quote requested'),
+                reverse("admin:api_order_change", args=[self.order.id]),
+            )
 
 
 class ProductField(models.Model):
@@ -474,7 +508,8 @@ class ProductField(models.Model):
 
     db_name = models.CharField(_('db_name'), max_length=50, blank=True)
     export_name = models.CharField(_('export_name'), max_length=50, blank=True)
-    field_type = models.CharField(_('field_type'), max_length=10, choices=ProductFieldType.choices, blank=True)
+    field_type = models.CharField(
+        _('field_type'), max_length=10, choices=ProductFieldType.choices, blank=True)
     field_length = models.SmallIntegerField(_('field_length'), )
     product = models.ForeignKey(Product, verbose_name=_('product'), on_delete=models.CASCADE)
 
@@ -497,9 +532,11 @@ class ProductValidation(models.Model):
 
 
 class ProductFormat(models.Model):
-    product = models.ForeignKey(Product, models.DO_NOTHING, verbose_name=_('product'), related_name='product_formats')
+    product = models.ForeignKey(
+        Product, models.DO_NOTHING, verbose_name=_('product'), related_name='product_formats')
     data_format = models.ForeignKey(DataFormat, models.DO_NOTHING, verbose_name=_('data_format'))
-    is_manual = models.BooleanField(_('is_manual'), default=False) # extraction manuelle ou automatique
+    # extraction manuelle ou automatique
+    is_manual = models.BooleanField(_('is_manual'), default=False)
 
     class Meta:
         db_table = 'product_format'

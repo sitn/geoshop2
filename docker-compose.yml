@@ -12,7 +12,7 @@ services:
     ports:
       - "${DOCKER_BACK_PORT}:8000"
     volumes:
-      ${GEOSHOP_DATA}:/mnt/geoshop_data
+      - "${GEOSHOP_DATA}:/mnt/geoshop_data"
 
   front:
     image: front
