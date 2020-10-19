@@ -300,7 +300,9 @@ export class MapService {
       layers: new LayerGroup({
         layers: baseLayers
       }),
-      interactions: defaultInteractions().extend([this.initializeDragAndDropInteraction()]),
+      interactions: defaultInteractions(
+        {doubleClickZoom: false}
+      ).extend([this.initializeDragAndDropInteraction()]),
       controls: [
         new ScaleLine({
           target: 'ol-scaleline',
