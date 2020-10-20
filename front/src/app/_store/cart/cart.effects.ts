@@ -32,7 +32,7 @@ export class CartEffects {
               });
             }
 
-            this.storeService.IsLastDraftAlreadyLoaded = false;
+            this.storeService.IsLastDraftAlreadyLoadedOrChecked = false;
             this.mapService.eraseDrawing();
           });
         })
