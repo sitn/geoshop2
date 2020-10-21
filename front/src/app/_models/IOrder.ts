@@ -44,7 +44,7 @@ export interface IOrder {
 export interface IOrderItem {
   id?: number;
   product: string;
-  format: string;
+  format?: string;
   last_download?: string;
   statusAsReadableIconText?: {
     iconName: string;
@@ -98,7 +98,7 @@ export class Order {
     return {
       geom: this.geom ? new GeoJSON().writeGeometry(this.geom) : undefined,
       url: this.url || '',
-      id: this.id || -1,
+      id: this.id || undefined,
       client: this.client || undefined,
       date_downloaded: this.date_downloaded ? this.date_downloaded.getTime().toString() : undefined,
       date_ordered: this.date_ordered ? this.date_ordered.getTime().toString() : undefined,
@@ -156,7 +156,7 @@ export class Order {
       this.items = iOrder.items;
       this.initializeGeometry(iOrder.geom);
     } else {
-      this.id = -1;
+      this.id = undefined;
       this.url = '';
       this.title = '';
       this.description = '';

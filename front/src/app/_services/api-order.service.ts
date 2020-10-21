@@ -115,14 +115,12 @@ export class ApiOrderService {
       items: products.map(x => {
         const item: IOrderItem = {
           product: x.label,
-          format: 'DXF'
         };
 
         return item;
       })
     };
-
-    if (order.id == null) {
+    if (order.id) {
       return this.http.post<IOrder | IApiResponseError>(url.toString(), orderToPost).pipe(
         catchError(error => {
           console.error(error);
