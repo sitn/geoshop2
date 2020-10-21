@@ -72,7 +72,7 @@ const cartReducer = createReducer(initialState,
       date_ordered: undefined,
       date_downloaded: undefined,
       client: '',
-      id: '',
+      id: undefined,
       url: '',
       geom: null,
       items: []
