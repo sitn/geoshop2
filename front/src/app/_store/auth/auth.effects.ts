@@ -79,10 +79,8 @@ export class AuthEffects {
                 dialogRef.afterClosed().subscribe(result => {
                   if (result) {
                     this.storeService.addOrderToStore(order);
-                    this.storeService.IsLastDraftAlreadyLoaded = true;
-                  } else {
-                    this.storeService.IsLastDraftAlreadyLoaded = false;
                   }
+                  this.storeService.IsLastDraftAlreadyLoadedOrChecked = true;
                   dialogRef = null;
                 });
               }

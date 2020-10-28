@@ -32,25 +32,26 @@
 
       <div class="bottom-container">
         <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
-        <button color="primary" mat-button matStepperNext> Suivant</button>
+        <button color="primary" mat-button matStepperNext>Suivant</button>
       </div>
     </form>
   </mat-step>
-  <mat-step [stepControl]="step2FormGroup" label="Adresse de facturation">
+
+  <mat-step [stepControl]="step2FormGroup" label="Facturation / Tiers">
     <form [formGroup]="step2FormGroup">
 
-      <mat-radio-group *ngIf="step1FormGroup?.get('orderType')?.value === 1" class="flex-column"
+      <mat-radio-group *ngIf="step1FormGroup?.get('orderType')?.value?.id === 1" class="flex-column"
                        formControlName="addressChoice"
                        (change)="updateForm2($event.value)"
                        aria-label="Choisir une option">
         <mat-radio-button value="1">La facturation est adressé à
-          l'utilisateur {{(currentUser$|async)?.email}}</mat-radio-button>
+          l'utilisateur courant: {{(currentUser$|async)?.email}}</mat-radio-button>
         <mat-radio-button value="2">La facturation est adressé à un mandant</mat-radio-button>
       </mat-radio-group>
 
       <ng-container
-        *ngIf="(step1FormGroup?.get('orderType')?.value === 1 && step2FormGroup.get('addressChoice')?.value === '2') ||
-        step1FormGroup?.get('orderType')?.value !== 1">
+        *ngIf="(step1FormGroup?.get('orderType')?.value?.id === 1 && step2FormGroup.get('addressChoice')?.value === '2') ||
+        step1FormGroup?.get('orderType')?.value?.id !== 1">
         <div class="flex-row">
           <mat-checkbox formControlName="newClient" style="flex:1;" (change)="cleanCustomerForm()">Nouveau client
           </mat-checkbox>
@@ -82,12 +83,6 @@
         <div class="flex-column" style="overflow: auto"
              *ngIf="step2FormGroup.get('newClient')?.value || isCustomerSelected">
           <!-- Contact info -->
-          <mat-form-field>
-            <mat-label>Information de contact (mandant)</mat-label>
-            <input matInput required type="text" formControlName="info" [readonly]="isCustomerSelected">
-            <mat-error *ngIf="step2FormGroup.get('info')?.hasError('required')">Requis</mat-error>
-          </mat-form-field>
-
           <mat-form-field color="primary">
             <input formControlName="company_name"
                    autocapitalize="off"
@@ -184,7 +179,7 @@
           </mat-form-field>
 
           <mat-form-field color="primary">
-            <mat-select formControlName="country" required placeholder="Pays" [disabled]="isCustomerSelected">
+            <mat-select formControlName="country" required placeholder="Pays">
               <mat-option [value]="'Suisse'">
                 Suisse
               </mat-option>
@@ -198,14 +193,14 @@
         </div>
       </ng-container>
 
-
       <div class="bottom-container">
         <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
-        <button color="primary" mat-button matStepperPrevious> Retour</button>
-        <button color="primary" mat-button [disabled]="step2FormGroup?.invalid" (click)="createOrUpdateDraftOrder()"> Suivant</button>
+        <button color="primary" mat-button matStepperPrevious>Retour</button>
+        <button color="primary" mat-button [disabled]="step2FormGroup?.invalid" (click)="createOrUpdateDraftOrder()">Suivant</button>
       </div>
     </form>
   </mat-step>
+
   <mat-step [stepControl]="lastStepFormGroup" label="Aperçu de la commande">
     <form [formGroup]="lastStepFormGroup">
 

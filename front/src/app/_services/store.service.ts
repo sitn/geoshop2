@@ -12,13 +12,13 @@ import {Store} from '@ngrx/store';
 })
 export class StoreService {
 
-  private isLastDraftAlreadyLoaded = false;
-  public get IsLastDraftAlreadyLoaded() {
-    return this.isLastDraftAlreadyLoaded;
+  private isLastDraftAlreadyLoadedOrChecked = false;
+  public get IsLastDraftAlreadyLoadedOrChecked() {
+    return this.isLastDraftAlreadyLoadedOrChecked;
   }
 
-  public set IsLastDraftAlreadyLoaded(isLoaded: boolean) {
-    this.isLastDraftAlreadyLoaded = isLoaded;
+  public set IsLastDraftAlreadyLoadedOrChecked(isLoaded: boolean) {
+    this.isLastDraftAlreadyLoadedOrChecked = isLoaded;
   }
 
   constructor(private apiService: ApiService,
