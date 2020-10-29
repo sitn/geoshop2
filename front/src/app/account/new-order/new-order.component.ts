@@ -1,5 +1,5 @@
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators, FormArray } from '@angular/forms';
 import { ApiService } from '../../_services/api.service';
 import { PHONE_REGEX } from '../../_helpers/regex';
 import { Observable, of, Subject } from 'rxjs';
@@ -12,7 +12,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { IOrder, IOrderType, Order } from '../../_models/IOrder';
+import { IOrder, IOrderType, Order, IOrderItem } from '../../_models/IOrder';
 import { ApiOrderService } from '../../_services/api-order.service';
 import { MatStepper } from '@angular/material/stepper';
 import { StoreService } from '../../_services/store.service';
@@ -46,9 +46,10 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   filteredCustomers$: Observable<IIdentity[]> | undefined;
 
   // last step table attributes
-  dataSource: MatTableDataSource<Product>;
+  dataSource: MatTableDataSource<IOrderItem>;
+  orderItems: IOrderItem[] = [];
   products: Product[] = [];
-  displayedColumns: string[] = ['label', 'format', 'quantity', 'price', 'total'];
+  displayedColumns: string[] = ['label', 'format', 'price'];
 
   get customerCtrl() {
     return this.step2FormGroup.get('customer');
@@ -132,25 +133,24 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
       ...this.newContactControls
     });
-    this.lastStepFormGroup = this.formBuilder.group({});
+    this.lastStepFormGroup = this.formBuilder.group({
+      orderItems: this.formBuilder.array([ this.formatOrderItem ])
+    });
 
     this.updateDescription(this.step1FormGroup?.get('orderType')?.value);
     this.updateForm2();
+  }
+
+  formatOrderItem(): FormGroup {
+    return this.formBuilder.group({
+      data_format: ''
+    });
   }
 
   displayCustomer(customer: IIdentity) {
     return customer ?
       customer.company_name ? customer.company_name :
         customer.first_name ? customer.first_name : '' : '';
-  }
-
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
-    }
   }
 
   updateCustomerForm(event: MatAutocompleteSelectedEvent) {
@@ -264,6 +264,9 @@ export class NewOrderComponent implements OnInit, OnDestroy {
           (newOrder as IApiResponseError).message, 'Ok', { panelClass: 'notification-error' });
       } else {
         this.storeService.addOrderToStore(new Order(newOrder as IOrder));
+        console.log(this.currentOrder)
+        this.dataSource = new MatTableDataSource();
+        this.dataSource.data = this.currentOrder.items
         this.stepper.next();
       }
     });
