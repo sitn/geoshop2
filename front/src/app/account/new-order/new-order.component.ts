@@ -1,23 +1,23 @@
-import {Component, HostBinding, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
-import {ApiService} from '../../_services/api.service';
-import {PHONE_REGEX} from '../../_helpers/regex';
-import {Observable, of, Subject} from 'rxjs';
-import {IIdentity} from '../../_models/IIdentity';
-import {debounceTime, filter, map, mergeMap, startWith, switchMap, takeUntil} from 'rxjs/operators';
-import {Product} from '../../_models/IProduct';
-import {select, Store} from '@ngrx/store';
-import {AppState, getUser, selectOrder} from '../../_store';
-import {MatPaginator} from '@angular/material/paginator';
-import {MatSort} from '@angular/material/sort';
-import {MatTableDataSource} from '@angular/material/table';
-import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
-import {IOrder, IOrderType, Order} from '../../_models/IOrder';
-import {ApiOrderService} from '../../_services/api-order.service';
-import {MatStepper} from '@angular/material/stepper';
-import {StoreService} from '../../_services/store.service';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {IApiResponseError} from '../../_models/IApi';
+import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ApiService } from '../../_services/api.service';
+import { PHONE_REGEX } from '../../_helpers/regex';
+import { Observable, of, Subject } from 'rxjs';
+import { IIdentity } from '../../_models/IIdentity';
+import { debounceTime, filter, map, mergeMap, startWith, switchMap, takeUntil } from 'rxjs/operators';
+import { Product } from '../../_models/IProduct';
+import { select, Store } from '@ngrx/store';
+import { AppState, getUser, selectOrder, selectAllProducts } from '../../_store';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { IOrder, IOrderType, Order } from '../../_models/IOrder';
+import { ApiOrderService } from '../../_services/api-order.service';
+import { MatStepper } from '@angular/material/stepper';
+import { StoreService } from '../../_services/store.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { IApiResponseError } from '../../_models/IApi';
 
 @Component({
   selector: 'gs2-new-order',
@@ -29,8 +29,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   private onDestroy$ = new Subject<boolean>();
 
   @HostBinding('class') class = 'main-container';
-  @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
-  @ViewChild(MatSort, {static: true}) sort: MatSort;
+  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
+  @ViewChild(MatSort, { static: true }) sort: MatSort;
   @ViewChild('stepper') stepper: MatStepper;
 
   step1FormGroup: FormGroup;
@@ -55,11 +55,11 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   }
 
   constructor(private formBuilder: FormBuilder,
-              private apiOrderService: ApiOrderService,
-              private apiService: ApiService,
-              private storeService: StoreService,
-              private snackBar: MatSnackBar,
-              private store: Store<AppState>) {
+    private apiOrderService: ApiOrderService,
+    private apiService: ApiService,
+    private storeService: StoreService,
+    private snackBar: MatSnackBar,
+    private store: Store<AppState>) {
 
     this.store.pipe(
       takeUntil(this.onDestroy$),
@@ -91,15 +91,10 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // this.store.pipe(
-    //   takeUntil(this.onDestroy$),
-    //   select(selectAllProducts),
-    // ).subscribe(x => {
-    //   this.products = x;
-    //   this.dataSource = new MatTableDataSource<Product>(this.products);
-    //   this.dataSource.paginator = this.paginator;
-    //   this.dataSource.sort = this.sort;
-    // });
+    this.store.select(selectAllProducts).subscribe((cartProducts)=>{
+      this.products = cartProducts;
+    });
+
   }
 
   ngOnDestroy() {
@@ -113,17 +108,17 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   private createForms() {
     this.newContactControls = {
-      company_name: new FormControl(this.currentOrder.orderContact?.company_name, Validators.required),
-      first_name: new FormControl(this.currentOrder.orderContact?.first_name, Validators.required),
-      last_name: new FormControl(this.currentOrder.orderContact?.last_name, Validators.required),
-      email: new FormControl(this.currentOrder.orderContact?.email, Validators.compose(
+      company_name: new FormControl(this.currentOrder.invoiceContact?.company_name, Validators.required),
+      first_name: new FormControl(this.currentOrder.invoiceContact?.first_name, Validators.required),
+      last_name: new FormControl(this.currentOrder.invoiceContact?.last_name, Validators.required),
+      email: new FormControl(this.currentOrder.invoiceContact?.email, Validators.compose(
         [Validators.required, Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$')])),
-      phone: new FormControl(this.currentOrder.orderContact?.phone, Validators.pattern(PHONE_REGEX)),
-      street: new FormControl(this.currentOrder.orderContact?.street, Validators.required),
-      street2: new FormControl(this.currentOrder.orderContact?.street2),
-      postcode: new FormControl(this.currentOrder.orderContact?.postcode, Validators.required),
-      city: new FormControl(this.currentOrder.orderContact?.city, Validators.required),
-      country: new FormControl(this.currentOrder.orderContact?.country, Validators.required),
+      phone: new FormControl(this.currentOrder.invoiceContact?.phone, Validators.pattern(PHONE_REGEX)),
+      street: new FormControl(this.currentOrder.invoiceContact?.street, Validators.required),
+      street2: new FormControl(this.currentOrder.invoiceContact?.street2),
+      postcode: new FormControl(this.currentOrder.invoiceContact?.postcode, Validators.required),
+      city: new FormControl(this.currentOrder.invoiceContact?.city, Validators.required),
+      country: new FormControl(this.currentOrder.invoiceContact?.country, Validators.required),
     };
     this.step1FormGroup = this.formBuilder.group({
       orderType: new FormControl(this.getOrderType(this.currentOrder.getOrderTypeId), Validators.required),
@@ -238,16 +233,16 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       customer: null,
       newClient: false,
 
-      company_name: this.currentOrder.orderContact?.company_name,
-      first_name: this.currentOrder.orderContact?.first_name,
-      last_name: this.currentOrder.orderContact?.last_name,
-      email: this.currentOrder.orderContact?.email,
-      phone: this.currentOrder.orderContact?.phone,
-      street: this.currentOrder.orderContact?.street,
-      street2: this.currentOrder.orderContact?.street2,
-      postcode: this.currentOrder.orderContact?.postcode,
-      city: this.currentOrder.orderContact?.city,
-      country: this.currentOrder.orderContact?.country,
+      company_name: this.currentOrder.invoiceContact?.company_name,
+      first_name: this.currentOrder.invoiceContact?.first_name,
+      last_name: this.currentOrder.invoiceContact?.last_name,
+      email: this.currentOrder.invoiceContact?.email,
+      phone: this.currentOrder.invoiceContact?.phone,
+      street: this.currentOrder.invoiceContact?.street,
+      street2: this.currentOrder.invoiceContact?.street2,
+      postcode: this.currentOrder.invoiceContact?.postcode,
+      city: this.currentOrder.invoiceContact?.city,
+      country: this.currentOrder.invoiceContact?.country,
     });
 
     this.updateDescription(this.step1FormGroup?.get('orderType')?.value);
@@ -265,7 +260,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
     this.apiOrderService.updateOrPostOrder(this.currentOrder, this.products).subscribe(newOrder => {
       if ((newOrder as IApiResponseError).error) {
-        this.snackBar.open((newOrder as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'});
+        this.snackBar.open(
+          (newOrder as IApiResponseError).message, 'Ok', { panelClass: 'notification-error' });
       } else {
         this.storeService.addOrderToStore(new Order(newOrder as IOrder));
         this.stepper.next();

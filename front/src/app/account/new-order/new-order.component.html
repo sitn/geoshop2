@@ -53,14 +53,15 @@
         *ngIf="(step1FormGroup?.get('orderType')?.value?.id === 1 && step2FormGroup.get('addressChoice')?.value === '2') ||
         step1FormGroup?.get('orderType')?.value?.id !== 1">
         <div class="flex-row">
-          <mat-checkbox formControlName="newClient" style="flex:1;" (change)="cleanCustomerForm()">Nouveau client
+          <mat-checkbox formControlName="newClient" style="flex:1;" (change)="cleanCustomerForm()">
+            Nouveau contact
           </mat-checkbox>
           <!-- Search -->
           <mat-form-field style="flex:1;">
             <input matInput
                    [readonly]="step2FormGroup.get('newClient')?.value"
-                   placeholder="Rechercher un client"
-                   aria-label="Rechercher un client"
+                   placeholder="Rechercher dans mes contacts"
+                   aria-label="Rechercher dans mes contacts"
                    [matAutocomplete]="auto"
                    formControlName="customer">
             <div matSuffix class="flex-row">
@@ -203,11 +204,6 @@
 
   <mat-step [stepControl]="lastStepFormGroup" label="Aperçu de la commande">
     <form [formGroup]="lastStepFormGroup">
-
-      <mat-form-field>
-        <mat-label>Filter</mat-label>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Rivo">
-      </mat-form-field>
 
       <div class="table-container">
         <table mat-table [dataSource]="dataSource" matSort>
