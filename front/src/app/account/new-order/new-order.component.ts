@@ -92,7 +92,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.store.select(selectAllProducts).subscribe((cartProducts)=>{
+    this.store.select(selectAllProducts).subscribe((cartProducts) => {
       this.products = cartProducts;
     });
 
@@ -133,18 +133,13 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
       ...this.newContactControls
     });
-    this.lastStepFormGroup = this.formBuilder.group({
-      orderItems: this.formBuilder.array([ this.formatOrderItem ])
+    this.lastStepFormGroup = this.formBuilder.group({});
+    this.currentOrder.items.forEach((item) => {
+      this.lastStepFormGroup.addControl(item.product, new FormControl(item.format));
     });
 
     this.updateDescription(this.step1FormGroup?.get('orderType')?.value);
     this.updateForm2();
-  }
-
-  formatOrderItem(): FormGroup {
-    return this.formBuilder.group({
-      data_format: ''
-    });
   }
 
   displayCustomer(customer: IIdentity) {
@@ -266,7 +261,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
         this.storeService.addOrderToStore(new Order(newOrder as IOrder));
         console.log(this.currentOrder)
         this.dataSource = new MatTableDataSource();
-        this.dataSource.data = this.currentOrder.items
+        this.dataSource.data = this.currentOrder.items;
         this.stepper.next();
       }
     });

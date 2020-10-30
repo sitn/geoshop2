@@ -229,14 +229,11 @@
           <!-- Format Column -->
           <ng-container matColumnDef="format">
             <th mat-header-cell *matHeaderCellDef style="width: 30%;">Format</th>
-            <td mat-cell *matCellDef="let orderItem" formArrayName="orderItem">
+            <td mat-cell *matCellDef="let orderItem">
               <mat-form-field color="primary">
-                <mat-select [formGroupName]="orderItem.id" required placeholder="Format">
-                  <mat-option [value]="'Suisse'">
-                    DXF
-                  </mat-option>
-                  <mat-option [value]="'France'">
-                    PDF
+                <mat-select [formGroupName]="orderItem.product" required placeholder="Format">
+                  <mat-option *ngFor="let format of orderItem.available_formats" [value]="format">
+                    {{ format }}
                   </mat-option>
                 </mat-select>
                 <mat-error *ngIf="step2FormGroup.get('country')?.hasError('required')">Requis</mat-error>
@@ -248,7 +245,7 @@
           <!-- Price Column -->
           <ng-container matColumnDef="price">
             <th mat-header-cell *matHeaderCellDef style="width: 10%;text-align: center;">Prix</th>
-            <td mat-cell *matCellDef="let orderItem" style="text-align: center;"> 100</td>
+            <td mat-cell *matCellDef="let orderItem" style="text-align: center;">{{ orderItem.price | currency }}</td>
             <td mat-footer-cell *matFooterCellDef>
               <ul class="text-primary padding-vertical-5">
                 <li>{{2450 | currency}}</li>

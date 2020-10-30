@@ -45,6 +45,7 @@ export interface IOrderItem {
   id?: number;
   product: string;
   format?: string;
+  available_formats?: string[];
   statusAsReadableIconText?: {
     iconName: string;
     text: string;
