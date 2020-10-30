@@ -86,7 +86,6 @@ export class Order {
   orderType: IOrderType | undefined;
   clientIdentity: IIdentity | undefined;
   invoiceContact: IIdentity | undefined;
-  orderContact: IIdentity | undefined;
 
   statusAsReadableIconText = {
     iconName: '',
@@ -125,7 +124,7 @@ export class Order {
   }
 
   get isOwnCustomer() {
-    return this.orderContact && this.invoiceContact ? this.orderContact.url === this.invoiceContact.url : false;
+    return this.invoiceContact ? false : true;
   }
 
   get geometryAsGeoJson(): string | undefined {
@@ -185,12 +184,10 @@ export class Order {
 
   public deepInitialize(orderType: IOrderType | undefined,
                         client: IIdentity | undefined,
-                        invoiceContact: IIdentity | undefined,
-                        orderContact: IIdentity | undefined) {
+                        invoiceContact: IIdentity | undefined) {
     this.orderType = orderType;
     this.clientIdentity = client;
     this.invoiceContact = invoiceContact;
-    this.orderContact = orderContact;
   }
 
   private initializeId() {
