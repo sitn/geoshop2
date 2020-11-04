@@ -163,6 +163,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
         queryset=Product.objects.all(),
         slug_field='label')
 
+    available_formats = serializers.ListField(read_only=True)
+
     class Meta:
         model = OrderItem
         exclude = ['_price_currency', '_price', '_base_fee_currency',
