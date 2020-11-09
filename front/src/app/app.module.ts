@@ -5,6 +5,7 @@ import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {ConfigService} from './_services/config.service';
+import {CustomIconService} from './_services/custom-icon.service';
 import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
 import {AccountOverlayComponent} from './_components/account-overlay/account-overlay.component';
 import {HelpOverlayComponent} from './_components/help-overlay/help-overlay.component';
@@ -80,7 +81,8 @@ const MODULES = [
       provide: HTTP_INTERCEPTORS,
       useClass: ErrorInterceptor,
       multi: true,
-    }
+    },
+    CustomIconService
   ],
   bootstrap: [AppComponent]
 })

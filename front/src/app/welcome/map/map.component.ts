@@ -1,6 +1,7 @@
 import {Component, ElementRef, Input, OnInit} from '@angular/core';
 import {ConfigService} from 'src/app/_services/config.service';
 import {MapService} from '../../_services/map.service';
+import { CustomIconService } from '../../_services/custom-icon.service';
 import {IBasemap} from 'src/app/_models/IConfig';
 import {FormControl, FormGroup} from '@angular/forms';
 import {debounceTime, switchMap} from 'rxjs/operators';
@@ -61,7 +62,10 @@ export class MapComponent implements OnInit {
   }
 
   constructor(private mapService: MapService,
-              private configService: ConfigService) {
+              private configService: ConfigService,
+              private customIconService: CustomIconService) {
+    // Initialize custom icons
+    this.customIconService.init();
   }
 
   ngOnInit(): void {
