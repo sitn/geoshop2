@@ -1,0 +1,47 @@
+:host {
+
+  .mat-stepper-horizontal {
+    width: 100%;
+    height: calc(100vh - 64px);
+
+    .mat-horizontal-content-container {
+      flex: 1;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 64px - 72px - 24px);
+
+      .mat-form-field {
+        margin-top: 10px;
+      }
+    }
+
+    .mat-raised-button {
+      margin-left: auto;
+    }
+  }
+
+  ul {
+    list-style-type: none;
+  }
+
+  a {
+    text-decoration: none;
+    color: white;
+  }
+
+  .mat-card {
+    margin: 0 auto;
+  }
+
+  .table-container {
+    flex: 1;
+    overflow: auto;
+
+    .mat-table {
+      width: 100%;
+    }
+  }
+}

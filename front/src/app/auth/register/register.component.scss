@@ -1,0 +1,29 @@
+:host {
+  display: flex;
+  height: calc(100vh - 64px);
+
+  .mat-card {
+    margin: 10px;
+    flex: 1;
+  }
+
+  .card-header-image {
+    background-size: cover;
+    background-image: url("../../../assets/images/logo_ne.png");
+  }
+
+  form {
+    height: calc(100vh - 64px - 60px - 40px - 60px - 72px);
+  }
+
+  .bottom-container {
+    display: flex;
+    justify-content: space-between;
+
+    .mat-button {
+      &:only-child {
+        margin-left: auto;
+      }
+    }
+  }
+}

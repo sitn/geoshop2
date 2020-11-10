@@ -2,9 +2,37 @@
 
 <div id="map"></div>
 
-<div id="ol-scaleline" class="scale-line"></div>
+<form [formGroup]="formGeocoder" id="geocoder-container">
+  <mat-form-field color="primary">
+    <input type="text"
+           matInput
+           placeholder="Rechercher un lieu..."
+           formControlName="search"
+           [matAutocomplete]="autoGroup">
 
-<div class="map-button-container">
+    <div matSuffix class="flex-row">
+      <mat-spinner *ngIf="isSearchLoading" diameter="13" color="accent" style="margin-right: 10px"></mat-spinner>
+      <button mat-button color="accent" *ngIf="shouldDisplayClearButton" mat-icon-button aria-label="Clear"
+              (click)="searchCtrl?.setValue('');shouldDisplayClearButton = false;">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="displayGeocoderResultWith"
+                      (optionSelected)="displayGeocoderResultOnTheMap($event)">
+      <mat-optgroup *ngFor="let group of geocoderGroupOptions" [label]="group.label">
+        <mat-option *ngFor="let item of group.items" [value]="item">
+          {{item.label}}
+        </mat-option>
+      </mat-optgroup>
+    </mat-autocomplete>
+    <mat-hint>Une adresse, une parcelle, un point d'intérêt, etc.</mat-hint>
+  </mat-form-field>
+</form>
+
+<div id="ol-scaleline" class="scale-line" [style.left]="leftPositionForButtons"></div>
+
+<div class="map-button-container" [style.left]="leftPositionForButtons">
   <button matTooltip="Un clique droit ou un double click termine le dessin" [color]="isDrawing ? 'accent' : 'primary'"
           mat-mini-fab aria-label="Activer / désactiver le dessin" (click)="toggleDrawing()">
     <mat-icon>edit</mat-icon>
@@ -21,12 +49,12 @@
   <mat-menu #menu="matMenu">
     <button mat-menu-item *ngFor="let basemap of basemaps" (click)="switchBasemap(basemap.id)">
       <img alt="Basemap" [src]="basemap.thumbUrl" height="40px">
-      <span class="text-white">{{basemap.label}}</span>
+      <span>{{basemap.label}}</span>
     </button>
   </mat-menu>
 
-  <button matTooltip="Cliquer pour activer / désactiver le suivi de position"
-          [color]="isTracking ? 'accent' : 'primary'" mat-mini-fab aria-label="Activer / désactiver le suivi de positon"
+  <button matTooltip="Cliquer pour activer / désactiver la géolocalisation"
+          [color]="isTracking ? 'accent' : 'primary'" mat-mini-fab aria-label="Activer / désactiver la géolocalisation"
           (click)="toggleGeolocation()">
     <mat-icon>{{isTracking ? 'location_on' : 'location_off'}}</mat-icon>
   </button>

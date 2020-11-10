@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, HostBinding, OnInit} from '@angular/core';
 
 @Component({
   selector: 'gs2-auth',
@@ -7,7 +7,10 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AuthComponent implements OnInit {
 
-  constructor() { }
+  @HostBinding('class') class = 'main-container';
+
+  constructor() {
+  }
 
   ngOnInit(): void {
   }

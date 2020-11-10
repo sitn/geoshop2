@@ -1,5 +1,47 @@
-<mat-toolbar color="primary" class="example-toolbar">
-  <h1 class="example-app-name">GeoShop</h1>
+<mat-toolbar color="primary">
+
+  <div class="flex-row">
+    <a mat-button class="header-title" [routerLink]="['welcome']">GeoShop</a>
+    <mat-divider *ngIf="subTitle" vertical="true" color="accent"></mat-divider>
+    <span class="header-subtitle">{{subTitle}}</span>
+  </div>
+
+
+  <div class="right-container">
+
+    <button mat-icon-button [matMenuTriggerFor]="helpOverlay">
+      <mat-icon>help</mat-icon>
+    </button>
+    <mat-menu #helpOverlay="matMenu" class="overlay-menu-container">
+      <gs2-help-overlay></gs2-help-overlay>
+    </mat-menu>
+
+    <button mat-icon-button [matMenuTriggerFor]="accountOverlay">
+      <mat-icon>account_circle</mat-icon>
+    </button>
+    <mat-menu #accountOverlay="matMenu" class="overlay-menu-container">
+      <gs2-account-overlay></gs2-account-overlay>
+    </mat-menu>
+
+    <mat-divider vertical="true" color="accent"></mat-divider>
+
+    <button mat-icon-button
+            [disabled]="(order$|async)?.url.length === 0 && (numberOfItemInTheCart$|async) === 0"
+            [matMenuTriggerFor]="cartOverlay">
+      <mat-icon
+        [matBadge]="(numberOfItemInTheCart$|async)  ? (numberOfItemInTheCart$|async)?.toString() : undefined"
+        matBadgePosition="before" matBadgeColor="accent"
+        matBadgeSize="small">shopping_cart
+      </mat-icon>
+    </button>
+    <mat-menu #cartOverlay="matMenu" class="overlay-menu-container">
+      <gs2-cart-overlay></gs2-cart-overlay>
+    </mat-menu>
+
+  </div>
 </mat-toolbar>
 
-<router-outlet></router-outlet>
+<main>
+  <router-outlet></router-outlet>
+</main>
+

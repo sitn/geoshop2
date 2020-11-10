@@ -1,0 +1,14 @@
+:host {
+  height: calc(100vh - 64px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+
+  .mat-card {
+    margin-top: 20px;
+  }
+
+  ul {
+    list-style-type: none;
+  }
+}

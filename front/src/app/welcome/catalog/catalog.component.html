@@ -1,10 +1,12 @@
-<mat-form-field color="accent">
-  <mat-label>Catalogue</mat-label>
-  <input matInput [formControl]="catalogInputControl" placeholder="Rechercher un produit">
-  <button mat-button *ngIf="catalogInputControl.value" matSuffix mat-icon-button aria-label="Clear"
-          (click)="catalogInputControl.setValue('')">
-    <mat-icon>close</mat-icon>
-  </button>
+<mat-form-field color="primary">
+  <input matInput [formControl]="catalogInputControl" placeholder="Rechercher un produit...">
+  <div matSuffix class="flex-row">
+    <mat-spinner *ngIf="isSearchLoading" diameter="16" color="accent" style="margin-right: 10px"></mat-spinner>
+    <button mat-button *ngIf="catalogInputControl.value"  mat-icon-button aria-label="Clear"
+            (click)="catalogInputControl.setValue('')">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
 </mat-form-field>
 
 <ng-container *ngIf="infinite|async as products">
@@ -17,17 +19,17 @@
          class="list-group-item">
 
       <img class="item-logo rounded-image" alt="Logo du produit" aria-label="Logo du produit"
-           src="https://swisskarte.ch/fr/canton/neuchatel/neuchatel-carte.jpg">
+           src="{{mediaUrl}}/{{product.thumbnail_link}}">
       <div class="item-label text-ellipsis-2" [matTooltip]="product.label">{{product.label}}</div>
-      <span class="item-price text-accent">{{product.Price}}</span>
+      <!--<span class="item-price text-accent">{{product.Price}}</span>-->
       <button class="item-help" matTooltip="Voir les meta données" aria-label="Voir les meta données"
               [disabled]="!product.metadata"
               color="primary" mat-mini-fab
               (click)="openMetadata(product)">
-        <mat-icon>help</mat-icon>
+        <mat-icon>description</mat-icon>
       </button>
 
-      <button class="item-cart" color="primary" mat-mini-fab matTooltip="Ajouter au panier"
+      <button class="item-cart" color="primary" mat-mini-fab matTooltip="Ajouter au panier" (click)="addToCart(product)"
               aria-label="Ajouter au panier">
         <mat-icon>add_shopping_cart</mat-icon>
       </button>

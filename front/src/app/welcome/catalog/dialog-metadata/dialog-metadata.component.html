@@ -1,30 +1,73 @@
-<img src="../../../../assets/images/logo_ne.png" alt="Logo Neuchâtel">
+<button color="primary" class="close-button" mat-mini-fab (click)="dialogRef.close()"><mat-icon>close</mat-icon></button>
 
-<mat-card class="example-card">
-    <mat-card-header>
-        <div mat-card-avatar class="header-image" [style.backgroundImage]="'url(' + data.image_link + ')'"></div>
-        <mat-card-title>Métadonnée</mat-card-title>
-        <mat-card-subtitle>{{data.name}}</mat-card-subtitle>
-    </mat-card-header>
-    <img mat-card-image [src]="data.image_link" [alt]="data.name">
-    <mat-card-content>
-        <p *ngIf="!showLongDescription">
-            {{data.description_short}}
-            <button mat-button (click)="showLongDescription = true;">...voir plus</button>
-        </p>
-        <p *ngIf="showLongDescription">
-            {{data.description_long}}
-            <button mat-button (click)="showLongDescription = false;">voir moins</button>
-        </p>
-    </mat-card-content>
-    <mat-card-actions>
-        <a [href]="data.legend_link" target="_blank" mat-button>
-            Voir légende
-            <mat-icon>open_in_new</mat-icon>
-        </a>
-        <a [href]="data.geocat_link" target="_blank" mat-button>
-            Voir géocat
-            <mat-icon>open_in_new</mat-icon>
-        </a>
-    </mat-card-actions>
+<mat-card class="contacts-container">
+    <mat-card-title>Contacts</mat-card-title>
+  <mat-card-content>
+    <div class="person-container">
+      <div *ngFor="let person of data.contact_persons" class="flex-row">
+
+        <div class="flex-column">
+          <span class="line-height-36">{{person.contact_person.first_name}} {{person.contact_person.last_name}}</span>
+          <span class="line-height-36">{{person.metadata_role}}</span>
+        </div>
+
+        <div class="flex-column">
+          <a class="flex-row" [href]="'mailto:'+person.contact_person.email" mat-button color="primary">
+            <mat-icon class="m-r-5">email</mat-icon>
+            <span>{{person.contact_person.email}}</span>
+          </a>
+          <a class="flex-row" [href]="'tel:'+person.contact_person.phone" mat-button color="primary">
+            <mat-icon class="m-r-5">phone</mat-icon>
+            <span>{{person.contact_person.phone}}</span>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="metadata-main-container">
+  <mat-card-header>
+    <div mat-card-avatar class="header-image"
+         [style.backgroundImage]="'url(' + mediaUrl + '/' + data.image_link + ')'"></div>
+    <mat-card-title>Métadonnée</mat-card-title>
+    <mat-card-subtitle>{{data.name}}</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+
+    <div class="image-center-container">
+      <img [src]="mediaUrl + '/' + data.image_link" [alt]="data.name">
+    </div>
+
+
+    <mat-accordion *ngIf="data.legend_link.indexOf('http') > -1">
+      <mat-expansion-panel expanded="true" *ngIf="data.description_short || data.description_long">
+        <mat-expansion-panel-header>
+          <mat-panel-title>Description</mat-panel-title>
+          <mat-panel-description>{{data.description_short}}</mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <p class="long-description">{{data.description_long}}</p>
+      </mat-expansion-panel>
+      <mat-expansion-panel *ngIf="data.legend_link.indexOf('http') > -1">
+        <mat-expansion-panel-header>
+          <mat-panel-title>Légende</mat-panel-title>
+          <mat-panel-description></mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <img [src]="data.legend_link" alt="Légende">
+      </mat-expansion-panel>
+    </mat-accordion>
+
+  </mat-card-content>
+  <mat-card-actions>
+    <a *ngIf="data.geocat_link.indexOf('http') > -1" [href]="data.geocat_link" target="_blank" mat-button
+       color="primary">
+      Ouvrir géocat
+      <mat-icon>open_in_new</mat-icon>
+    </a>
+
+    <img class="logo-image" src="assets/images/logo_ne.png" alt="Logo Neuchâtel">
+  </mat-card-actions>
 </mat-card>

@@ -1,0 +1,30 @@
+:host {
+  height: 100%;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+
+  .text-ellipsis-2 {
+    flex: 1;
+  }
+
+  .items-container {
+
+    .mat-button {
+      line-height: 20px;
+      margin: 5px 0;
+    }
+  }
+
+  .total-container {
+    margin: 10px 0;
+  }
+
+  .delete-container {
+    margin-top: 20px;
+  }
+
+  .action-button {
+    margin-top: 10px;
+  }
+}

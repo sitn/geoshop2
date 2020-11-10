@@ -2,7 +2,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": "./",
-    "outDir": "./dist/out-tsc",
+    "outDir": "./dist",
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
@@ -16,6 +16,7 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "allowJs": true,
+    "allowSyntheticDefaultImports": true,
     "target": "es2015",
     "lib": [
       "es2018",

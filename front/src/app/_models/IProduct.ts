@@ -5,8 +5,9 @@ export interface IProduct {
   label: string;
   status: string;
   order: number;
-  metadata: IMetadata;
+  metadata?: string;
   group: any;
+  thumbnail_link: string;
 }
 
 export class Product {
@@ -14,8 +15,14 @@ export class Product {
   public readonly label: string;
   public readonly status: string;
   public readonly order: number;
-  public readonly metadata: IMetadata;
+  /*
+  Url of the metadata
+   */
+  public readonly metadata: string;
   public readonly group: any;
+  public readonly thumbnail_link: string;
+
+  public metadataObject: IMetadata;
 
   public get Price() {
     return `Gratuit`;

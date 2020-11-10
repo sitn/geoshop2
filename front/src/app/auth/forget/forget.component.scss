@@ -1,0 +1,25 @@
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .info-container {
+    width: 300px;
+  }
+
+  .card-header-image {
+    background-size: cover;
+    background-image: url("../../../assets/favicon.png");
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    padding: 15px;
+
+    .form-login-button {
+      margin-top: 15px;
+    }
+  }
+}
