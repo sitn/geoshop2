@@ -19,9 +19,9 @@
          class="list-group-item">
 
       <img class="item-logo rounded-image" alt="Logo du produit" aria-label="Logo du produit"
-           src="https://swisskarte.ch/fr/canton/neuchatel/neuchatel-carte.jpg">
+           src="{{mediaUrl}}/{{product.thumbnail_link}}">
       <div class="item-label text-ellipsis-2" [matTooltip]="product.label">{{product.label}}</div>
-      <span class="item-price text-accent">{{product.Price}}</span>
+      <!--<span class="item-price text-accent">{{product.Price}}</span>-->
       <button class="item-help" matTooltip="Voir les meta données" aria-label="Voir les meta données"
               [disabled]="!product.metadata"
               color="primary" mat-mini-fab

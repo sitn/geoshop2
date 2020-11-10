@@ -71,14 +71,13 @@ export class ApiOrderService {
     return zip(
       this.getOrderType(iOrder.order_type),
       this.apiService.getIdentity(iOrder.invoice_contact),
-      this.apiService.getIdentity(iOrder.order_contact),
       this.apiService.getIdentity(iOrder.client),
     ).pipe(
       map(data => {
         console.log(data);
 
         const order = new Order(iOrder);
-        order.deepInitialize(data[0], data[1], data[2], data[3]);
+        order.deepInitialize(data[0], data[1], data[2]);
         return order;
       }),
       catchError(error => {
@@ -109,20 +108,18 @@ export class ApiOrderService {
       title: order.title,
       description: order.description,
       geom: order.geometryAsGeoJson,
-      order_type: order.orderType ? order.orderType.name : '',
+      order_type: order.order_type ? order.order_type : '',
       order_contact: order.order_contact,
       invoice_contact: order.invoice_contact,
       items: products.map(x => {
         const item: IOrderItem = {
           product: x.label,
-          format: 'DXF'
         };
 
         return item;
       })
     };
-
-    if (order.id == null) {
+    if (order.id) {
       return this.http.post<IOrder | IApiResponseError>(url.toString(), orderToPost).pipe(
         catchError(error => {
           console.error(error);

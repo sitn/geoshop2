@@ -2,3 +2,7 @@
 back/.idea/
 front/.idea/
 front/node_modules/
+apache/app.conf
+back/files/*
+logs/*
+!logs/.gitkeep

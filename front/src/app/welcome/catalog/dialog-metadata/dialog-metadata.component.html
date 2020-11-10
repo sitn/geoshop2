@@ -1,9 +1,7 @@
 <button color="primary" class="close-button" mat-mini-fab (click)="dialogRef.close()"><mat-icon>close</mat-icon></button>
 
 <mat-card class="contacts-container">
-  <mat-card-header>
     <mat-card-title>Contacts</mat-card-title>
-  </mat-card-header>
   <mat-card-content>
     <div class="person-container">
       <div *ngFor="let person of data.contact_persons" class="flex-row">
@@ -31,20 +29,20 @@
 
 <mat-card class="metadata-main-container">
   <mat-card-header>
-    <div mat-card-avatar class="header-image" *ngIf="data.image_link.indexOf('http') > -1"
-         [style.backgroundImage]="'url(' + data.image_link + ')'"></div>
+    <div mat-card-avatar class="header-image"
+         [style.backgroundImage]="'url(' + mediaUrl + '/' + data.image_link + ')'"></div>
     <mat-card-title>Métadonnée</mat-card-title>
     <mat-card-subtitle>{{data.name}}</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
 
     <div class="image-center-container">
-      <img *ngIf="data.image_link.indexOf('http') > -1" [src]="data.image_link" [alt]="data.name">
+      <img [src]="mediaUrl + '/' + data.image_link" [alt]="data.name">
     </div>
 
 
     <mat-accordion *ngIf="data.legend_link.indexOf('http') > -1">
-      <mat-expansion-panel *ngIf="data.description_short || data.description_long">
+      <mat-expansion-panel expanded="true" *ngIf="data.description_short || data.description_long">
         <mat-expansion-panel-header>
           <mat-panel-title>Description</mat-panel-title>
           <mat-panel-description>{{data.description_short}}</mat-panel-description>
@@ -70,6 +68,6 @@
       <mat-icon>open_in_new</mat-icon>
     </a>
 
-    <img class="logo-image" src="../../../../assets/images/logo_ne.png" alt="Logo Neuchâtel">
+    <img class="logo-image" src="assets/images/logo_ne.png" alt="Logo Neuchâtel">
   </mat-card-actions>
 </mat-card>

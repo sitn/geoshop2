@@ -8,8 +8,10 @@ export interface IBasemap {
 
 export interface IConfig {
   apiUrl: string;
+  mediaUrl: string;
   baseMapCapabilitiesUrl: string;
   geocoderUrl: string;
+  geocoderLayers: string[];
   contact: { phone: { label: string; number: string }; email: string; };
   basemaps: Array<IBasemap>;
   initialCenter: number[];

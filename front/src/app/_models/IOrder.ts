@@ -44,7 +44,7 @@ export interface IOrder {
 export interface IOrderItem {
   id?: number;
   product: string;
-  format: string;
+  format?: string;
   last_download?: string;
   statusAsReadableIconText?: {
     iconName: string;
@@ -86,7 +86,6 @@ export class Order {
   orderType: IOrderType | undefined;
   clientIdentity: IIdentity | undefined;
   invoiceContact: IIdentity | undefined;
-  orderContact: IIdentity | undefined;
 
   statusAsReadableIconText = {
     iconName: '',
@@ -98,7 +97,7 @@ export class Order {
     return {
       geom: this.geom ? new GeoJSON().writeGeometry(this.geom) : undefined,
       url: this.url || '',
-      id: this.id || -1,
+      id: this.id || undefined,
       client: this.client || undefined,
       date_downloaded: this.date_downloaded ? this.date_downloaded.getTime().toString() : undefined,
       date_ordered: this.date_ordered ? this.date_ordered.getTime().toString() : undefined,
@@ -125,7 +124,7 @@ export class Order {
   }
 
   get isOwnCustomer() {
-    return this.orderContact && this.invoiceContact ? this.orderContact.url === this.invoiceContact.url : false;
+    return this.invoiceContact ? false : true;
   }
 
   get geometryAsGeoJson(): string | undefined {
@@ -156,7 +155,7 @@ export class Order {
       this.items = iOrder.items;
       this.initializeGeometry(iOrder.geom);
     } else {
-      this.id = -1;
+      this.id = undefined;
       this.url = '';
       this.title = '';
       this.description = '';
@@ -185,12 +184,10 @@ export class Order {
 
   public deepInitialize(orderType: IOrderType | undefined,
                         client: IIdentity | undefined,
-                        invoiceContact: IIdentity | undefined,
-                        orderContact: IIdentity | undefined) {
+                        invoiceContact: IIdentity | undefined) {
     this.orderType = orderType;
     this.clientIdentity = client;
     this.invoiceContact = invoiceContact;
-    this.orderContact = orderContact;
   }
 
   private initializeId() {

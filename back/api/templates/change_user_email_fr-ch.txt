@@ -1,0 +1,10 @@
+Chères administratrices, chers administrateurs,
+
+L'utilisateur {{username}} a fait une demande de modification(s) de profil.
+
+Veuillez vérifier celle(s)-ci directement dans la BD. Le numéro (id) de la 
+requête est le {{id}}.
+
+Merci beaucoup
+
+Merci de ne pas répondre à ce message automatique.

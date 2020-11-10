@@ -133,7 +133,6 @@ export class MapService {
       this.initializeDrawing();
       this.initializeGeolocation();
       this.initializeDragInteraction();
-
       this.store.select(selectOrder).subscribe(order => {
         if (!this.featureFromDrawing && order && order.geom) {
           const geometry = this.geoJsonFormatter.readGeometry(order.geom);
@@ -239,7 +238,7 @@ export class MapService {
       return of([]);
     }
     const url = new URL(this.configService.config.geocoderUrl);
-    url.searchParams.append('limit', '20');
+    url.searchParams.append('partitionlimit', '10');
     url.searchParams.append('query', inputText);
     return this.httpClient.get(url.toString()).pipe(
       map(featureCollection => this.geoJsonFormatter.readFeatures(featureCollection))
@@ -248,6 +247,9 @@ export class MapService {
 
   public addFeatureFromGeocoderToDrawing(feature: Feature) {
     this.geocoderSource.clear();
+    if (this.featureFromDrawing) {
+      this.drawingSource.removeFeature(this.featureFromDrawing);
+    }
     this.geocoderSource.addFeature(feature.clone());
 
     let bufferExtent: Extent;
@@ -300,7 +302,9 @@ export class MapService {
       layers: new LayerGroup({
         layers: baseLayers
       }),
-      interactions: defaultInteractions().extend([this.initializeDragAndDropInteraction()]),
+      interactions: defaultInteractions(
+        {doubleClickZoom: false}
+      ).extend([this.initializeDragAndDropInteraction()]),
       controls: [
         new ScaleLine({
           target: 'ol-scaleline',
@@ -425,6 +429,7 @@ export class MapService {
       if (this.featureFromDrawing && isActive && this.drawingSource.getFeatures().length > 0) {
         this.drawingSource.removeFeature(this.featureFromDrawing);
       }
+      this.geocoderSource.clear();
       this.toggleDragInteraction(!isActive);
 
       this.isDrawModeActivated = isActive;

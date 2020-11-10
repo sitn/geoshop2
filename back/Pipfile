@@ -6,15 +6,19 @@ verify_ssl = true
 [dev-packages]
 pylint = "*"
 autopep8 = "*"
+pylint-django = "*"
 
 [packages]
-django = "*"
-djangorestframework = "*"
+django = {version = "<3.0.9"}
+djangorestframework = {version = "==3.11.0"}
 markdown = "*"
 django-filter = "*"
 djangorestframework-gis = "*"
 psycopg2 = "*"
 django-money = "*"
-
-[requires]
-python_version = "3.6"
+djangorestframework-simplejwt = "*"
+django-allauth = "*"
+django-cors-headers = "*"
+python-dotenv = "*"
+gunicorn = "*"
+whitenoise = "*"

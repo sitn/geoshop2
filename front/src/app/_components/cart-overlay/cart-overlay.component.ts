@@ -79,12 +79,7 @@ export class CartOverlayComponent implements OnInit, OnDestroy {
     }
   }
 
-  tryGetLastDraft() {
-    if (this.storeService.IsLastDraftAlreadyLoaded) {
-      this.naviguateToNewOrder();
-      return;
-    }
-
+  private tryGetLastDraft() {
     this.apiOrderService.getLastDraft()
       .pipe(takeUntil(this.onDestroy$))
       .subscribe(order => {
@@ -100,15 +95,12 @@ export class CartOverlayComponent implements OnInit, OnDestroy {
           dialogRef.afterClosed().subscribe(result => {
             if (result) {
               this.storeService.addOrderToStore(order);
-              this.storeService.IsLastDraftAlreadyLoaded = true;
-            } else {
-              this.storeService.IsLastDraftAlreadyLoaded = false;
             }
             dialogRef = null;
-
-            this.naviguateToNewOrder();
           });
         }
+        this.storeService.IsLastDraftAlreadyLoadedOrChecked = true;
+        this.naviguateToNewOrder();
       });
   }
 
@@ -126,8 +118,12 @@ export class CartOverlayComponent implements OnInit, OnDestroy {
     });
   }
 
-  private naviguateToNewOrder() {
+  naviguateToNewOrder() {
     if (this.isUserLoggedIn) {
+      if (!this.storeService.IsLastDraftAlreadyLoadedOrChecked) {
+        this.tryGetLastDraft();
+        return;
+      }
       this.router.navigate(['/account/new-order'], {
         queryParams: {
           callback: '/account/new-order'

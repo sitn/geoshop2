@@ -1,36 +1,55 @@
-from django.contrib.auth.models import User, Group
-from .models import (
-    Copyright,
-    Document, 
-    Format,
-    Identity,
-    Metadata,
-    Order,
-    OrderItem,
-    OrderType,
-    Pricing,
-    Product,
-    ProductFormat)
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.gis.geos import Polygon
+from django.utils.translation import gettext_lazy as _
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
+from djmoney.contrib.django_rest_framework import MoneyField
 
 from rest_framework import serializers
-from rest_framework_gis.serializers import GeoModelSerializer
+from rest_framework.exceptions import ValidationError
+
+from allauth.account.adapter import get_adapter
+
+from .models import (
+    Copyright, Contact, Document, DataFormat, Identity,
+    Metadata, MetadataContact, Order, OrderItem, OrderType,
+    Pricing, Product, ProductFormat, UserChange)
+
+# Get the UserModel
+UserModel = get_user_model()
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ['url', 'username', 'email', 'groups']
+        model = UserModel
+        exclude = [
+            'password', 'first_name', 'last_name', 'email',
+            'is_staff', 'is_superuser', 'is_active', 'groups',
+            'user_permissions']
 
 
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
+class IdentitySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Group
-        fields = ['url', 'name']
+        model = Identity
+        exclude = ['sap_id', 'contract_accepted', 'is_public', 'user']
 
 
 class CopyrightSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Copyright
+        fields = '__all__'
+
+
+class ContactSerializer(serializers.HyperlinkedModelSerializer):
+    belongs_to = serializers.HiddenField(
+        default=serializers.CurrentUserDefault(),
+    )
+
+    class Meta:
+        model = Contact
         fields = '__all__'
 
 
@@ -40,40 +59,323 @@ class DocumentSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class FormatSerializer(serializers.HyperlinkedModelSerializer):
+class DataFormatSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Format
+        model = DataFormat
         fields = '__all__'
 
 
-class OrderTypeSerializer(GeoModelSerializer):
+class OrderTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderType
         fields = '__all__'
 
 
-class IdentitySerializer(serializers.HyperlinkedModelSerializer):
+class UserIdentitySerializer(UserSerializer):
+    """
+    Flattens User and Identity.
+    """
+    identity = IdentitySerializer(many=False)
+
+    def to_representation(self, instance):
+        """Move fields from user to identity representation."""
+        representation = super().to_representation(instance)
+        identity_representation = representation.pop('identity')
+        for identity_key in identity_representation:
+            new_key = identity_key
+            if new_key in representation:
+                new_key = 'identity_' + identity_key
+            representation[new_key] = identity_representation[identity_key]
+        return representation
+
+
+class MetadataIdentitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Identity
-        fields = '__all__'
+        fields = [
+            'url',
+            'first_name', 'last_name', 'email',
+            'phone', 'street', 'street2',
+            'company_name',
+            'postcode', 'city', 'country']
+
+
+class MetadataContactSerializer(serializers.HyperlinkedModelSerializer):
+    contact_person = MetadataIdentitySerializer(read_only=True)
+
+    class Meta:
+        model = MetadataContact
+        fields = [
+            'contact_person',
+            'metadata_role']
+
+# TODO: Test this, check for passing contexts ! Check public identities
 
 
 class MetadataSerializer(serializers.HyperlinkedModelSerializer):
+    contact_persons = serializers.SerializerMethodField()
+    modified_user = serializers.StringRelatedField(read_only=True)
+    documents = DocumentSerializer(many=True)
+    copyright = CopyrightSerializer(many=False)
+
     class Meta:
         model = Metadata
         fields = '__all__'
 
+    def get_contact_persons(self, obj):
+        """obj is a Metadata instance. Returns list of dicts"""
+        qset = MetadataContact.objects.filter(metadata=obj)
+        return [
+            MetadataContactSerializer(m, context={
+                'request': self.context['request']
+            }).data for m in qset]
 
-class OrderSerializer(serializers.HyperlinkedModelSerializer):
+
+class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):
+    """
+    Serializer showing a summary of an Order.
+    Always exclude geom here as it is used in lists of
+    orders and performance can be impacted.
+    """
+    order_type = serializers.StringRelatedField()
+
     class Meta:
         model = Order
-        fields = '__all__'
+        exclude = [
+            'geom', 'date_downloaded', 'client',
+            'processing_fee_currency', 'processing_fee',
+            'part_vat_currency', 'part_vat',
+            'invoice_contact']
 
 
-class OrderItemSerializer(serializers.HyperlinkedModelSerializer):
+class OrderItemSerializer(serializers.ModelSerializer):
+    """
+    A Basic serializer for order items
+    """
+    price = MoneyField(max_digits=14, decimal_places=2,
+                       required=False, allow_null=True, read_only=True)
+    data_format = serializers.SlugRelatedField(
+        required=False,
+        queryset=DataFormat.objects.all(),
+        slug_field='name'
+    )
+    product = serializers.SlugRelatedField(
+        queryset=Product.objects.all(),
+        slug_field='label')
+
+    available_formats = serializers.ListField(read_only=True)
+
     class Meta:
         model = OrderItem
-        fields = '__all__'
+        exclude = ['_price_currency', '_price', '_base_fee_currency',
+                   '_base_fee', 'last_download', 'extract_result']
+        read_only_fields = ['price_status', 'order']
+
+
+class OrderItemTextualSerializer(OrderItemSerializer):
+    """
+    Same as OrderItem, without Order
+    """
+
+    class Meta(OrderItemSerializer.Meta):
+        exclude = OrderItemSerializer.Meta.exclude + ['order']
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    """
+    A complete Order serializer.
+    """
+    order_type = serializers.SlugRelatedField(
+        queryset=OrderType.objects.all(),
+        slug_field='name',
+        help_text='Input the translated string value, for example "Privé"')
+    items = OrderItemTextualSerializer(many=True)
+    client = serializers.HiddenField(
+        default=serializers.CurrentUserDefault(),
+    )
+
+    class Meta:
+        model = Order
+        exclude = ['date_downloaded']
+        read_only_fields = [
+            'date_ordered', 'date_processed',
+            'processing_fee_currency', 'processing_fee',
+            'total_cost_currency', 'total_cost',
+            'part_vat_currency', 'part_vat',
+            'status']
+
+    def create(self, validated_data):
+        items_data = validated_data.pop('items', None)
+        geom = validated_data.pop('geom', None)
+        order = Order(**validated_data)
+        order.geom = Polygon(geom.coords[0], srid=settings.DEFAULT_SRID)
+        order.save()
+        for item_data in items_data:
+            item = OrderItem.objects.create(order=order, **item_data)
+            item.set_price()
+            item.save()
+
+        if order.order_type and items_data:
+            order.set_price()
+            order.save()
+        return order
+
+    def update(self, instance, validated_data):
+        if instance.status != Order.OrderStatus.DRAFT:
+            raise serializers.ValidationError()
+
+        items_data = validated_data.pop('items', None)
+        geom = validated_data.pop('geom', None)
+
+        if geom:
+            instance.geom = Polygon(geom.coords[0], srid=settings.DEFAULT_SRID)
+
+        instance.title = validated_data.get('title', instance.title)
+        instance.description = validated_data.get(
+            'description', instance.description)
+
+        instance.save()
+        for item_data in items_data:
+            item = OrderItem.objects.create(order=instance, **item_data)
+            item.set_price()
+            item.save()
+
+        if instance.order_type:
+            if items_data or geom or validated_data['order_type']:
+                instance.set_price()
+                instance.save()
+        return instance
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    """
+    Product serializer
+    """
+
+    pricing = serializers.StringRelatedField(
+        read_only=True)
+
+    class Meta:
+        model = Product
+        read_only_fields = ['pricing', 'label', 'provider', 'group']
+        exclude = ['status', 'order', 'thumbnail_link', 'ts', 'metadata']
+
+
+class ExtractOrderItemSerializer(OrderItemSerializer):
+    """
+    Orderitem serializer for extract. Allows to upload file of orderitem.
+    """
+    extract_result = serializers.FileField()
+    product = ProductSerializer(read_only=True)
+    data_format = serializers.StringRelatedField(read_only=True)
+
+    class Meta(OrderItemSerializer.Meta):
+        exclude = ['_price_currency', '_base_fee_currency',
+                   '_price', '_base_fee', 'order']
+        read_only_fields = [
+            'id', 'price', 'data_format', 'product', 'srid', 'last_download', 'price_status']
+
+    def update(self, instance, validated_data):
+        if instance.extract_result:
+            # deletes previous file in filesystem
+            instance.extract_result.delete()
+        instance.extract_result = validated_data.pop('extract_result')
+        instance.save()
+        instance.order.next_status_when_file_uploaded()
+        instance.order.save()
+        return instance
+
+
+class ExtractOrderSerializer(serializers.ModelSerializer):
+    """
+    Order serializer for extract.
+    """
+    order_type = serializers.SlugRelatedField(
+        queryset=OrderType.objects.all(),
+        slug_field='name',
+        help_text='Input the translated string value, for example "Privé"')
+    items = ExtractOrderItemSerializer(many=True)
+    client = UserIdentitySerializer()
+    invoice_contact = IdentitySerializer()
+    geom_srid = serializers.IntegerField()
+
+    class Meta:
+        model = Order
+        exclude = [
+            'date_downloaded', 'processing_fee_currency',
+            'total_without_vat_currency', 'part_vat_currency', 'total_with_vat_currency']
+        read_only_fields = [
+            'date_ordered', 'date_processed',
+            'processing_fee_currency', 'processing_fee',
+            'total_cost_currency', 'total_cost',
+            'part_vat_currency', 'part_vat',
+            'status']
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    """
+    Serializer for requesting a password reset e-mail.
+    """
+    email = serializers.EmailField()
+
+    password_reset_form_class = PasswordResetForm
+
+    def validate_email(self, value):
+        # Create PasswordResetForm with the serializer
+        self.reset_form = self.password_reset_form_class(
+            data=self.initial_data)
+        if not self.reset_form.is_valid():
+            raise serializers.ValidationError(self.reset_form.errors)
+
+        return value
+
+    def save(self):
+        request = self.context.get('request')
+        # Set some values to trigger the send_email method.
+        opts = {
+            'domain_override': getattr(settings, 'FRONT_URL') + getattr(settings, 'FRONT_HREF'),
+            'use_https': request.is_secure(),
+            'from_email': getattr(settings, 'DEFAULT_FROM_EMAIL'),
+            'request': request,
+        }
+
+        self.reset_form.save(**opts)
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """
+    Serializer for setting a new user password.
+    """
+    new_password1 = serializers.CharField(max_length=128)
+    new_password2 = serializers.CharField(max_length=128)
+    uid = serializers.CharField()
+    token = serializers.CharField()
+
+    set_password_form_class = SetPasswordForm
+
+    def validate(self, attrs):
+        self._errors = {}
+
+        # Decode the uidb64 to uid to get User object
+        try:
+            uid = force_text(urlsafe_base64_decode(attrs['uid']))
+            self.user = UserModel._default_manager.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
+            raise ValidationError({'uid': ['Invalid value']})
+
+        # Construct SetPasswordForm instance
+        self.set_password_form = self.set_password_form_class(
+            user=self.user, data=attrs
+        )
+        if not self.set_password_form.is_valid():
+            raise serializers.ValidationError(self.set_password_form.errors)
+        if not default_token_generator.check_token(self.user, attrs['token']):
+            raise ValidationError({'token': ['Invalid value']})
+
+        return attrs
+
+    def save(self):
+        return self.set_password_form.save()
 
 
 class PricingSerializer(serializers.HyperlinkedModelSerializer):
@@ -82,13 +384,80 @@ class PricingSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class ProductSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Product
-        fields = '__all__'
+class ProductFormatSerializer(serializers.ModelSerializer):
+    product = serializers.SlugRelatedField(
+        queryset=Product.objects.all(),
+        slug_field='label')
+    data_format = serializers.SlugRelatedField(
+        required=False,
+        queryset=DataFormat.objects.all(),
+        slug_field='name',
+        label='format')
 
-
-class ProductFormatSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ProductFormat
         fields = '__all__'
+
+
+class DataFormatListSerializer(ProductFormatSerializer):
+    product = None
+
+    class Meta:
+        model = ProductFormat
+        exclude = ['product']
+
+
+class ProductDigestSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Product
+        exclude = ['ts']
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user registration
+    """
+    password1 = serializers.CharField(write_only=True)
+    password2 = serializers.CharField(write_only=True)
+
+    def validate_username(self, username):
+        username = get_adapter().clean_username(username)
+        return username
+
+    def validate_email(self, email):
+        email = get_adapter().clean_email(email)
+        return email
+
+    def validate_password1(self, password):
+        return get_adapter().clean_password(password)
+
+    def validate(self, data):
+        if data['password1'] != data['password2']:
+            raise serializers.ValidationError(
+                _("The two password fields didn't match."))
+        return data
+
+    def create(self, validated_data):
+        password = validated_data.pop('password1')
+        validated_data.pop('password2')
+        identity = UserModel(**validated_data)
+        identity.set_password(password)
+        identity.save()
+        return identity
+
+    class Meta:
+        model = UserModel
+        exclude = [
+            'password', 'last_login', 'date_joined',
+            'groups', 'user_permissions', 'is_staff',
+            'is_active', 'is_superuser']
+
+
+class UserChangeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserChange
+        fields = '__all__'
+
+
+class VerifyEmailSerializer(serializers.Serializer):
+    key = serializers.CharField()

@@ -2,15 +2,25 @@
 
 ## Requirements
 
-* PostgreSQL + PostGIS database
-* Python > 3.6
+* PostgreSQL > 10 + PostGIS
+* Python 3.6 / 3.7
 * pipenv (pip install pipenv)
+* GDAL 2.4 (see instructions below to install it in your venv)
 
 ## Getting started
 
+
+Fork and clone this repository. Make a copy of the `.env` file and adapt it to your environment settings:
+
+```powershell
+cd back
+cp .env.sample .env
+cd..
+```
+
 ### Database
 
-User geoshop is assumed to be already created. Set up a database manually or with the provided script in `scripts/create_db.ps1` :
+User geoshop is assumed to be already created. Set up a database manually or with the provided script in `scripts/create_db.ps1` (psql binary must be on PATH) :
 
 ```sql
 CREATE DATABASE geoshop;
@@ -20,12 +30,6 @@ CREATE SCHEMA geoshop AUTHORIZATION geoshop;
 
 ### Backend
 
-Fork and clone this repository. Make a copy of the `.env` file and adapt it to your environment settings:
-
-```powershell
-cp .env.sample .env
-```
-
 Install the app. If you want your `venv` to be inside your project directory, you need to set `PIPENV_VENV_IN_PROJECT` environment variable, otherwise it'll go to your profile:
 
 ```powershell
@@ -33,10 +37,38 @@ cd back
 $env:PIPENV_VENV_IN_PROJECT="True"
 pipenv install --dev           # installs everything needed
 pipenv shell                   # activates venv and reads .env file
-python manage.py migrate       # runs migrations
 ```
 
-If you're starting with a fresh new database you'll need to create an user:
+#### Installing GDAL on Windows
+Download the GDAL 2.4 wheel (3.X isn't supported yet by Django) on this page: https://www.lfd.uci.edu/~gohlke/pythonlibs/#gdal. For example, if you have Python 3.6 64bit, choose `GDAL‑2.4.1‑cp36‑cp36m‑win_amd64.whl`.
+Then install it weather system wide or in your venv (the example below will show the venv variant and expects you have your venv activated):
+
+```powershell
+pip install path\to\your\GDAL-2.4XXXX.whl
+```
+
+You'll then need to add GDAL dll to your PATH if you installed it system wide. You can get the dll path with:
+
+```python
+python
+
+from pathlib import Path, PureWindowsPath
+from osgeo import gdal
+
+print(PureWindowsPath(gdal.__file__).parent)
+```
+
+Otherwise, if you installed it in your venv, configure `.env` properly.
+
+### Migrate and run
+
+You should now be able to run migrations:
+
+```powershell
+python manage.py migrate
+```
+
+If you're starting with a fresh new database you'll need to create an user or restore a dump:
 
 ```powershell
 python manage.py createsuperuser --email admin@example.com --username admin
@@ -46,6 +78,18 @@ Your database should be ready, now you can run the backend:
 
 ```powershell
 python manage.py runserver
+```
+
+Translations can be generated with:
+
+```powershell
+python manage.py compilemessages
+```
+
+### Run tests
+
+```powershell
+python manage.py test api
 ```
 
 ### Frontend
@@ -72,3 +116,18 @@ npm start
 ```
 
 Then open a browser and go to [Geoshop2](http://localhost:4200)
+
+
+## Deploy
+
+Create an `env.prod` file base on `env.sample`.
+
+### Database setup
+
+Migrate database from old geoshop. This is not covered by documentation.
+
+### Application deployment
+
+```powershell
+.\scripts\4_deploy_prod.ps1
+```
