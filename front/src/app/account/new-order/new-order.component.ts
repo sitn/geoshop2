@@ -47,7 +47,6 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   // last step table attributes
   dataSource: MatTableDataSource<IOrderItem>;
-  orderItems: IOrderItem[] = [];
   products: Product[] = [];
   displayedColumns: string[] = ['label', 'format', 'price'];
 
