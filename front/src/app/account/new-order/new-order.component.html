@@ -30,9 +30,9 @@
         <mat-error *ngIf="step1FormGroup.get('description')?.hasError('required')">Requis</mat-error>
       </mat-form-field>
 
-      <div class="bottom-container">
-        <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
-        <button color="primary" mat-button matStepperNext>Suivant</button>
+      <div class="bottom-container flex-row">
+        <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Réinitialiser</button>
+        <button color="primary" matStepperNext mat-raised-button>Suivant</button>
       </div>
     </form>
   </mat-step>
@@ -194,10 +194,11 @@
         </div>
       </ng-container>
 
-      <div class="bottom-container">
+      <div class="bottom-container flex-row">
         <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
         <button color="primary" mat-button matStepperPrevious>Retour</button>
-        <button color="primary" mat-button [disabled]="step2FormGroup?.invalid" (click)="createOrUpdateDraftOrder()">Suivant</button>
+        <button color="primary" mat-raised-button [disabled]="step2FormGroup?.invalid"
+        (click)="createOrUpdateDraftOrder()">Suivant</button>
       </div>
     </form>
   </mat-step>
@@ -213,8 +214,8 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header style="width: 30%;">
               Description / Disponibilité
             </th>
-            <td mat-cell *matCellDef="let product">
-              <div class="text-ellipsis-2">{{product.label}}</div>
+            <td mat-cell *matCellDef="let orderItem">
+              <div class="text-ellipsis-2">{{ orderItem.product }}</div>
             </td>
             <td mat-footer-cell *matFooterCellDef>
               <ul class="text-primary padding-vertical-5">
@@ -227,29 +228,24 @@
 
           <!-- Format Column -->
           <ng-container matColumnDef="format">
-            <th mat-header-cell *matHeaderCellDef style="width: 30%;"> Format</th>
-            <td mat-cell *matCellDef="let product"> {{product.label}} </td>
+            <th mat-header-cell *matHeaderCellDef style="width: 30%;">Format</th>
+            <td mat-cell *matCellDef="let orderItem">
+              <mat-form-field color="primary">
+                <mat-select [formGroupName]="orderItem.product" required placeholder="Format">
+                  <mat-option *ngFor="let format of orderItem.available_formats" [value]="format">
+                    {{ format }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="step2FormGroup.get('country')?.hasError('required')">Requis</mat-error>
+              </mat-form-field>
+            </td>
             <td mat-footer-cell *matFooterCellDef class="text-primary"></td>
           </ng-container>
 
-          <!-- Quantity Column -->
-          <ng-container matColumnDef="quantity">
-            <th mat-header-cell *matHeaderCellDef style="width: 10%; text-align: center;"> Quantité</th>
-            <td mat-cell *matCellDef="let product" style="text-align: center;"> 1</td>
-            <td mat-footer-cell *matFooterCellDef class="text-primary"></td>
-          </ng-container>
-
-          <!-- Prix Column -->
+          <!-- Price Column -->
           <ng-container matColumnDef="price">
-            <th mat-header-cell *matHeaderCellDef style="width: 10%;text-align: center;"> Prix</th>
-            <td mat-cell *matCellDef="let product" style="text-align: center;"> {{product.Price}} </td>
-            <td mat-footer-cell *matFooterCellDef class="text-primary"></td>
-          </ng-container>
-
-          <!-- Total Column -->
-          <ng-container matColumnDef="total">
-            <th mat-header-cell *matHeaderCellDef style="width: 10%;text-align: center;"> Total</th>
-            <td mat-cell *matCellDef="let product" style="text-align: center;"> 100</td>
+            <th mat-header-cell *matHeaderCellDef style="width: 10%;text-align: center;">Prix</th>
+            <td mat-cell *matCellDef="let orderItem" style="text-align: center;">{{ orderItem.price | currency }}</td>
             <td mat-footer-cell *matFooterCellDef>
               <ul class="text-primary padding-vertical-5">
                 <li>{{2450 | currency}}</li>
@@ -271,7 +267,7 @@
       <div class="flex-row">
         <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
         <button color="primary" mat-button matStepperPrevious>Retour</button>
-        <button color="primary" mat-raised-button> Acheter maintenant</button>
+        <button color="primary" mat-raised-button>Acheter maintenant</button>
       </div>
     </form>
   </mat-step>
