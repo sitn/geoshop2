@@ -237,15 +237,3 @@ export class Order {
     }
   }
 }
-// TODO: Delete this
-export type IPriceStatus = 'PENDING' | ' CALCULATED' | 'IMPORTED';
-
-export class OrderItem {
-  public readonly id: number;
-  public readonly price: string;
-  public data_format: string;
-  public readonly product: string;
-  public srid: number;
-  public readonly price_status: IPriceStatus;
-  public readonly order: Order;
-}

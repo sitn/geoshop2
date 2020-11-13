@@ -1,5 +1,5 @@
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators, FormArray } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../_services/api.service';
 import { PHONE_REGEX } from '../../_helpers/regex';
 import { Observable, of, Subject } from 'rxjs';
@@ -259,7 +259,6 @@ export class NewOrderComponent implements OnInit, OnDestroy {
           (newOrder as IApiResponseError).message, 'Ok', { panelClass: 'notification-error' });
       } else {
         this.storeService.addOrderToStore(new Order(newOrder as IOrder));
-        console.log(this.currentOrder)
         this.dataSource = new MatTableDataSource();
         this.dataSource.data = this.currentOrder.items;
         this.stepper.next();
