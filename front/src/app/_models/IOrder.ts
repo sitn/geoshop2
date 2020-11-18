@@ -24,8 +24,8 @@ export interface IOrder {
   description: string;
   processing_fee_currency: string;
   processing_fee: string;
-  total_cost_currency: string;
-  total_cost: string;
+  total_with_vat_currency: string;
+  total_with_vat: string;
   part_vat_currency: string;
   part_vat: string;
   invoice_reference: string;
@@ -67,8 +67,8 @@ export class Order {
   description: string;
   processing_fee_currency: string;
   processing_fee: string;
-  total_cost_currency: string;
-  total_cost: string;
+  total_with_vat_currency: string;
+  total_with_vat: string;
   part_vat_currency: string;
   part_vat: string;
   invoice_reference: string;
@@ -113,8 +113,8 @@ export class Order {
       processing_fee_currency: this.processing_fee_currency,
       status: this.status,
       title: this.title,
-      total_cost: this.total_cost,
-      total_cost_currency: this.total_cost_currency,
+      total_with_vat: this.total_with_vat,
+      total_with_vat_currency: this.total_with_vat_currency,
       items: this.items
     };
   }
@@ -139,8 +139,8 @@ export class Order {
       this.description = iOrder.description;
       this.processing_fee_currency = iOrder.processing_fee_currency;
       this.processing_fee = iOrder.processing_fee;
-      this.total_cost_currency = iOrder.total_cost_currency;
-      this.total_cost = iOrder.total_cost;
+      this.total_with_vat_currency = iOrder.total_with_vat_currency;
+      this.total_with_vat = iOrder.total_with_vat;
       this.part_vat_currency = iOrder.part_vat_currency;
       this.part_vat = iOrder.part_vat;
       this.invoice_reference = iOrder.invoice_reference;
@@ -161,8 +161,8 @@ export class Order {
       this.description = '';
       this.processing_fee_currency = '';
       this.processing_fee = '';
-      this.total_cost_currency = '';
-      this.total_cost = '';
+      this.total_with_vat_currency = '';
+      this.total_with_vat = '';
       this.part_vat_currency = '';
       this.part_vat = '';
       this.invoice_reference = '';
