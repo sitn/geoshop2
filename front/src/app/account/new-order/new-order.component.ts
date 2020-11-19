@@ -8,7 +8,6 @@ import { debounceTime, filter, map, mergeMap, startWith, switchMap, takeUntil } 
 import { Product } from '../../_models/IProduct';
 import { select, Store } from '@ngrx/store';
 import { AppState, getUser, selectOrder, selectAllProducts } from '../../_store';
-import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -29,7 +28,6 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   private onDestroy$ = new Subject<boolean>();
 
   @HostBinding('class') class = 'main-container';
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
   @ViewChild('stepper') stepper: MatStepper;
 
@@ -94,7 +92,6 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.store.select(selectAllProducts).subscribe((cartProducts) => {
       this.products = cartProducts;
     });
-
   }
 
   ngOnDestroy() {
@@ -134,7 +131,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     });
     this.lastStepFormGroup = this.formBuilder.group({});
     this.currentOrder.items.forEach((item) => {
-      this.lastStepFormGroup.addControl(item.product, new FormControl(item.format));
+      this.dataSource = new MatTableDataSource(this.currentOrder.items);
+      this.lastStepFormGroup.addControl(item.product, new FormControl(item.format, Validators.required));
     });
 
     this.updateDescription(this.step1FormGroup?.get('orderType')?.value);
@@ -258,10 +256,12 @@ export class NewOrderComponent implements OnInit, OnDestroy {
           (newOrder as IApiResponseError).message, 'Ok', { panelClass: 'notification-error' });
       } else {
         this.storeService.addOrderToStore(new Order(newOrder as IOrder));
-        this.dataSource = new MatTableDataSource();
-        this.dataSource.data = this.currentOrder.items;
         this.stepper.next();
       }
     });
+  }
+
+  confirm() {
+    console.log('currentOrder', this.currentOrder);
   }
 }

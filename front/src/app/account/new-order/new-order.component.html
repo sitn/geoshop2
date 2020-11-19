@@ -204,7 +204,7 @@
   </mat-step>
 
   <mat-step [stepControl]="lastStepFormGroup" label="Aperçu de la commande">
-    <form [formGroup]="lastStepFormGroup">
+    <form [formGroup]="lastStepFormGroup" (submit)="confirm()">
 
       <div class="table-container">
         <table mat-table [dataSource]="dataSource" matSort>
