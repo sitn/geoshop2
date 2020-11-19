@@ -47,7 +47,6 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   }
 
   transitionEnd(event: number) {
-    console.log(event);
     this.mapService.resizeMap();
     this.leftPositionForButtons = 10;
   }

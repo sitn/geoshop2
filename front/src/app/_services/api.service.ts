@@ -62,8 +62,6 @@ export class ApiService {
               person.contact_person.phone = person.contact_person.phone.replace(/ /g, '');
             }
           }
-
-          console.log(result);
           return result;
         })
       );

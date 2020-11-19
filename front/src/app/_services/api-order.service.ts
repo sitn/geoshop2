@@ -74,8 +74,6 @@ export class ApiOrderService {
       this.apiService.getIdentity(iOrder.client),
     ).pipe(
       map(data => {
-        console.log(data);
-
         const order = new Order(iOrder);
         order.deepInitialize(data[0], data[1], data[2]);
         return order;
