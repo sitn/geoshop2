@@ -100,8 +100,9 @@ export class ApiOrderService {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    const url = new URL(`${this.apiUrl}/order/`);
+    let url = new URL(`${this.apiUrl}/order/`);
 
+    const currentOrderItems = order.items.map(oi => oi.product);
     const orderToPost: IOrderToPost = {
       title: order.title,
       description: order.description,
@@ -109,16 +110,20 @@ export class ApiOrderService {
       order_type: order.order_type ? order.order_type : '',
       order_contact: order.order_contact,
       invoice_contact: order.invoice_contact,
-      items: products.map(x => {
-        const item: IOrderItem = {
-          product: x.label,
-        };
-
-        return item;
-      })
+      items: []
     };
+
+    products.forEach( product => {
+      if (currentOrderItems.indexOf(product.label) === -1) {
+        const item: IOrderItem = {
+          product: product.label,
+        };
+        orderToPost.items?.push(item);
+      }
+    })
+
     if (order.id) {
-      return this.http.post<IOrder | IApiResponseError>(url.toString(), orderToPost).pipe(
+      return this.http.put<IOrder | IApiResponseError>(`${url.toString()}${order.id}/`, orderToPost).pipe(
         catchError(error => {
           console.error(error);
           return of(error);
@@ -126,13 +131,21 @@ export class ApiOrderService {
       );
     } else {
       orderToPost.id = order.id;
-      return this.http.patch<IOrder | IApiResponseError>(url.toString(), orderToPost).pipe(
+      return this.http.post<IOrder | IApiResponseError>(url.toString(), orderToPost).pipe(
         catchError(error => {
           console.error(error);
           return of(error);
         })
       );
     }
+  }
+
+  updateOrderItemDataFormat(data_format: string, orderItemId: number): Observable<IOrderItem | IApiResponseError> {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+    const url = new URL(`${this.apiUrl}/orderitem/${orderItemId}/`);
+    return this.http.patch<IOrderItem | IApiResponseError>(url.toString(), {data_format: data_format});
   }
 
   deleteLastDraftOrder() {

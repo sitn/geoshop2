@@ -231,7 +231,8 @@
             <th mat-header-cell *matHeaderCellDef>Format</th>
             <td mat-cell *matCellDef="let orderItem">
               <mat-form-field color="primary">
-                <mat-select [formControlName]="orderItem.product" required placeholder="Format">
+                <mat-select [formControlName]="orderItem.product" required
+                  placeholder="Format" (selectionChange)="updateDataFormat(orderItem)">
                   <mat-option *ngFor="let format of orderItem.available_formats" [value]="format">
                     {{ format }}
                   </mat-option>

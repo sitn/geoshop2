@@ -14,7 +14,7 @@ export interface IOrderToPost {
   invoice_reference?: string;
   order_contact: any;
   invoice_contact: any;
-  items: IOrderItem[];
+  items?: IOrderItem[];
 }
 
 export interface IOrder {
@@ -44,7 +44,7 @@ export interface IOrder {
 export interface IOrderItem {
   id?: number;
   product: string;
-  format?: string;
+  data_format?: string;
   available_formats?: string[];
   statusAsReadableIconText?: {
     iconName: string;

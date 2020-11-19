@@ -130,9 +130,10 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       ...this.newContactControls
     });
     this.lastStepFormGroup = this.formBuilder.group({});
+    this.dataSource = new MatTableDataSource(this.currentOrder.items);
     this.currentOrder.items.forEach((item) => {
-      this.dataSource = new MatTableDataSource(this.currentOrder.items);
-      this.lastStepFormGroup.addControl(item.product, new FormControl(item.format, Validators.required));
+      let itemFormControl = new FormControl(item.data_format, Validators.required)
+      this.lastStepFormGroup.addControl(item.product, itemFormControl);
     });
 
     this.updateDescription(this.step1FormGroup?.get('orderType')?.value);
@@ -257,6 +258,21 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       } else {
         this.storeService.addOrderToStore(new Order(newOrder as IOrder));
         this.stepper.next();
+      }
+    });
+  }
+
+  updateDataFormat(orderItem: IOrderItem) {
+    const data_format = this.lastStepFormGroup.get(orderItem.product)?.value;
+    let orderItemId = orderItem.id || null
+    if (orderItemId === null) {
+      return
+    }
+    this.apiOrderService.updateOrderItemDataFormat(data_format, orderItemId).subscribe(newOrderItem => {
+      if ((newOrderItem as IApiResponseError).error) {
+        this.snackBar.open(
+          (newOrderItem as IApiResponseError).message, 'Ok', { panelClass: 'notification-error '}
+        )
       }
     });
   }
