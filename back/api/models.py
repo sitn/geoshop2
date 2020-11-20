@@ -463,6 +463,12 @@ class OrderItem(models.Model):
         db_table = 'order_item'
         verbose_name = _('order_item')
 
+    @property
+    def available_formats(self):
+        queryset = ProductFormat.objects.filter(
+            product=self.product).values_list('data_format__name', flat=True)
+        return list(queryset)
+
     def _get_price_values(self, price_value):
         if self.price_status == OrderItem.PricingStatus.PENDING:
             return None

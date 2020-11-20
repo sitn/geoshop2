@@ -163,6 +163,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
         queryset=Product.objects.all(),
         slug_field='label')
 
+    available_formats = serializers.ListField(read_only=True)
+
     class Meta:
         model = OrderItem
         exclude = ['_price_currency', '_price', '_base_fee_currency',
@@ -331,7 +333,7 @@ class PasswordResetSerializer(serializers.Serializer):
         request = self.context.get('request')
         # Set some values to trigger the send_email method.
         opts = {
-            'domain_override': getattr(settings, 'FRONT_URL'),
+            'domain_override': getattr(settings, 'FRONT_URL') + getattr(settings, 'FRONT_HREF'),
             'use_https': request.is_secure(),
             'from_email': getattr(settings, 'DEFAULT_FROM_EMAIL'),
             'request': request,

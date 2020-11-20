@@ -4,7 +4,8 @@ WORKDIR /usr/src/app
 COPY package.json package-lock.json ./
 RUN npm install
 COPY . .
-RUN npm run ng build -- --prod --base-href .
+ARG FRONT_HREF
+RUN npm run ng build -- --prod --base-href ${FRONT_HREF}/
 
 ### Run ###
 FROM httpd:alpine

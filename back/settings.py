@@ -177,6 +177,7 @@ if os.environ.get('GDAL_IN_VENV', None) == "True":
     GDAL_LIBRARY_PATH = os.path.join(BASE_DIR, '.venv/Lib/site-packages/osgeo/gdal204.dll')
 
 FRONT_URL = os.environ["FRONT_URL"]
+FRONT_HREF = os.environ["FRONT_HREF"]
 CSRF_COOKIE_DOMAIN = os.environ["CSRF_COOKIE_DOMAIN"]
 CSRF_TRUSTED_ORIGINS = os.environ["ALLOWED_HOST"].split(",")
 CORS_ORIGIN_WHITELIST = [

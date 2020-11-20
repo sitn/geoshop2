@@ -114,6 +114,7 @@ class OrderTests(APITestCase):
         self.assertEqual(response.data['items'][0]['product'], data['items'][0]['product'], 'Check product')
         self.assertEqual(
             response.data['items'][0]['price_status'], OrderItem.PricingStatus.CALCULATED, 'Check price is calculated')
+        self.assertIsNotNone(response.data['items'][0]['available_formats'], 'Check available formats are present')
 
         order_item_id = response.data['items'][0]['id']
         # Confirm order without format should not work

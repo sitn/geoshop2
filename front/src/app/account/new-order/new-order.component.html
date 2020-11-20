@@ -30,9 +30,15 @@
         <mat-error *ngIf="step1FormGroup.get('description')?.hasError('required')">Requis</mat-error>
       </mat-form-field>
 
+<<<<<<< HEAD
       <div class="bottom-container">
         <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
         <button color="primary" mat-button matStepperNext>Suivant</button>
+=======
+      <div class="bottom-container flex-row">
+        <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Réinitialiser</button>
+        <button color="primary" matStepperNext mat-raised-button>Suivant</button>
+>>>>>>> c920e94ffd1b806c2799622e9f5604395c914d2e
       </div>
     </form>
   </mat-step>
@@ -53,14 +59,15 @@
         *ngIf="(step1FormGroup?.get('orderType')?.value?.id === 1 && step2FormGroup.get('addressChoice')?.value === '2') ||
         step1FormGroup?.get('orderType')?.value?.id !== 1">
         <div class="flex-row">
-          <mat-checkbox formControlName="newClient" style="flex:1;" (change)="cleanCustomerForm()">Nouveau client
+          <mat-checkbox formControlName="newClient" style="flex:1;" (change)="cleanCustomerForm()">
+            Nouveau contact
           </mat-checkbox>
           <!-- Search -->
           <mat-form-field style="flex:1;">
             <input matInput
                    [readonly]="step2FormGroup.get('newClient')?.value"
-                   placeholder="Rechercher un client"
-                   aria-label="Rechercher un client"
+                   placeholder="Rechercher dans mes contacts"
+                   aria-label="Rechercher dans mes contacts"
                    [matAutocomplete]="auto"
                    formControlName="customer">
             <div matSuffix class="flex-row">
@@ -193,21 +200,17 @@
         </div>
       </ng-container>
 
-      <div class="bottom-container">
+      <div class="bottom-container flex-row">
         <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
         <button color="primary" mat-button matStepperPrevious>Retour</button>
-        <button color="primary" mat-button [disabled]="step2FormGroup?.invalid" (click)="createOrUpdateDraftOrder()">Suivant</button>
+        <button color="primary" mat-raised-button [disabled]="step2FormGroup?.invalid"
+        (click)="createOrUpdateDraftOrder()">Suivant</button>
       </div>
     </form>
   </mat-step>
 
   <mat-step [stepControl]="lastStepFormGroup" label="Aperçu de la commande">
     <form [formGroup]="lastStepFormGroup">
-
-      <mat-form-field>
-        <mat-label>Filter</mat-label>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Rivo">
-      </mat-form-field>
 
       <div class="table-container">
         <table mat-table [dataSource]="dataSource" matSort>
@@ -217,8 +220,8 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header style="width: 30%;">
               Description / Disponibilité
             </th>
-            <td mat-cell *matCellDef="let product">
-              <div class="text-ellipsis-2">{{product.label}}</div>
+            <td mat-cell *matCellDef="let orderItem">
+              <div class="text-ellipsis-2">{{ orderItem.product }}</div>
             </td>
             <td mat-footer-cell *matFooterCellDef>
               <ul class="text-primary padding-vertical-5">
@@ -231,29 +234,24 @@
 
           <!-- Format Column -->
           <ng-container matColumnDef="format">
-            <th mat-header-cell *matHeaderCellDef style="width: 30%;"> Format</th>
-            <td mat-cell *matCellDef="let product"> {{product.label}} </td>
+            <th mat-header-cell *matHeaderCellDef style="width: 30%;">Format</th>
+            <td mat-cell *matCellDef="let orderItem">
+              <mat-form-field color="primary">
+                <mat-select [formGroupName]="orderItem.product" required placeholder="Format">
+                  <mat-option *ngFor="let format of orderItem.available_formats" [value]="format">
+                    {{ format }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="step2FormGroup.get('country')?.hasError('required')">Requis</mat-error>
+              </mat-form-field>
+            </td>
             <td mat-footer-cell *matFooterCellDef class="text-primary"></td>
           </ng-container>
 
-          <!-- Quantity Column -->
-          <ng-container matColumnDef="quantity">
-            <th mat-header-cell *matHeaderCellDef style="width: 10%; text-align: center;"> Quantité</th>
-            <td mat-cell *matCellDef="let product" style="text-align: center;"> 1</td>
-            <td mat-footer-cell *matFooterCellDef class="text-primary"></td>
-          </ng-container>
-
-          <!-- Prix Column -->
+          <!-- Price Column -->
           <ng-container matColumnDef="price">
-            <th mat-header-cell *matHeaderCellDef style="width: 10%;text-align: center;"> Prix</th>
-            <td mat-cell *matCellDef="let product" style="text-align: center;"> {{product.Price}} </td>
-            <td mat-footer-cell *matFooterCellDef class="text-primary"></td>
-          </ng-container>
-
-          <!-- Total Column -->
-          <ng-container matColumnDef="total">
-            <th mat-header-cell *matHeaderCellDef style="width: 10%;text-align: center;"> Total</th>
-            <td mat-cell *matCellDef="let product" style="text-align: center;"> 100</td>
+            <th mat-header-cell *matHeaderCellDef style="width: 10%;text-align: center;">Prix</th>
+            <td mat-cell *matCellDef="let orderItem" style="text-align: center;">{{ orderItem.price | currency }}</td>
             <td mat-footer-cell *matFooterCellDef>
               <ul class="text-primary padding-vertical-5">
                 <li>{{2450 | currency}}</li>
@@ -275,7 +273,7 @@
       <div class="flex-row">
         <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
         <button color="primary" mat-button matStepperPrevious>Retour</button>
-        <button color="primary" mat-raised-button> Acheter maintenant</button>
+        <button color="primary" mat-raised-button>Acheter maintenant</button>
       </div>
     </form>
   </mat-step>
