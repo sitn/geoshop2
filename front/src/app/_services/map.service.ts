@@ -29,6 +29,7 @@ import {boundingExtent, buffer, Extent, getArea} from 'ol/extent';
 import MultiPoint from 'ol/geom/MultiPoint';
 import {fromLonLat} from 'ol/proj';
 import KML from 'ol/format/KML';
+import {Coordinate} from 'ol/coordinate';
 
 // @ts-ignore
 import Geocoder from 'ol-geocoder/dist/ol-geocoder.js';
@@ -38,7 +39,7 @@ import {GeoHelper} from '../_helpers/geoHelper';
 import proj4 from 'proj4';
 import {HttpClient} from '@angular/common/http';
 import {map} from 'rxjs/operators';
-import {IBasemap} from '../_models/IConfig';
+import {IBasemap, IPageFormat} from '../_models/IConfig';
 import {AppState, selectOrder} from '../_store';
 import {Store} from '@ngrx/store';
 import {updateOrder} from '../_store/cart/cart.action';
@@ -109,6 +110,10 @@ export class MapService {
 
   public get Basemaps() {
     return this.configService.config.basemaps;
+  }
+
+  public get PageFormats() {
+     return this.configService.config.pageformats;
   }
 
   public get FirstBaseMapLayer() {
@@ -541,5 +546,35 @@ export class MapService {
 
   private map_renderCompleteExecuted() {
     this.isMapLoading$.next(false);
+  }
+  public setPageFormat(format: IPageFormat, scale: number, rotation: number) {
+
+    if (this.featureFromDrawing) {
+      this.drawingSource.removeFeature(this.featureFromDrawing);
+    }
+    this.geocoderSource.clear();
+
+    const center = this.map.getView().getCenter();
+    const units = this.map.getView().getProjection().getUnits();
+
+    const INCHES_PER_METER_UNIT = 39.37;
+    const PI = 3.14159265359 ;
+    const w = format.width / 72 / INCHES_PER_METER_UNIT * scale / 2;
+    const h = format.height / 72 / INCHES_PER_METER_UNIT * scale / 2;
+    const coordinates: Array<Array<Coordinate>> = [[
+      [center[0] - w, center[1] - h], 
+      [center[0] - w, center[1] + h],
+      [center[0] + w, center[1] + h],
+      [center[0] + w, center[1] - h]
+    ]]
+    let poly = new Polygon(coordinates);
+    poly.rotate(rotation*PI/180, center);
+
+    const feature = new Feature({
+      geometry: poly
+    });
+    this.map.getView().fit(poly, {nearest: true});
+    this.drawingSource.addFeature(feature);
+    this.featureFromDrawing.set('area', poly);
   }
 }

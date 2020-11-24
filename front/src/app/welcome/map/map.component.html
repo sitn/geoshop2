@@ -59,9 +59,7 @@
     <mat-icon>{{isTracking ? 'location_on' : 'location_off'}}</mat-icon>
   </button>
 
-  <button matTooltip="Supprime le dessin en cours" color="primary" mat-mini-fab aria-label="Supprimer le dessin"
-          (click)="eraseDrawing()">
+  <button mat-mini-fab color="primary" aria-label="Menu pour définir une taille de périmètre prédéfini" (click)="togglePageformat()">
     <mat-icon svgIcon="format"></mat-icon>
   </button>
-
 </div>

@@ -2,12 +2,14 @@ import {Component, ElementRef, Input, OnInit} from '@angular/core';
 import {ConfigService} from 'src/app/_services/config.service';
 import {MapService} from '../../_services/map.service';
 import { CustomIconService } from '../../_services/custom-icon.service';
-import {IBasemap} from 'src/app/_models/IConfig';
+import {IBasemap, IPageFormat} from 'src/app/_models/IConfig';
 import {FormControl, FormGroup} from '@angular/forms';
 import {debounceTime, switchMap} from 'rxjs/operators';
 import Geometry from 'ol/geom/Geometry';
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
 import Feature from 'ol/Feature';
+import {MatDialog} from '@angular/material/dialog';
+import {PageformatComponent} from './pageformat/pageformat.component'
 
 export const nameOfCategoryForGeocoder: { [prop: string]: string; } = {
   neophytes: 'Plantes invasives',
@@ -45,7 +47,12 @@ export class MapComponent implements OnInit {
   isSearchLoading = false;
   shouldDisplayClearButton = false;
   basemaps: Array<IBasemap>;
+  pageformats: Array<IPageFormat>;
   isMapLoading$ = this.mapService.isMapLoading$;
+  selectedPageFormat: IPageFormat;
+  selectedPageFormatScale: number;
+  rotationPageFormat: number;
+  pageFormatScales: Array<number> = [500, 1000, 1500, 2000, 3000];
 
   // Geocoder
   formGeocoder = new FormGroup({
@@ -63,7 +70,8 @@ export class MapComponent implements OnInit {
 
   constructor(private mapService: MapService,
               private configService: ConfigService,
-              private customIconService: CustomIconService) {
+              private customIconService: CustomIconService,
+              public dialog: MatDialog) {
     // Initialize custom icons
     this.customIconService.init();
   }
@@ -75,6 +83,7 @@ export class MapComponent implements OnInit {
     });
     this.mapService.isDrawing$.subscribe((isDrawing) => this.isDrawing = isDrawing);
     this.basemaps = this.mapService.Basemaps;
+    this.pageformats = this.mapService.PageFormats;
 
     if (this.searchCtrl) {
       this.searchCtrl.valueChanges
@@ -144,6 +153,29 @@ export class MapComponent implements OnInit {
 
   toggleGeolocation() {
     this.mapService.toggleTracking();
+  }
+
+  togglePageformat(): void {
+    const dialogRef = this.dialog.open(PageformatComponent, {
+      width: '250px',
+      data: {
+        pageFormatScales: this.pageFormatScales,
+        pageFormats: this.pageformats,
+        selectedPageFormat: this.selectedPageFormat,
+        rotationPageFormat: this.rotationPageFormat
+      },
+      hasBackdrop: false
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('The dialog was closed');
+      if (result) {
+        this.selectedPageFormat = result.selectedPageFormat;
+        this.selectedPageFormatScale = result.selectedPageFormatScale;
+        this.rotationPageFormat = result.rotationPageFormat;
+        this.mapService.setPageFormat(this.selectedPageFormat, this.selectedPageFormatScale, this.rotationPageFormat);
+      }
+    });
   }
 
 }
