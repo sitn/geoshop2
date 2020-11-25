@@ -249,7 +249,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   createOrUpdateDraftOrder() {
     this.currentOrder.title = this.step1FormGroup.get('title')?.value;
     this.currentOrder.description = this.step1FormGroup.get('description')?.value;
-    this.currentOrder.orderType = this.step1FormGroup.get('orderType')?.value;
+    this.currentOrder.order_type = this.step1FormGroup.get('orderType')?.value['name'];
 
     this.apiOrderService.updateOrPostOrder(this.currentOrder, this.products).subscribe(newOrder => {
       if ((newOrder as IApiResponseError).error) {

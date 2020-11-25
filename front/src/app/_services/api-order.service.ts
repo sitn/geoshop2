@@ -100,7 +100,7 @@ export class ApiOrderService {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    let url = new URL(`${this.apiUrl}/order/`);
+    const url = new URL(`${this.apiUrl}/order/`);
 
     const currentOrderItems = order.items.map(oi => oi.product);
     const orderToPost: IOrderToPost = {
@@ -122,7 +122,7 @@ export class ApiOrderService {
       }
     })
 
-    if (order.id) {
+    if (order.id != undefined && order.id > 0 ) {
       return this.http.put<IOrder | IApiResponseError>(`${url.toString()}${order.id}/`, orderToPost).pipe(
         catchError(error => {
           console.error(error);
