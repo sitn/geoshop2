@@ -555,12 +555,9 @@ export class MapService {
     this.geocoderSource.clear();
 
     const center = this.map.getView().getCenter();
-    const units = this.map.getView().getProjection().getUnits();
 
-    const INCHES_PER_METER_UNIT = 39.37;
-    const PI = 3.14159265359 ;
-    const w = format.width / 72 / INCHES_PER_METER_UNIT * scale / 2;
-    const h = format.height / 72 / INCHES_PER_METER_UNIT * scale / 2;
+    const w = format.width * scale / 2000;
+    const h = format.height * scale / 2000;
     const coordinates: Array<Array<Coordinate>> = [[
       [center[0] - w, center[1] - h], 
       [center[0] - w, center[1] + h],
@@ -568,7 +565,7 @@ export class MapService {
       [center[0] + w, center[1] - h]
     ]]
     let poly = new Polygon(coordinates);
-    poly.rotate(rotation*PI/180, center);
+    poly.rotate( rotation * Math.PI / 180, center);
 
     const feature = new Feature({
       geometry: poly
