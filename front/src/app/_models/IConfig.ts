@@ -17,4 +17,11 @@ export interface IConfig {
   initialCenter: number[];
   initialExtent: number[];
   epsg: string;
+  pageformats: Array<IPageFormat>;
+}
+
+export interface IPageFormat {
+  name: string;
+  height: number;
+  width: number;
 }

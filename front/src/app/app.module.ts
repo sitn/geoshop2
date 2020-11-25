@@ -1,10 +1,13 @@
 import {BrowserModule} from '@angular/platform-browser';
-import {NgModule, APP_INITIALIZER} from '@angular/core';
+import {NgModule, APP_INITIALIZER, LOCALE_ID, DEFAULT_CURRENCY_CODE} from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeCH from '@angular/common/locales/fr-CH';
 
 import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {ConfigService} from './_services/config.service';
+import {CustomIconService} from './_services/custom-icon.service';
 import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
 import {AccountOverlayComponent} from './_components/account-overlay/account-overlay.component';
 import {HelpOverlayComponent} from './_components/help-overlay/help-overlay.component';
@@ -29,6 +32,8 @@ import {OverlayContainer} from '@angular/cdk/overlay';
 import {ActivatedRoute} from '@angular/router';
 import {CartEffects} from './_store/cart/cart.effects';
 import {CommonModule} from '@angular/common';
+
+registerLocaleData(localeCH);
 
 export function initializeApp(configService: ConfigService) {
   return () => configService.load();
@@ -80,7 +85,16 @@ const MODULES = [
       provide: HTTP_INTERCEPTORS,
       useClass: ErrorInterceptor,
       multi: true,
-    }
+    },
+    {
+      provide: LOCALE_ID,
+      useValue: 'fr-CH'
+    },
+    {
+      provide: DEFAULT_CURRENCY_CODE,
+      useValue: 'CHF'
+    },
+    CustomIconService
   ],
   bootstrap: [AppComponent]
 })
