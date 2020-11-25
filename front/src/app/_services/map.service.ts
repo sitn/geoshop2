@@ -555,7 +555,6 @@ export class MapService {
     this.geocoderSource.clear();
 
     const center = this.map.getView().getCenter();
-    const units = this.map.getView().getProjection().getUnits();
 
     const w = format.width * scale / 2000;
     const h = format.height * scale / 2000;
