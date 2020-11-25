@@ -12,7 +12,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { IOrder, IOrderType, Order } from '../../_models/IOrder';
+import { IOrder, IOrderType, Order, IOrderItem } from '../../_models/IOrder';
 import { ApiOrderService } from '../../_services/api-order.service';
 import { MatStepper } from '@angular/material/stepper';
 import { StoreService } from '../../_services/store.service';
@@ -46,9 +46,9 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   filteredCustomers$: Observable<IIdentity[]> | undefined;
 
   // last step table attributes
-  dataSource: MatTableDataSource<Product>;
+  dataSource: MatTableDataSource<IOrderItem>;
   products: Product[] = [];
-  displayedColumns: string[] = ['label', 'format', 'quantity', 'price', 'total'];
+  displayedColumns: string[] = ['label', 'format', 'price'];
 
   get customerCtrl() {
     return this.step2FormGroup.get('customer');
@@ -91,7 +91,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.store.select(selectAllProducts).subscribe((cartProducts)=>{
+    this.store.select(selectAllProducts).subscribe((cartProducts) => {
       this.products = cartProducts;
     });
 
@@ -133,6 +133,9 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       ...this.newContactControls
     });
     this.lastStepFormGroup = this.formBuilder.group({});
+    this.currentOrder.items.forEach((item) => {
+      this.lastStepFormGroup.addControl(item.product, new FormControl(item.format));
+    });
 
     this.updateDescription(this.step1FormGroup?.get('orderType')?.value);
     this.updateForm2();
@@ -142,15 +145,6 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     return customer ?
       customer.company_name ? customer.company_name :
         customer.first_name ? customer.first_name : '' : '';
-  }
-
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
-    }
   }
 
   updateCustomerForm(event: MatAutocompleteSelectedEvent) {
@@ -264,6 +258,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
           (newOrder as IApiResponseError).message, 'Ok', { panelClass: 'notification-error' });
       } else {
         this.storeService.addOrderToStore(new Order(newOrder as IOrder));
+        this.dataSource = new MatTableDataSource();
+        this.dataSource.data = this.currentOrder.items;
         this.stepper.next();
       }
     });
