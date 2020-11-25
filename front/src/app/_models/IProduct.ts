@@ -24,10 +24,6 @@ export class Product {
 
   public metadataObject: IMetadata;
 
-  public get Price() {
-    return `Gratuit`;
-  }
-
   constructor(args: IProduct) {
     Object.assign(this, args);
   }

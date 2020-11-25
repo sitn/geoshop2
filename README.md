@@ -109,6 +109,20 @@ cd front
 npm install
 ```
 
+Copy config.json from tmpl file and edit the settings
+
+```powershell
+cp src\assets\configs\config.json.tmpl src\assets\configs\config.json
+```
+
+Typicall values for dev purposes are:
+
+```json
+  "apiUrl": "https://sitn.ne.ch/geoshop2_prepub_api",
+  "mediaUrl": "https://sitn.ne.ch/geoshop2_prepub_media/images",
+```
+
+
 To start the debug of the frontend
 
 ```powershell

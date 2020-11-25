@@ -23,8 +23,8 @@ export const adapter: EntityAdapter<Product> = createEntityAdapter<Product>({
 
 export const initialState: CartState = adapter.getInitialState({
   total: 0,
-  total_cost_currency: '',
-  total_cost: '',
+  total_with_vat_currency: '',
+  total_with_vat: '',
   title: '',
   status: 'DRAFT',
   processing_fee_currency: '',
@@ -55,8 +55,8 @@ const cartReducer = createReducer(initialState,
       entities: {},
       ids: [],
       total: 0,
-      total_cost_currency: '',
-      total_cost: '',
+      total_with_vat_currency: '',
+      total_with_vat: '',
       title: '',
       status: 'DRAFT',
       processing_fee_currency: '',
@@ -132,8 +132,8 @@ export const selectProductTotal = selectTotal;
 export const selectCartTotal = (state: CartState) => state.total;
 export const selectOrder = (state: CartState) => {
   const iOrder: IOrder = {
-    total_cost_currency: state.total_cost_currency,
-    total_cost: state.total_cost,
+    total_with_vat_currency: state.total_with_vat_currency,
+    total_with_vat: state.total_with_vat,
     title: state.title,
     status: state.status,
     processing_fee_currency: state.processing_fee_currency,

@@ -8,7 +8,7 @@ import {IOrderItem} from '../../_models/IOrder';
 })
 export class OrderItemViewComponent implements OnInit {
 
-  displayedColumns: string[] = ['product', 'format', 'lastDownload'];
+  displayedColumns: string[] = ['product', 'format'];
   @Input() dataSource: IOrderItem[];
 
   constructor() {
