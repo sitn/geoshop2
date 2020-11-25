@@ -18,12 +18,8 @@ export const reducers: ActionReducerMap<AppState> = {
   cart: fromCart.reducer,
 };
 
-// console.log all actions
 export function logger(reducer: ActionReducer<AppState>): ActionReducer<AppState> {
   return (state: AppState, action: any): AppState => {
-    console.log('state', state);
-    console.log('action', action);
-
     return reducer(state, action);
   };
 }

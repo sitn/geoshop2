@@ -159,7 +159,6 @@ export class MapService {
   }
 
   public eraseDrawing() {
-    console.log(this.drawingSource.getFeatures());
     if (this.featureFromDrawing) {
       this.drawingSource.removeFeature(this.featureFromDrawing);
     }
@@ -353,8 +352,6 @@ export class MapService {
     });
 
     dragAndDropInteraction.on('addfeatures', (event: DragAndDropEvent) => {
-      console.log(event);
-
       if (!event.file.name.endsWith('kml') || event.features.length === 0) {
         this.snackBar.open(`Le fichier "${event.file.name}" ne contient aucune donnée exploitable. Le format supporté est le "kml".`, 'Ok', {
           panelClass: 'notification-info'
@@ -386,12 +383,9 @@ export class MapService {
       this.drawingSource.addFeature(this.featureFromDrawing);
     }
     this.drawingSource.on('addfeature', (evt) => {
-      console.log('addfeature');
       this.featureFromDrawing = evt.feature;
       this.drawInteraction.setActive(false);
       this.setAreaToCurrentFeature();
-
-      console.log(this.geoJsonFormatter.writeGeometry(this.featureFromDrawing.getGeometry()));
     });
     this.drawingLayer = new VectorLayer({
       source: this.drawingSource,
@@ -423,7 +417,6 @@ export class MapService {
       source: this.drawingSource,
       type: GeometryType.POLYGON,
       finishCondition: (evt) => {
-        console.log('finish Condition', evt);
         return true;
       }
     });
