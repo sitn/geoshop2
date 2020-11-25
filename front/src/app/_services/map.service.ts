@@ -568,7 +568,7 @@ export class MapService {
       [center[0] + w, center[1] - h]
     ]]
     let poly = new Polygon(coordinates);
-    poly.rotate(rotation*PI/180, center);
+    poly.rotate( rotation * Math.PI / 180, center);
 
     const feature = new Feature({
       geometry: poly
