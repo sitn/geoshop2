@@ -6,7 +6,7 @@ import {WelcomeComponent} from './welcome.component';
 import {MapComponent} from './map/map.component';
 import {CatalogComponent} from './catalog/catalog.component';
 import {DialogMetadataComponent} from './catalog/dialog-metadata/dialog-metadata.component';
-import {ReactiveFormsModule} from '@angular/forms';
+import {ReactiveFormsModule, FormsModule} from '@angular/forms';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
@@ -20,6 +20,12 @@ import {MatDialogModule} from '@angular/material/dialog';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatExpansionModule} from '@angular/material/expansion';
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {PageformatComponent} from './map/pageformat/pageformat.component';
+import {DragDropModule} from '@angular/cdk/drag-drop';
+import {MatSelectModule} from '@angular/material/select'; 
+
+
 
 const MODULES = [
   MatMenuModule,
@@ -34,11 +40,15 @@ const MODULES = [
   MatDialogModule,
   MatSnackBarModule,
   MatAutocompleteModule,
-  MatExpansionModule
+  MatExpansionModule,
+  MatButtonToggleModule,
+  FormsModule,
+  DragDropModule,
+  MatSelectModule
 ];
 
 @NgModule({
-  declarations: [WelcomeComponent, MapComponent, CatalogComponent, DialogMetadataComponent],
+  declarations: [WelcomeComponent, MapComponent, CatalogComponent, DialogMetadataComponent, PageformatComponent],
   imports: [
     CommonModule,
     WelcomeRoutingModule,
