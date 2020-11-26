@@ -88,7 +88,6 @@ export class GeoHelper {
       return;
     }
     const target = `mini-map-${order.id}`;
-    console.log('load mini map', index, target);
     miniMaps[index].setTarget(target);
 
     const feature = new Feature();

@@ -8,7 +8,6 @@ import { debounceTime, filter, map, mergeMap, startWith, switchMap, takeUntil } 
 import { Product } from '../../_models/IProduct';
 import { select, Store } from '@ngrx/store';
 import { AppState, getUser, selectOrder, selectAllProducts } from '../../_store';
-import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -29,7 +28,6 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   private onDestroy$ = new Subject<boolean>();
 
   @HostBinding('class') class = 'main-container';
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
   @ViewChild('stepper') stepper: MatStepper;
 
@@ -94,7 +92,6 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.store.select(selectAllProducts).subscribe((cartProducts) => {
       this.products = cartProducts;
     });
-
   }
 
   ngOnDestroy() {
@@ -133,8 +130,10 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       ...this.newContactControls
     });
     this.lastStepFormGroup = this.formBuilder.group({});
+    this.dataSource = new MatTableDataSource(this.currentOrder.items);
     this.currentOrder.items.forEach((item) => {
-      this.lastStepFormGroup.addControl(item.product, new FormControl(item.format));
+      let itemFormControl = new FormControl(item.data_format, Validators.required)
+      this.lastStepFormGroup.addControl(item.product, itemFormControl);
     });
 
     this.updateDescription(this.step1FormGroup?.get('orderType')?.value);
@@ -250,7 +249,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   createOrUpdateDraftOrder() {
     this.currentOrder.title = this.step1FormGroup.get('title')?.value;
     this.currentOrder.description = this.step1FormGroup.get('description')?.value;
-    this.currentOrder.orderType = this.step1FormGroup.get('orderType')?.value;
+    this.currentOrder.order_type = this.step1FormGroup.get('orderType')?.value['name'];
 
     this.apiOrderService.updateOrPostOrder(this.currentOrder, this.products).subscribe(newOrder => {
       if ((newOrder as IApiResponseError).error) {
@@ -258,10 +257,27 @@ export class NewOrderComponent implements OnInit, OnDestroy {
           (newOrder as IApiResponseError).message, 'Ok', { panelClass: 'notification-error' });
       } else {
         this.storeService.addOrderToStore(new Order(newOrder as IOrder));
-        this.dataSource = new MatTableDataSource();
-        this.dataSource.data = this.currentOrder.items;
         this.stepper.next();
       }
     });
+  }
+
+  updateDataFormat(orderItem: IOrderItem) {
+    const data_format = this.lastStepFormGroup.get(orderItem.product)?.value;
+    let orderItemId = orderItem.id || null
+    if (orderItemId === null) {
+      return
+    }
+    this.apiOrderService.updateOrderItemDataFormat(data_format, orderItemId).subscribe(newOrderItem => {
+      if ((newOrderItem as IApiResponseError).error) {
+        this.snackBar.open(
+          (newOrderItem as IApiResponseError).message, 'Ok', { panelClass: 'notification-error '}
+        )
+      }
+    });
+  }
+
+  confirm() {
+    console.log('currentOrder', this.currentOrder);
   }
 }
