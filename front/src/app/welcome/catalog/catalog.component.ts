@@ -72,7 +72,6 @@ export class CatalogComponent implements OnInit {
           return this.apiService.find<IProduct>(inputText, 'product').pipe(
             map(response => {
               this.isSearchLoading = false;
-              console.log('products', response);
               this.total = response.count;
               return response.results.map(x => new Product(x));
             })
@@ -93,7 +92,6 @@ export class CatalogComponent implements OnInit {
   }
 
   addToCart(product: Product) {
-    console.log('add to cart', product);
     this.store.dispatch(fromCart.addProduct({product}));
   }
 
