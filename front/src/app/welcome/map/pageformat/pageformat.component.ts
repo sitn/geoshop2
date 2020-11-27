@@ -11,11 +11,9 @@ import {IPageFormatDialogData} from '../../../_models/IPageFormatDialog';
 export class PageformatComponent implements OnInit {
 
   constructor(
-    public dialog: MatDialog,
     public dialogRef: MatDialogRef<PageformatComponent>,
     @Inject(MAT_DIALOG_DATA) public data: IPageFormatDialogData,
     private configService: ConfigService
-
   ) { }
 
   ngOnInit(): void {

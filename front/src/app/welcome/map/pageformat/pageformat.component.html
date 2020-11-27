@@ -1,32 +1,29 @@
-<h1 mat-dialog-title 
-    cdkDrag
-    cdkDragRootElement=".cdk-overlay-pane" 
-    cdkDragHandle
->
-Format pré-configuré</h1>
-<div mat-dialog-content>
-  <mat-form-field>
-    <mat-label>Format de la page</mat-label>
-    <mat-select [(ngModel)]="data.selectedPageFormat">
-      <mat-option *ngFor="let pageFormat of data.pageFormats" [value]="pageFormat">
-        {{pageFormat.name}}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
-  <mat-form-field>
-    <mat-label>Echelles</mat-label>
-    <mat-select [(ngModel)]="data.selectedPageFormatScale">
-      <mat-option *ngFor="let pageFormatScale of data.pageFormatScales" [value]="pageFormatScale">
-        {{pageFormatScale}}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
-  <mat-form-field>
-    <mat-label>Rotation</mat-label>
-    <input matInput type="number" min=0 max=360 [(ngModel)]="data.rotationPageFormat" value=0>
-  </mat-form-field>  
-</div>
-<div mat-dialog-actions>
-  <button mat-button (click)="onNoClick()">Annuler</button>
-  <button mat-button [mat-dialog-close]="data" cdkFocusInitial>Ok</button>
+<div cdkDrag cdkDragRootElement=".cdk-overlay-pane">
+  <h1 mat-dialog-title cdkDragHandle>Format pré-configuré</h1>
+  <div mat-dialog-content>
+    <mat-form-field>
+      <mat-label>Format de la page</mat-label>
+      <mat-select [(ngModel)]="data.selectedPageFormat">
+        <mat-option *ngFor="let pageFormat of data.pageFormats" [value]="pageFormat">
+          {{pageFormat.name}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Echelles</mat-label>
+      <mat-select [(ngModel)]="data.selectedPageFormatScale">
+        <mat-option *ngFor="let pageFormatScale of data.pageFormatScales" [value]="pageFormatScale">
+          {{pageFormatScale}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Rotation</mat-label>
+      <input matInput type="number" min=0 max=360 [(ngModel)]="data.rotationPageFormat" value=0>
+    </mat-form-field>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-button (click)="onNoClick()">Annuler</button>
+    <button mat-button [mat-dialog-close]="data">Ok</button>
+  </div>
 </div>
