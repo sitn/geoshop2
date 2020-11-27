@@ -12,7 +12,10 @@
 
     <div matSuffix class="flex-row">
       <mat-spinner *ngIf="isSearchLoading" diameter="13" color="accent" style="margin-right: 10px"></mat-spinner>
-      <button mat-button color="accent" *ngIf="shouldDisplayClearButton" mat-icon-button aria-label="Clear"
+      <button
+        matTooltip="Effacer"
+        aria-label="Effacer"
+        mat-button color="accent" *ngIf="shouldDisplayClearButton" mat-icon-button
               (click)="searchCtrl?.setValue('');shouldDisplayClearButton = false;">
         <mat-icon>close</mat-icon>
       </button>
@@ -33,17 +36,24 @@
 <div id="ol-scaleline" class="scale-line" [style.left]="leftPositionForButtons"></div>
 
 <div class="map-button-container" [style.left]="leftPositionForButtons">
-  <button matTooltip="Un clique droit ou un double click termine le dessin" [color]="isDrawing ? 'accent' : 'primary'"
-          mat-mini-fab aria-label="Activer / désactiver le dessin" (click)="toggleDrawing()">
+  <button matTooltip="Un clique droit ou un double click termine le dessin"
+          aria-label="Un clique droit ou un double click termine le dessin"
+          [color]="isDrawing ? 'accent' : 'primary'"
+          mat-mini-fab  (click)="toggleDrawing()">
     <mat-icon>edit</mat-icon>
   </button>
 
-  <button matTooltip="Supprime le dessin en cours" color="primary" mat-mini-fab aria-label="Supprimer le dessin"
+  <button matTooltip="Supprimer le dessin"
+          aria-label="Supprimer le dessin"
+          color="primary" mat-mini-fab
           (click)="eraseDrawing()">
     <mat-icon>delete</mat-icon>
   </button>
 
-  <button mat-mini-fab color="primary" [matMenuTriggerFor]="menu" aria-label="Menu des fonds de plan">
+  <button
+    matTooltip="Menu des fonds de plan"
+    aria-label="Menu des fonds de plan"
+          mat-mini-fab color="primary" [matMenuTriggerFor]="menu">
     <mat-icon>layers</mat-icon>
   </button>
   <mat-menu #menu="matMenu">
@@ -53,13 +63,19 @@
     </button>
   </mat-menu>
 
-  <button matTooltip="Cliquer pour activer / désactiver la géolocalisation"
-          [color]="isTracking ? 'accent' : 'primary'" mat-mini-fab aria-label="Activer / désactiver la géolocalisation"
+  <button matTooltip="Activer / désactiver la géolocalisation"
+          aria-label="Activer / désactiver la géolocalisation"
+          [color]="isTracking ? 'accent' : 'primary'"
+          mat-mini-fab
           (click)="toggleGeolocation()">
     <mat-icon>{{isTracking ? 'location_on' : 'location_off'}}</mat-icon>
   </button>
 
-  <button mat-mini-fab color="primary" aria-label="Menu pour définir une taille de périmètre prédéfini" (click)="togglePageformat()">
+  <button
+    matTooltip="Menu pour définir une taille de périmètre prédéfini"
+    aria-label="Menu pour définir une taille de périmètre prédéfini"
+    mat-mini-fab color="primary"
+    (click)="togglePageformat()">
     <mat-icon svgIcon="format"></mat-icon>
   </button>
 </div>
