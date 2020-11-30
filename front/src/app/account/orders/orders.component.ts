@@ -57,11 +57,9 @@ export class OrdersComponent implements OnInit {
               private store: Store<AppState>,
               private storeService: StoreService
   ) {
-    console.log('constructor');
   }
 
   ngOnInit(): void {
-    console.log('ngOnInit');
     const firstElement = this.elRef.nativeElement.children[0].clientHeight;
     const heightAvailable = this.elRef.nativeElement.clientHeight - firstElement;
 
@@ -82,7 +80,6 @@ export class OrdersComponent implements OnInit {
   }
 
   getBatch(offset: number) {
-    console.log(`get batch: offset : ${offset}, number : ${this.batch}`);
     return this.apiOrderService.getOrders(offset, this.batch)
       .pipe(
         tap(response => this.total = response.count),
@@ -116,9 +113,6 @@ export class OrdersComponent implements OnInit {
   }
 
   private initializeComponentAction() {
-
-    console.log('initializeComponentAction');
-
     const batchMap = this.offset.pipe(
       filter((x) => x != null && x >= 0),
       mergeMap((n: number) => this.getBatch(n)),
@@ -152,7 +146,6 @@ export class OrdersComponent implements OnInit {
         })
       )
     ).subscribe(orders => {
-      console.log('Get orders result', orders.length);
       this.currentOrders = orders;
       this.isSearchLoading$.next(false);
     });

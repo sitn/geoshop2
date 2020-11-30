@@ -29,6 +29,7 @@ import {boundingExtent, buffer, Extent, getArea} from 'ol/extent';
 import MultiPoint from 'ol/geom/MultiPoint';
 import {fromLonLat} from 'ol/proj';
 import KML from 'ol/format/KML';
+import {Coordinate} from 'ol/coordinate';
 
 // @ts-ignore
 import Geocoder from 'ol-geocoder/dist/ol-geocoder.js';
@@ -38,7 +39,7 @@ import {GeoHelper} from '../_helpers/geoHelper';
 import proj4 from 'proj4';
 import {HttpClient} from '@angular/common/http';
 import {map} from 'rxjs/operators';
-import {IBasemap} from '../_models/IConfig';
+import {IBasemap, IPageFormat} from '../_models/IConfig';
 import {AppState, selectOrder} from '../_store';
 import {Store} from '@ngrx/store';
 import {updateOrder} from '../_store/cart/cart.action';
@@ -111,6 +112,10 @@ export class MapService {
     return this.configService.config.basemaps;
   }
 
+  public get PageFormats() {
+     return this.configService.config.pageformats;
+  }
+
   public get FirstBaseMapLayer() {
     return this.basemapLayers.length > 0 ? this.basemapLayers[0] : null;
   }
@@ -154,7 +159,6 @@ export class MapService {
   }
 
   public eraseDrawing() {
-    console.log(this.drawingSource.getFeatures());
     if (this.featureFromDrawing) {
       this.drawingSource.removeFeature(this.featureFromDrawing);
     }
@@ -348,8 +352,6 @@ export class MapService {
     });
 
     dragAndDropInteraction.on('addfeatures', (event: DragAndDropEvent) => {
-      console.log(event);
-
       if (!event.file.name.endsWith('kml') || event.features.length === 0) {
         this.snackBar.open(`Le fichier "${event.file.name}" ne contient aucune donnée exploitable. Le format supporté est le "kml".`, 'Ok', {
           panelClass: 'notification-info'
@@ -381,12 +383,9 @@ export class MapService {
       this.drawingSource.addFeature(this.featureFromDrawing);
     }
     this.drawingSource.on('addfeature', (evt) => {
-      console.log('addfeature');
       this.featureFromDrawing = evt.feature;
       this.drawInteraction.setActive(false);
       this.setAreaToCurrentFeature();
-
-      console.log(this.geoJsonFormatter.writeGeometry(this.featureFromDrawing.getGeometry()));
     });
     this.drawingLayer = new VectorLayer({
       source: this.drawingSource,
@@ -418,7 +417,6 @@ export class MapService {
       source: this.drawingSource,
       type: GeometryType.POLYGON,
       finishCondition: (evt) => {
-        console.log('finish Condition', evt);
         return true;
       }
     });
@@ -541,5 +539,32 @@ export class MapService {
 
   private map_renderCompleteExecuted() {
     this.isMapLoading$.next(false);
+  }
+  public setPageFormat(format: IPageFormat, scale: number, rotation: number) {
+
+    if (this.featureFromDrawing) {
+      this.drawingSource.removeFeature(this.featureFromDrawing);
+    }
+    this.geocoderSource.clear();
+
+    const center = this.map.getView().getCenter();
+
+    const w = format.width * scale / 2000;
+    const h = format.height * scale / 2000;
+    const coordinates: Array<Array<Coordinate>> = [[
+      [center[0] - w, center[1] - h], 
+      [center[0] - w, center[1] + h],
+      [center[0] + w, center[1] + h],
+      [center[0] + w, center[1] - h]
+    ]]
+    let poly = new Polygon(coordinates);
+    poly.rotate( rotation * Math.PI / 180, center);
+
+    const feature = new Feature({
+      geometry: poly
+    });
+    this.map.getView().fit(poly, {nearest: true});
+    this.drawingSource.addFeature(feature);
+    this.featureFromDrawing.set('area', poly);
   }
 }

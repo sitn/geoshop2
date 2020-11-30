@@ -210,7 +210,7 @@
   </mat-step>
 
   <mat-step [stepControl]="lastStepFormGroup" label="Aperçu de la commande">
-    <form [formGroup]="lastStepFormGroup">
+    <form [formGroup]="lastStepFormGroup" (submit)="confirm()">
 
       <div class="table-container">
         <table mat-table [dataSource]="dataSource" matSort>
@@ -224,25 +224,26 @@
               <div class="text-ellipsis-2">{{ orderItem.product }}</div>
             </td>
             <td mat-footer-cell *matFooterCellDef>
-              <ul class="text-primary padding-vertical-5">
-                <li>Montant net</li>
-                <li>TVA 7.7 %</li>
-                <li>Total TTC</li>
+              <ul class="padding-vertical-5">
+                <li class="text-primary">Frais de traitement</li>
+                <li class="text-primary mat-body-strong">Total TTC</li>
+                <li class="mat-small">Dont TVA 7.7 %</li>
               </ul>
             </td>
           </ng-container>
 
           <!-- Format Column -->
           <ng-container matColumnDef="format">
-            <th mat-header-cell *matHeaderCellDef style="width: 30%;">Format</th>
+            <th mat-header-cell *matHeaderCellDef>Format</th>
             <td mat-cell *matCellDef="let orderItem">
               <mat-form-field color="primary">
-                <mat-select [formGroupName]="orderItem.product" required placeholder="Format">
+                <mat-select [formControlName]="orderItem.product" required
+                  placeholder="Format" (selectionChange)="updateDataFormat(orderItem)">
                   <mat-option *ngFor="let format of orderItem.available_formats" [value]="format">
                     {{ format }}
                   </mat-option>
                 </mat-select>
-                <mat-error *ngIf="step2FormGroup.get('country')?.hasError('required')">Requis</mat-error>
+                <mat-error *ngIf="lastStepFormGroup.get(orderItem.product)?.hasError('required')">Requis</mat-error>
               </mat-form-field>
             </td>
             <td mat-footer-cell *matFooterCellDef class="text-primary"></td>
@@ -250,13 +251,13 @@
 
           <!-- Price Column -->
           <ng-container matColumnDef="price">
-            <th mat-header-cell *matHeaderCellDef style="width: 10%;text-align: center;">Prix</th>
-            <td mat-cell *matCellDef="let orderItem" style="text-align: center;">{{ orderItem.price | currency }}</td>
-            <td mat-footer-cell *matFooterCellDef>
-              <ul class="text-primary padding-vertical-5">
-                <li>{{2450 | currency}}</li>
-                <li>{{2450 * 0.077 | currency}}</li>
-                <li>{{2450 * 1.077 | currency}}</li>
+            <th mat-header-cell *matHeaderCellDef class="sitn-th-price">Prix</th>
+            <td mat-cell *matCellDef="let orderItem" class="sitn-td-price">{{ orderItem.price | currency }}</td>
+            <td mat-footer-cell *matFooterCellDef class="sitn-tf-price">
+              <ul class="padding-vertical-5">
+                <li class="text-primary">{{ currentOrder.processing_fee | currency }}</li>
+                <li class="text-primary mat-body-strong">{{ currentOrder.total_with_vat | currency }}</li>
+                <li class="mat-small">{{ currentOrder.part_vat | currency }}</li>
               </ul>
             </td>
           </ng-container>
@@ -267,13 +268,13 @@
         </table>
       </div>
 
-      <mat-paginator [length]="this.products.length" [pageSize]="10"
-                     [pageSizeOptions]="[5, 10, 25, 100]"></mat-paginator>
-
       <div class="flex-row">
         <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
         <button color="primary" mat-button matStepperPrevious>Retour</button>
-        <button color="primary" mat-raised-button>Acheter maintenant</button>
+        <button color="primary" mat-raised-button type="submit"
+          [disabled]="lastStepFormGroup.pristine || lastStepFormGroup.invalid">
+          Acheter maintenant
+        </button>
       </div>
     </form>
   </mat-step>

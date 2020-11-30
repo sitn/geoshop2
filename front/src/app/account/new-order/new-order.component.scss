@@ -1,8 +1,9 @@
 :host {
-
   .mat-stepper-horizontal {
     width: 100%;
     height: calc(100vh - 64px);
+    max-width: 1920px;
+    margin: auto;
 
     .mat-horizontal-content-container {
       flex: 1;
@@ -42,6 +43,56 @@
 
     .mat-table {
       width: 100%;
+
+      .mat-column-label {
+        word-wrap: break-word !important;
+        white-space: unset !important;
+        flex: 0 0 auto !important;
+        width: auto !important;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+
+        word-break: break-word;
+
+        -ms-hyphens: auto;
+        -moz-hyphens: auto;
+        -webkit-hyphens: auto;
+        hyphens: auto;
+      }
+
+      .mat-column-format {
+        word-wrap: break-word !important;
+        white-space: unset !important;
+        flex: 0 0 20% !important;
+        width: 20% !important;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+
+        word-break: break-word;
+
+        -ms-hyphens: auto;
+        -moz-hyphens: auto;
+        -webkit-hyphens: auto;
+        hyphens: auto;
+      }
+
+      .mat-column-price {
+        word-wrap: break-word !important;
+        white-space: unset !important;
+        flex: 0 0 20% !important;
+        width: 20% !important;
+        min-width: 8rem !important;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        text-align: right;
+
+        word-break: break-word;
+
+        -ms-hyphens: auto;
+        -moz-hyphens: auto;
+        -webkit-hyphens: auto;
+        hyphens: auto;
+      }
     }
   }
 }
