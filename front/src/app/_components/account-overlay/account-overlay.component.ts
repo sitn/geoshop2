@@ -2,6 +2,7 @@ import {Component, HostBinding, OnInit} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {AppState, getUser, isLoggedIn} from '../../_store';
 import * as fromAuth from '../../_store/auth/auth.action';
+import * as fromCart from '../../_store/cart/cart.action';
 
 @Component({
   selector: 'gs2-account-overlay',
@@ -22,6 +23,7 @@ export class AccountOverlayComponent implements OnInit {
   }
 
   logout() {
+    this.store.dispatch(fromCart.deleteOrder());
     this.store.dispatch(fromAuth.logout());
   }
 }

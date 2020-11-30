@@ -25,16 +25,8 @@ export class CartEffects {
       this.action$.pipe(
         ofType(deleteOrder),
         tap(() => {
-          this.apiOrderService.deleteLastDraftOrder().subscribe(res => {
-            if (res.error) {
-              this.snackBarRef = this.snackBar.open(res.error.detail, 'Ok', {
-                panelClass: 'notification-error'
-              });
-            }
-
-            this.storeService.IsLastDraftAlreadyLoadedOrChecked = false;
-            this.mapService.eraseDrawing();
-          });
+          this.storeService.IsLastDraftAlreadyLoadedOrChecked = false;
+          this.mapService.eraseDrawing();
         })
       ), {
       dispatch: false
