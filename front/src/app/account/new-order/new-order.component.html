@@ -30,15 +30,9 @@
         <mat-error *ngIf="step1FormGroup.get('description')?.hasError('required')">Requis</mat-error>
       </mat-form-field>
 
-<<<<<<< HEAD
-      <div class="bottom-container">
-        <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
-        <button color="primary" mat-button matStepperNext>Suivant</button>
-=======
       <div class="bottom-container flex-row">
         <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Réinitialiser</button>
         <button color="primary" matStepperNext mat-raised-button>Suivant</button>
->>>>>>> c920e94ffd1b806c2799622e9f5604395c914d2e
       </div>
     </form>
   </mat-step>
