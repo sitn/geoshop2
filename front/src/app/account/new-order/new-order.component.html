@@ -40,7 +40,7 @@
   <mat-step [stepControl]="step2FormGroup" label="Facturation / Tiers">
     <form [formGroup]="step2FormGroup">
 
-      <mat-radio-group *ngIf="step1FormGroup?.get('orderType')?.value?.id === 1" class="flex-column"
+      <mat-radio-group *ngIf="IsOrderTypePrivate" class="flex-column"
                        formControlName="addressChoice"
                        (change)="updateForm2($event.value)"
                        aria-label="Choisir une option">
@@ -50,16 +50,11 @@
       </mat-radio-group>
 
       <ng-container
-        *ngIf="(step1FormGroup?.get('orderType')?.value?.id === 1 && step2FormGroup.get('addressChoice')?.value === '2') ||
-        step1FormGroup?.get('orderType')?.value?.id !== 1">
+        *ngIf="(IsOrderTypePrivate && !IsAddressForCurrentUser) || !IsOrderTypePrivate">
         <div class="flex-row">
-          <mat-checkbox formControlName="newClient" style="flex:1;" (change)="cleanCustomerForm()">
-            Nouveau contact
-          </mat-checkbox>
           <!-- Search -->
-          <mat-form-field style="flex:1;">
+          <mat-form-field style="flex:0.4;">
             <input matInput
-                   [readonly]="step2FormGroup.get('newClient')?.value"
                    placeholder="Rechercher dans mes contacts"
                    aria-label="Rechercher dans mes contacts"
                    [matAutocomplete]="auto"
@@ -79,10 +74,18 @@
               </mat-option>
             </mat-autocomplete>
           </mat-form-field>
+          <button mat-button
+                  mat-mini-fab
+                  matTooltip="Créer un nouveau client"
+                  aria-label="Créer un nouveau client"
+                  color="primary"
+                  (click)="clearCustomerForm()">
+            <mat-icon>add</mat-icon>
+          </button>
         </div>
 
         <div class="flex-column" style="overflow: auto"
-             *ngIf="step2FormGroup.get('newClient')?.value || isCustomerSelected">
+             *ngIf="isCustomerSelected">
           <!-- Contact info -->
           <mat-form-field color="primary">
             <input formControlName="company_name"
@@ -146,11 +149,9 @@
 
           <mat-form-field color="primary">
             <input formControlName="street"
-                   required
                    matInput
                    [readonly]="isCustomerSelected"
                    placeholder="Adresse">
-            <mat-error *ngIf="step2FormGroup.get('street')?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
           <mat-form-field color="primary">
@@ -162,25 +163,21 @@
 
           <mat-form-field color="primary">
             <input formControlName="postcode"
-                   required
                    matInput
                    type="number"
                    [readonly]="isCustomerSelected"
                    placeholder="Code postal">
-            <mat-error *ngIf="step2FormGroup.get('postcode')?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
           <mat-form-field color="primary">
             <input formControlName="city"
-                   required
                    matInput
                    [readonly]="isCustomerSelected"
                    placeholder="Ville">
-            <mat-error *ngIf="step2FormGroup.get('city')?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
           <mat-form-field color="primary">
-            <mat-select formControlName="country" required placeholder="Pays">
+            <mat-select formControlName="country" placeholder="Pays">
               <mat-option [value]="'Suisse'">
                 Suisse
               </mat-option>
@@ -188,17 +185,17 @@
                 France
               </mat-option>
             </mat-select>
-            <mat-error *ngIf="step2FormGroup.get('country')?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
         </div>
       </ng-container>
 
       <div class="bottom-container flex-row">
-        <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
+        <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Réinitialiser</button>
         <button color="primary" mat-button matStepperPrevious>Retour</button>
         <button color="primary" mat-raised-button [disabled]="step2FormGroup?.invalid"
-        (click)="createOrUpdateDraftOrder()">Suivant</button>
+                (click)="createOrUpdateDraftOrder()">Suivant
+        </button>
       </div>
     </form>
   </mat-step>
@@ -232,7 +229,7 @@
             <td mat-cell *matCellDef="let orderItem">
               <mat-form-field color="primary">
                 <mat-select [formControlName]="orderItem.product" required
-                  placeholder="Format" (selectionChange)="updateDataFormat(orderItem)">
+                            placeholder="Format" (selectionChange)="updateDataFormat(orderItem)">
                   <mat-option *ngFor="let format of orderItem.available_formats" [value]="format">
                     {{ format }}
                   </mat-option>
@@ -263,10 +260,10 @@
       </div>
 
       <div class="flex-row">
-        <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Reset</button>
+        <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Réinitialiser</button>
         <button color="primary" mat-button matStepperPrevious>Retour</button>
         <button color="primary" mat-raised-button type="submit"
-          [disabled]="lastStepFormGroup.pristine || lastStepFormGroup.invalid">
+                [disabled]="lastStepFormGroup.pristine || lastStepFormGroup.invalid">
           Acheter maintenant
         </button>
       </div>

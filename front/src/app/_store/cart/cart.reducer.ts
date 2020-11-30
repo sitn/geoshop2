@@ -34,7 +34,7 @@ export const initialState: CartState = adapter.getInitialState({
   order_type: '',
   order_contact: '',
   invoice_reference: '',
-  invoice_contact: '',
+  invoice_contact: -1,
   description: '',
   date_processed: undefined,
   date_ordered: undefined,

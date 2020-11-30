@@ -1,7 +1,7 @@
 import {Component, ComponentFactoryResolver, ElementRef, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
 import {BehaviorSubject, forkJoin, merge, of} from 'rxjs';
 import {IOrder, Order} from '../../_models/IOrder';
-import {concatMap, debounceTime, filter, map, mergeMap, scan, skip, switchMap, tap} from 'rxjs/operators';
+import {concatMap, debounceTime, filter, flatMap, map, mergeMap, scan, skip, switchMap, tap} from 'rxjs/operators';
 import {MapService} from '../../_services/map.service';
 import Map from 'ol/Map';
 import VectorSource from 'ol/source/Vector';
@@ -164,8 +164,8 @@ export class OrdersComponent implements OnInit {
   }
 
   displayMiniMap(order: Order, index: number) {
-    this.apiOrderService.getOrder(order.url).subscribe((iOrder) => {
-      this.selectedOrder = new Order(iOrder);
+    this.apiOrderService.getOrder(order.url).subscribe((loadedOrder) => {
+      this.selectedOrder = new Order(loadedOrder);
       this.generateOrderItemsElements(this.selectedOrder, index);
       GeoHelper.displayMiniMap(this.selectedOrder, [this.minimap], [this.vectorSource], 0);
     });

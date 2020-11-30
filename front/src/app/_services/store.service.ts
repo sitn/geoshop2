@@ -13,6 +13,7 @@ import {Store} from '@ngrx/store';
 export class StoreService {
 
   private isLastDraftAlreadyLoadedOrChecked = false;
+
   public get IsLastDraftAlreadyLoadedOrChecked() {
     return this.isLastDraftAlreadyLoadedOrChecked;
   }
@@ -26,6 +27,14 @@ export class StoreService {
   }
 
   public addOrderToStore(order: Order) {
+    if (order.items.length === 0) {
+      this.store.dispatch(reloadOrder({
+        order: order.toIorder,
+        products: []
+      }));
+      return;
+    }
+
     const observables = order.items.map(x => this.apiService.find<IProduct>(x.product, 'product'));
 
     forkJoin(observables).subscribe(results => {

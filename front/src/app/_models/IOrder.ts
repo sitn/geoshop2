@@ -4,6 +4,8 @@ import Polygon from 'ol/geom/Polygon';
 import GeoJSON from 'ol/format/GeoJSON';
 import Geometry from 'ol/geom/Geometry';
 import {IIdentity} from './IIdentity';
+import {GeoshopUtils} from '../_helpers/GeoshopUtils';
+import {Contact} from './IContact';
 
 export interface IOrderToPost {
   id?: number;
@@ -13,7 +15,7 @@ export interface IOrderToPost {
   geom: string | undefined;
   invoice_reference?: string;
   order_contact: any;
-  invoice_contact: any;
+  invoice_contact: number;
   items?: IOrderItem[];
 }
 
@@ -35,7 +37,7 @@ export interface IOrder {
   date_processed: string | undefined;
   client: string | undefined;
   order_contact: string;
-  invoice_contact: string;
+  invoice_contact: number;
   order_type: string;
   geom: any;
   items: Array<IOrderItem>;
@@ -61,7 +63,7 @@ export interface IOrderType {
 export type IOrderStatus = 'DRAFT' | ' ARCHIVED' | 'PENDING' | 'DONE';
 
 export class Order {
-  id?: number;
+  private id?: number;
   url: string;
   title: string;
   description: string;
@@ -78,14 +80,34 @@ export class Order {
   date_processed: Date | undefined;
   client: string | undefined;
   order_contact: string;
-  invoice_contact: string;
+  invoice_contact: number;
   order_type: string;
   geom: Polygon | undefined;
   items: Array<IOrderItem>;
 
   orderType: IOrderType | undefined;
-  clientIdentity: IIdentity | undefined;
-  invoiceContact: IIdentity | undefined;
+
+  private invoiceContact: Contact | undefined;
+
+  public get HasInvoiceContact() {
+    return this.invoice_contact != null;
+  }
+
+  public get InvoiceContact(): Contact | undefined {
+    return this.invoiceContact;
+  }
+
+  public set InvoiceContact(contact: Contact | undefined) {
+    this.invoiceContact = contact;
+  }
+
+  public get HasId() {
+    return this.id && this.id > 0;
+  }
+
+  public get Id() {
+    return this.id;
+  }
 
   statusAsReadableIconText = {
     iconName: '',
@@ -124,7 +146,7 @@ export class Order {
   }
 
   get isOwnCustomer() {
-    return this.invoiceContact ? false : true;
+    return !this.invoiceContact;
   }
 
   get geometryAsGeoJson(): string | undefined {
@@ -172,7 +194,7 @@ export class Order {
       this.date_processed = undefined;
       this.client = '';
       this.order_contact = '';
-      this.invoice_contact = '';
+      this.invoice_contact = -1;
       this.order_type = '';
       this.items = [];
       this.geom = undefined;
@@ -182,21 +204,13 @@ export class Order {
     this.initializeStatus();
   }
 
-  public deepInitialize(orderType: IOrderType | undefined,
-                        client: IIdentity | undefined,
-                        invoiceContact: IIdentity | undefined) {
-    this.orderType = orderType;
-    this.clientIdentity = client;
+  public deepInitialize(invoiceContact: Contact | undefined) {
     this.invoiceContact = invoiceContact;
   }
 
   private initializeId() {
-    if (!this.id && this.url) {
-      if (this.url.endsWith('/')) {
-        this.url = this.url.substr(0, this.url.length - 1);
-      }
-      const temp = this.url.split('/');
-      this.id = parseInt(temp[temp.length - 1], 10);
+    if (!this.HasId) {
+      this.id = GeoshopUtils.ExtractIdFromUrl(this.url);
     }
   }
 
