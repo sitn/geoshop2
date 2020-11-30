@@ -372,7 +372,10 @@ class ProductViewSet(MultiSerializerViewSet):
     Searchable properties are:
      - label
     """
-    queryset = Product.objects.filter(status=Product.ProductStatus.PUBLISHED)
+    querysets = {
+        'default': Product.objects.all(),
+        'list': Product.objects.filter(status=Product.ProductStatus.PUBLISHED)
+    }
     filter_backends = (FullTextSearchFilter,)
     serializers = {
         'default':  ProductSerializer,
@@ -380,6 +383,9 @@ class ProductViewSet(MultiSerializerViewSet):
     }
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     ts_field = 'ts'
+
+    def get_queryset(self):
+        return self.querysets.get(self.action, self.querysets['default'])
 
 
 class PricingViewSet(viewsets.ModelViewSet):
