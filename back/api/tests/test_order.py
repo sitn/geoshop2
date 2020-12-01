@@ -17,45 +17,7 @@ class OrderTests(APITestCase):
     """
 
     def setUp(self):
-        management.call_command('fixturize')
-        self.userPrivate = UserModel.objects.create_user(
-            username="private_user_order",
-            password="testPa$$word",
-        )
-        self.orderTypePrivate = OrderType.objects.create(
-            name="Privé",
-        )
-        self.format = DataFormat.objects.create(
-            name="Geobat NE complet (DXF)",
-        )
-        self.pricing = Pricing.objects.create(
-            name="Gratuit",
-            pricing_type="FREE"
-        )
-        self.product = Product.objects.bulk_create([
-            Product(
-                label="MO - Cadastre complet (Format A4-A3-A2-A1-A0)",
-                pricing=self.pricing),
-            Product(
-                label="Maquette 3D",
-                pricing=self.pricing),
-        ])
-        url = reverse('token_obtain_pair')
-        resp = self.client.post(url, {'username':'private_user_order', 'password':'testPa$$word'}, format='json')
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertTrue('access' in resp.data)
-        self.token = resp.data['access']
-
-    def get_order_item(self):
-        url = reverse('orderitem-list')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_post_order(self):
-        """
-        Tests POST of an order
-        """
-        data = {
+        self.order_data = {
             'order_type': 'Privé',
             'items': [],
             'title': 'Test 1734',
@@ -88,12 +50,55 @@ class OrderTests(APITestCase):
                 ]
             },
         }
+        management.call_command('fixturize')
+        self.userPrivate = UserModel.objects.create_user(
+            username="private_user_order",
+            password="testPa$$word",
+        )
+        self.orderTypePrivate = OrderType.objects.create(
+            name="Privé",
+        )
+        self.formats = DataFormat.objects.bulk_create([
+            DataFormat(name="Geobat NE complet (DXF)"),
+            DataFormat(name="Rhino 3DM"),
+        ])
+        self.pricing_free = Pricing.objects.create(
+            name="Gratuit",
+            pricing_type="FREE"
+        )
+        self.pricing_manual = Pricing.objects.create(
+            name="Manuel",
+            pricing_type="MANUAL"
+        )
+        self.products = Product.objects.bulk_create([
+            Product(
+                label="MO - Cadastre complet (Format A4-A3-A2-A1-A0)",
+                pricing=self.pricing_free),
+            Product(
+                label="Maquette 3D",
+                pricing=self.pricing_manual),
+        ])
+        url = reverse('token_obtain_pair')
+        resp = self.client.post(url, {'username':'private_user_order', 'password':'testPa$$word'}, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue('access' in resp.data)
+        self.token = resp.data['access']
+
+    def get_order_item(self):
+        url = reverse('orderitem-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_post_order_auto_price(self):
+        """
+        Tests POST of an order
+        """
         url = reverse('order-list')
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, self.order_data, format='json')
         # Forbidden if not logged in
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, self.order_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
         # Last draft view
         url = reverse('order-last-draft')
@@ -173,3 +178,25 @@ class OrderTests(APITestCase):
         # check if file has been downloaded
         order_item = OrderItem.objects.get(pk=order_item_id)
         self.assertIsNotNone(order_item.last_download, 'Check if theres a last_download date')
+
+    def test_post_order_quote(self):
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(url, self.order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        order_id = response.data['id']
+        # Update
+        data = {
+            "items": [
+                {
+                    "product": "Maquette 3D",
+                    "data_format": "Rhino 3DM"
+                }
+            ]
+        }
+        url = reverse('order-detail', kwargs={'pk':order_id})
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(response.data['items'][0]['product'], data['items'][0]['product'], 'Check product')
+        self.assertEqual(
+            response.data['items'][0]['price_status'], OrderItem.PricingStatus.PENDING, 'Check quote is needed')

@@ -43,6 +43,32 @@ class Command(BaseCommand):
         mmi.identity.phone = '+41 32 000 00 00'
         mmi.save()
 
+        mma = UserModel.objects.create_user(
+            username='mma', password='mma')
+        mma.identity.email = 'mma-email@admin.com'
+        mma.identity.first_name = 'Jean-René'
+        mma.identity.last_name = 'Humbert-Droz L\'Authentique'
+        mma.identity.street = 'Rue de Tivoli 22'
+        mma.identity.postcode = '2000'
+        mma.identity.city = 'Neuchâtel'
+        mma.identity.country = 'Suisse'
+        mma.identity.company_name = 'Service du Registre Foncier et de la Géomatique - SITN'
+        mma.identity.phone = '+41 32 000 00 00'
+        mma.save()
+
+        mka = UserModel.objects.create_user(
+            username='mka', password='mka')
+        mka.identity.email = 'mka-email@ne.ch'
+        mka.identity.first_name = 'Michaël'
+        mka.identity.last_name = 'Kalbermatten'
+        mka.identity.street = 'Rue de Tivoli 22'
+        mka.identity.postcode = '2000'
+        mka.identity.city = 'Neuchâtel'
+        mka.identity.country = 'Suisse'
+        mka.identity.company_name = 'Service du Registre Foncier et de la Géomatique - SITN'
+        mka.identity.phone = '+41 32 000 00 00'
+        mka.save()
+
         contact1 = Contact.objects.create(
             first_name='Marc',
             last_name='Riedo',
@@ -118,8 +144,11 @@ class Command(BaseCommand):
         order2 = copy.copy(order1)
         order2.pk = None
         order3 = copy.copy(order2)
+        order4 = copy.copy(order2)
         order2.save()
         order3.save()
+        order4.client = mma
+        order4.save()
         product1 = Product.objects.filter(label='MO - Cadastre complet').first()
         product2 = Product.objects.filter(label='Maquette 3D').first()
         data_format = DataFormat.objects.filter(name='Geobat NE complet (DXF)').first()
@@ -127,7 +156,8 @@ class Command(BaseCommand):
             OrderItem.objects.create(order=order1, product=product1),
             OrderItem.objects.create(order=order1, product=product2),
             OrderItem.objects.create(order=order2, product=product1),
-            OrderItem.objects.create(order=order3, product=product1, data_format=data_format)
+            OrderItem.objects.create(order=order3, product=product1, data_format=data_format),
+            OrderItem.objects.create(order=order4, product=product2)
         ]
         for order_item in orderitems:
             order_item.set_price()
@@ -138,3 +168,4 @@ class Command(BaseCommand):
         order3.confirm()
         order3.invoice_contact = contact1
         order3.save()
+        order4.save()

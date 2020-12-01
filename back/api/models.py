@@ -483,12 +483,25 @@ class OrderItem(models.Model):
         return self._get_price_values(self._base_fee)
 
     def set_price(self, **kwargs):
+        """
+        Sets price and updates price status
+        """
+        self._price = None
+        self._base_fee = None
+        self.price_status = OrderItem.PricingStatus.PENDING
         if self.product.pricing.pricing_type != Pricing.PricingType.MANUAL:
             self._price, self._base_fee = self.product.pricing.get_price(self.order.geom)
+            if self._price is not None:
+                self.price_status = OrderItem.PricingStatus.CALCULATED
+                return
         else:
-            self._price = kwargs.get('price')
-            self._base_fee = kwargs.get('base_fee')
-        self.price_status = OrderItem.PricingStatus.CALCULATED
+            if kwargs.get('price'):
+                self._price = kwargs.get('price')
+                self._base_fee = kwargs.get('base_fee')
+                self.price_status = OrderItem.PricingStatus.CALCULATED
+                return
+        self.price_status = OrderItem.PricingStatus.PENDING
+        return
 
     def ask_price(self):
         if self.product.pricing.pricing_type == Pricing.PricingType.MANUAL:
