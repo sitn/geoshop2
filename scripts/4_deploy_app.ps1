@@ -10,9 +10,6 @@ foreach ($line in Get-Content $envFile) {
     }
 }
 
-$today = Get-Date
-$todayString = $today.ToString('yyyy.MM.dd-hh:mm')
-
 $env:API_URL = ("{0}{1}" -f $env:DOCUMENT_BASE_URL, $env:ROOTURL)
 $env:MEDIA_URL = ("{0}{1}_media/images" -f $env:DOCUMENT_BASE_URL, $env:FRONT_HREF)
 if ($destConfig -eq "prod") {
@@ -27,11 +24,11 @@ $env:COMPOSE_PROJECT_NAME = ("geoshop2_{0}" -f $destConfig)
 Replace-With-Env -InFile "$PSScriptRoot\..\front\src\assets\configs\config.json.tmpl" -OutFile "$PSScriptRoot\..\front\src\assets\configs\config.json"
 Replace-With-Env -InFile "$PSScriptRoot\..\front\httpd.conf.tmpl" -OutFile "$PSScriptRoot\..\front\httpd.conf"
 
-Write-Output ("{0} - DOCKER_HOST IS {1}" -f $todayString, $env:DOCKER_HOST)
+Write-Output ("{0} - DOCKER_HOST IS {1}" -f $(Get-Date -Format g), $env:DOCKER_HOST)
 
 docker-compose build api
 docker-compose build front
 docker-compose down
 docker-compose up -d
 
-Write-Output ("{0} - END" -f $todayString)
+Write-Output ("{0} - END" -f $(Get-Date -Format g))
