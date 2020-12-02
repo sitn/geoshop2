@@ -382,6 +382,7 @@ class Order(models.Model):
             if item.base_fee > (self.processing_fee or Money(0, 'CHF')):
                 self.processing_fee = item.base_fee
             self.total_without_vat += item.price
+        self.total_without_vat += self.processing_fee
         self.part_vat = self.total_without_vat * settings.VAT
         self.total_with_vat = self.total_without_vat + self.part_vat
         return True
@@ -389,6 +390,7 @@ class Order(models.Model):
     def quote_done(self):
         """Admins confirmation they have given a manual price"""
         price_is_set = self.set_price()
+        self.save()
         if price_is_set:
             send_email_to_identity(
                 _('Quote has been done'),
@@ -482,7 +484,7 @@ class OrderItem(models.Model):
     def base_fee(self):
         return self._get_price_values(self._base_fee)
 
-    def set_price(self, **kwargs):
+    def set_price(self, price=None, base_fee=None):
         """
         Sets price and updates price status
         """
@@ -495,9 +497,9 @@ class OrderItem(models.Model):
                 self.price_status = OrderItem.PricingStatus.CALCULATED
                 return
         else:
-            if kwargs.get('price'):
-                self._price = kwargs.get('price')
-                self._base_fee = kwargs.get('base_fee')
+            if price is not None:
+                self._price = price
+                self._base_fee = base_fee
                 self.price_status = OrderItem.PricingStatus.CALCULATED
                 return
         self.price_status = OrderItem.PricingStatus.PENDING
