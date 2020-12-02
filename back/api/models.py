@@ -473,6 +473,7 @@ class OrderItem(models.Model):
 
     def _get_price_values(self, price_value):
         if self.price_status == OrderItem.PricingStatus.PENDING:
+            LOGGER.warning("You are trying to get a pricing value but pricing status is still PENDING")
             return None
         return price_value
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-15 17:54+0200\n"
+"POT-Creation-Date: 2020-12-02 15:59+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,22 +17,30 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: .\api\admin.py:97
+#: .\api\admin.py:84
+msgid "Quote has been successfully done and an email has been sent to client"
+msgstr "Le devis de la commande a été calculé et le client a été notifié"
+
+#: .\api\admin.py:86
+msgid "Order prices cannot be calculated! Client will not be notified!"
+msgstr "Le devis de la commande ne peut pas être calculé, le clien ne sera pas notifié"
+
+#: .\api\admin.py:111
 #, python-format
 msgid "%d order had its quote done."
 msgid_plural "%d orders had their quotes done."
 msgstr[0] ""
 msgstr[1] ""
 
-#: .\api\admin.py:101
+#: .\api\admin.py:115
 msgid "Confirm quotes for selected orders"
 msgstr "Confirmer les devis pour les commandes sélectionnées"
 
-#: .\api\filters.py:18
+#: .\api\filters.py:19
 msgid "Search"
 msgstr "Recherche"
 
-#: .\api\filters.py:19
+#: .\api\filters.py:20
 msgid "A search term."
 msgstr "Entrez ici votre recherche"
 
@@ -109,7 +117,7 @@ msgstr "Veuillez compléter l'URL ci-dessus"
 msgid "document"
 msgstr "document"
 
-#: .\api\models.py:95 .\api\models.py:451 .\api\models.py:537
+#: .\api\models.py:95 .\api\models.py:453 .\api\models.py:558
 msgid "data_format"
 msgstr "format du produit"
 
@@ -229,7 +237,7 @@ msgstr "traitement manuel"
 msgid "pricing_type"
 msgstr "type de tarification"
 
-#: .\api\models.py:212 .\api\models.py:459
+#: .\api\models.py:212 .\api\models.py:461
 msgid "base_fee"
 msgstr "taxe de base"
 
@@ -249,7 +257,7 @@ msgstr "prix unitaire"
 msgid "pricing"
 msgstr "tarification"
 
-#: .\api\models.py:253 .\api\models.py:457
+#: .\api\models.py:253 .\api\models.py:459
 msgid "price"
 msgstr "prix"
 
@@ -291,7 +299,7 @@ msgstr "groupe"
 
 #: .\api\models.py:293
 msgid "provider"
-msgstr ""
+msgstr "fournisseur"
 
 #: .\api\models.py:295
 msgid "order_index"
@@ -301,8 +309,8 @@ msgstr "rang"
 msgid "thumbnail_link"
 msgstr "lien vers l'aperçu"
 
-#: .\api\models.py:302 .\api\models.py:449 .\api\models.py:514
-#: .\api\models.py:525 .\api\models.py:536
+#: .\api\models.py:302 .\api\models.py:451 .\api\models.py:535
+#: .\api\models.py:546 .\api\models.py:557
 msgid "product"
 msgstr "produit"
 
@@ -310,7 +318,7 @@ msgstr "produit"
 msgid "thumbnail"
 msgstr "aperçu"
 
-#: .\api\models.py:322 .\api\models.py:442
+#: .\api\models.py:322 .\api\models.py:444
 msgid "Pending"
 msgstr "En attente"
 
@@ -374,7 +382,7 @@ msgstr "facture"
 msgid "invoice_reference"
 msgstr "référence"
 
-#: .\api\models.py:351 .\api\models.py:526
+#: .\api\models.py:351 .\api\models.py:547
 msgid "order_type"
 msgstr "type de commande"
 
@@ -390,83 +398,83 @@ msgstr "date de téléchargement"
 msgid "date_processed"
 msgstr "date de traitement"
 
-#: .\api\models.py:361 .\api\models.py:447
+#: .\api\models.py:361 .\api\models.py:449
 msgid "order"
 msgstr "commande"
 
-#: .\api\models.py:394
+#: .\api\models.py:396
 msgid "Quote has been done"
 msgstr "Devis réalisé"
 
-#: .\api\models.py:395
+#: .\api\models.py:397
 msgid "Your quote request has been done"
 msgstr "Votre demande de devis a été réalisée."
 
-#: .\api\models.py:443
+#: .\api\models.py:445
 msgid "Calculated"
 msgstr "calculé"
 
-#: .\api\models.py:444
+#: .\api\models.py:446
 msgid "Imported"
 msgstr "importé"
 
-#: .\api\models.py:452
+#: .\api\models.py:454
 msgid "srid"
 msgstr "SRID"
 
-#: .\api\models.py:453
+#: .\api\models.py:455
 msgid "last_download"
 msgstr "date du dernier téléchargement"
 
-#: .\api\models.py:455
+#: .\api\models.py:457
 msgid "price_status"
 msgstr "statut du prix"
 
-#: .\api\models.py:464
+#: .\api\models.py:466
 msgid "order_item"
 msgstr "produit commandé"
 
-#: .\api\models.py:490
+#: .\api\models.py:511
 msgid "Quote requested"
 msgstr "Devis demandé"
 
-#: .\api\models.py:509
+#: .\api\models.py:530
 msgid "db_name"
 msgstr "nom de la bd"
 
-#: .\api\models.py:510
+#: .\api\models.py:531
 msgid "export_name"
 msgstr "nom d'export"
 
-#: .\api\models.py:512
+#: .\api\models.py:533
 msgid "field_type"
 msgstr "type de champ"
 
-#: .\api\models.py:513
+#: .\api\models.py:534
 msgid "field_length"
 msgstr "longueur du champ"
 
-#: .\api\models.py:518
+#: .\api\models.py:539
 msgid "product_field"
 msgstr "attribut"
 
-#: .\api\models.py:527
+#: .\api\models.py:548
 msgid "validator"
 msgstr "validateur"
 
-#: .\api\models.py:531
+#: .\api\models.py:552
 msgid "product_validation"
 msgstr "validation de produit"
 
-#: .\api\models.py:539
+#: .\api\models.py:560
 msgid "is_manual"
 msgstr "traitement manuel"
 
-#: .\api\models.py:544
+#: .\api\models.py:565
 msgid "product_format"
 msgstr "Relation format - produit"
 
-#: .\api\models.py:554
+#: .\api\models.py:575
 msgid "user_change"
 msgstr "changement d'un utilisateur"
 
@@ -478,9 +486,34 @@ msgstr "Tarification inconnue"
 msgid "{} is not defined in pricing module."
 msgstr "{} n'est pas définie dans le module pricing."
 
-#: .\api\serializers.py:435
+#: .\api\serializers.py:437
 msgid "The two password fields didn't match."
 msgstr "Les deux mots de passe ne correspondent pas"
+
+#: .\api\templates\admin\api\order_change_form.html:7
+msgid "Send quote to client"
+msgstr "Envoyer le devis au client"
+
+#: .\api\templates\registration\password_reset_email.html:2
+#, python-format
+msgid ""
+"You're receiving this email because you requested a password reset for your "
+"user account at %(site_name)s."
+msgstr ""
+"Vous recevez cet email car vous avez demandé une modification de mot de "
+"passe sur %(site_name)s."
+
+#: .\api\templates\registration\password_reset_email.html:4
+msgid "Please go to the following page and choose a new password:"
+msgstr "Cliquez sur ce lien pour mettre à jour votre mot de passe:"
+
+#: .\api\templates\registration\password_reset_email.html:8
+msgid "Your username, in case you’ve forgotten:"
+msgstr "Votre nom d'utilisateur est:"
+
+#: .\api\templates\registration\password_reset_email.html:10
+msgid "Le SITN"
+msgstr "Le SITN"
 
 #: .\api\views.py:272
 msgid "Fake orders have been generated"
@@ -498,14 +531,14 @@ msgstr "L'email pour la réinitialisation du mot de passe a été envoyé"
 msgid "Password has been reset with the new password."
 msgstr "Votre nouveau mot de passe est sauvegardé"
 
-#: .\api\views.py:428
+#: .\api\views.py:434
 msgid "Geoshop - User change request"
 msgstr "Geoshop - Demande de modifications de la part d'un utilisateur"
 
-#: .\api\views.py:434
+#: .\api\views.py:440
 msgid "Your data was successfully submitted"
 msgstr "Vos données ont été correctement soumises"
 
-#: .\api\views.py:450
+#: .\api\views.py:456
 msgid "ok"
 msgstr "ok"
