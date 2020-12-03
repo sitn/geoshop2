@@ -1,9 +1,9 @@
 import os
 from django.urls import reverse
-from django.conf import settings
-from django.core import management
+from django.core import management, mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
+from djmoney.money import Money
 from rest_framework import status
 from rest_framework.test import APITestCase
 from api.models import OrderType, DataFormat, Pricing, Product, OrderItem, Order
@@ -123,7 +123,7 @@ class OrderTests(APITestCase):
 
         order_item_id = response.data['items'][0]['id']
         # Confirm order without format should not work
-        url = reverse('order-confirm', kwargs={'pk':order_item_id})
+        url = reverse('order-confirm', kwargs={'pk':order_id})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.content)
 
@@ -136,7 +136,7 @@ class OrderTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
         # Confirm order with format should work
-        url = reverse('order-confirm', kwargs={'pk':order_item_id})
+        url = reverse('order-confirm', kwargs={'pk':order_id})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         # Confirm order that's already confirmed, should not work
@@ -180,12 +180,13 @@ class OrderTests(APITestCase):
         self.assertIsNotNone(order_item.last_download, 'Check if theres a last_download date')
 
     def test_post_order_quote(self):
+        # POST an order
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         response = self.client.post(url, self.order_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
         order_id = response.data['id']
-        # Update
+        # PATCH order with a product needing quote
         data = {
             "items": [
                 {
@@ -194,9 +195,39 @@ class OrderTests(APITestCase):
                 }
             ]
         }
+        # Check price is PENDIND and no price is given
         url = reverse('order-detail', kwargs={'pk':order_id})
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.data['items'][0]['product'], data['items'][0]['product'], 'Check product')
-        self.assertEqual(
-            response.data['items'][0]['price_status'], OrderItem.PricingStatus.PENDING, 'Check quote is needed')
+        ordered_item = response.data['items'][0]
+        self.assertEqual(ordered_item['product'], data['items'][0]['product'], 'Check product')
+        self.assertEqual(ordered_item['price_status'], OrderItem.PricingStatus.PENDING, 'Check quote is needed')
+        self.assertIsNone(response.data['processing_fee'], 'Check quote is needed')
+        self.assertIsNone(response.data['total_without_vat'], 'Check quote is needed')
+        self.assertIsNone(response.data['part_vat'], 'Check quote is needed')
+        self.assertIsNone(response.data['total_with_vat'], 'Check quote is needed')
+
+        # Ask for a quote
+        url = reverse('order-confirm', kwargs={'pk':order_id})
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+        self.assertEqual(len(mail.outbox), 1, 'An email has been sent to admins')
+
+        # Admin sets the quote
+        quoted_order = Order.objects.get(pk=order_id)
+        quoted_orderitem = OrderItem.objects.get(pk=ordered_item['id'])
+        quoted_orderitem.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
+        quoted_orderitem.save()
+        is_quote_ok = quoted_order.quote_done()
+        self.assertTrue(is_quote_ok, 'Quote done successfully')
+
+        # Client sees the quote
+        url = reverse('order-detail', kwargs={'pk':order_id})
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.data['status'], Order.OrderStatus.PENDING, 'Check quote has been done')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(response.data['processing_fee'], '150.00', 'Check price is ok')
+        self.assertEqual(response.data['total_without_vat'], '550.00', 'Check price is ok')
+        url = reverse('order-confirm', kwargs={'pk':order_id})
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)

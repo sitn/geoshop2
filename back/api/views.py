@@ -244,8 +244,8 @@ class OrderViewSet(MultiSerializerViewSet):
         Confirms order meaning it can not be edited anymore by user.
         """
         order = self.get_object()
-        if order.status != Order.OrderStatus.DRAFT:
-            raise PermissionDenied(detail='Order status is not DRAFT')
+        if order.status not in [Order.OrderStatus.DRAFT, Order.OrderStatus.PENDING]:
+            raise PermissionDenied(detail='Order status is not DRAFT or PENDING')
         items = order.items.all()
         if not items:
             raise ValidationError(detail="This order has no item")
