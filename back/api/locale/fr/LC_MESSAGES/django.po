@@ -23,7 +23,7 @@ msgstr "Le devis de la commande a été calculé et le client a été notifié"
 
 #: .\api\admin.py:86
 msgid "Order prices cannot be calculated! Client will not be notified!"
-msgstr "Le devis de la commande ne peut pas être calculé, le clien ne sera pas notifié"
+msgstr "Le devis de la commande ne peut pas être calculé, le client ne sera pas notifié"
 
 #: .\api\admin.py:111
 #, python-format
