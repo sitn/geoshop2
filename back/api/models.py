@@ -119,6 +119,7 @@ class Identity(AbstractIdentity):
     sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
     contract_accepted = models.DateField(_('contract_accepted'), null=True, blank=True)
     is_public = models.BooleanField(_('is_public'), default=False)
+    subscribed = models.BooleanField(_('subscribed'), default=False)
 
     class Meta:
         db_table = 'identity'
@@ -292,6 +293,7 @@ class Product(models.Model):
         'self', models.DO_NOTHING, verbose_name=_('group'), blank=True, null=True)
     provider = models.CharField(_('provider'), max_length=30, default='SITN')
     pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'))
+    free_when_subscribed = models.BooleanField(_('free_when_subscribed'), default=False)
     order = models.BigIntegerField(_('order_index'), blank=True, null=True)
     thumbnail_link = models.CharField(
         _('thumbnail_link'), max_length=250, default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL)

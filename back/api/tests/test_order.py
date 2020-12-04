@@ -231,3 +231,6 @@ class OrderTests(APITestCase):
         url = reverse('order-confirm', kwargs={'pk':order_id})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+
+    def test_post_order_subscribed(self):
+        pass
