@@ -378,10 +378,11 @@ class Order(models.Model):
             return False
         self.total_without_vat = Money(0, 'CHF')
         for item in items:
-            if not item.base_fee:
+            if item.base_fee is None:
                 self._reset_prices()
                 return False
-            if item.base_fee > (self.processing_fee or Money(0, 'CHF')):
+            self.processing_fee = Money(0, 'CHF')
+            if item.base_fee > self.processing_fee:
                 self.processing_fee = item.base_fee
             self.total_without_vat += item.price
         self.total_without_vat += self.processing_fee
@@ -494,6 +495,14 @@ class OrderItem(models.Model):
         self._price = None
         self._base_fee = None
         self.price_status = OrderItem.PricingStatus.PENDING
+
+        # prices are 0 when user is subscribed to the product
+        if self.product.free_when_subscribed and self.order.client.identity.subscribed:
+            self._price = Money(0, 'CHF')
+            self._base_fee = Money(0, 'CHF')
+            self.price_status = OrderItem.PricingStatus.CALCULATED
+            return
+
         if self.product.pricing.pricing_type != Pricing.PricingType.MANUAL:
             self._price, self._base_fee = self.product.pricing.get_price(self.order.geom)
             if self._price is not None:

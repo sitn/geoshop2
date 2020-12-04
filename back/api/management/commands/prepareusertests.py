@@ -69,6 +69,7 @@ class Command(BaseCommand):
         mka.identity.country = 'Suisse'
         mka.identity.company_name = 'Service du Registre Foncier et de la Géomatique - SITN'
         mka.identity.phone = '+41 32 000 00 00'
+        mka.identity.subscribed = True
         mka.save()
 
         contact1 = Contact.objects.create(
