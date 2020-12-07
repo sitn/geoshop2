@@ -70,6 +70,7 @@ class Migration(migrations.Migration):
                 ('sap_id', models.BigIntegerField(blank=True, null=True, verbose_name='sap_id')),
                 ('contract_accepted', models.DateField(blank=True, null=True, verbose_name='contract_accepted')),
                 ('is_public', models.BooleanField(default=False, verbose_name='is_public')),
+                ('subscribed', models.BooleanField(default=False, verbose_name='subscribed')),
                 ('user', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL, verbose_name='user')),
             ],
             options={

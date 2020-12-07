@@ -1,9 +1,11 @@
 import os
 import copy
+import datetime
 from django.utils import timezone
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
+from djmoney.money import Money
 from api.models import Contact, Order, OrderItem, OrderType, Product, DataFormat
 
 UserModel = get_user_model()
@@ -67,6 +69,7 @@ class Command(BaseCommand):
         mka.identity.country = 'Suisse'
         mka.identity.company_name = 'Service du Registre Foncier et de la Géomatique - SITN'
         mka.identity.phone = '+41 32 000 00 00'
+        mka.identity.subscribed = True
         mka.save()
 
         contact1 = Contact.objects.create(
@@ -108,6 +111,19 @@ class Command(BaseCommand):
         )
         contact2.save()
 
+        contact_mka = Contact.objects.create(
+            first_name='Jean',
+            last_name='Doe',
+            email='test3@admin.com',
+            postcode=2000,
+            city='Lausanne',
+            country='Suisse',
+            company_name='Marine de Colombier',
+            phone='+41 00 787 29 16',
+            belongs_to=mka
+        )
+        contact_mka.save()
+
         order_geom = Polygon((
             (
                 2528577.8382161376,
@@ -145,27 +161,46 @@ class Command(BaseCommand):
         order2.pk = None
         order3 = copy.copy(order2)
         order4 = copy.copy(order2)
+        order_mka = copy.copy(order2)
         order2.save()
         order3.save()
         order4.client = mma
         order4.save()
+        order_mka.client = mka
+        order_mka.save()
         product1 = Product.objects.filter(label='MO - Cadastre complet').first()
         product2 = Product.objects.filter(label='Maquette 3D').first()
+        product_deprecated = Product.objects.filter(
+            label='MO07 - Objets divers et éléments linéaires - linéaires').first()
         data_format = DataFormat.objects.filter(name='Geobat NE complet (DXF)').first()
         orderitems = [
             OrderItem.objects.create(order=order1, product=product1),
             OrderItem.objects.create(order=order1, product=product2),
             OrderItem.objects.create(order=order2, product=product1),
             OrderItem.objects.create(order=order3, product=product1, data_format=data_format),
-            OrderItem.objects.create(order=order4, product=product2)
+            OrderItem.objects.create(order=order4, product=product2),
+            OrderItem.objects.create(order=order_mka, product=product1, data_format=data_format)
         ]
         for order_item in orderitems:
             order_item.set_price()
             order_item.save()
+
         order2.set_price()
         order2.save()
+
         order3.set_price()
         order3.confirm()
         order3.invoice_contact = contact1
         order3.save()
+
         order4.save()
+
+        order_item_deprecated = OrderItem.objects.create(order=order_mka, product=product_deprecated, data_format=data_format)
+        order_item_deprecated.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
+        order_item_deprecated.price_status = OrderItem.PricingStatus.CALCULATED
+        order_item_deprecated.save()
+        order_mka.invoice_contact = contact_mka
+        order_mka.set_price()
+        order_mka.date_ordered = datetime.datetime(2018, 12, 1, 8, 20, 3, 0, tzinfo=datetime.timezone.utc)
+        order_mka.status = Order.OrderStatus.ARCHIVED
+        order_mka.save()

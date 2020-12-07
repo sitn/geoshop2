@@ -119,6 +119,7 @@ class Identity(AbstractIdentity):
     sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
     contract_accepted = models.DateField(_('contract_accepted'), null=True, blank=True)
     is_public = models.BooleanField(_('is_public'), default=False)
+    subscribed = models.BooleanField(_('subscribed'), default=False)
 
     class Meta:
         db_table = 'identity'
@@ -292,6 +293,7 @@ class Product(models.Model):
         'self', models.DO_NOTHING, verbose_name=_('group'), blank=True, null=True)
     provider = models.CharField(_('provider'), max_length=30, default='SITN')
     pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'))
+    free_when_subscribed = models.BooleanField(_('free_when_subscribed'), default=False)
     order = models.BigIntegerField(_('order_index'), blank=True, null=True)
     thumbnail_link = models.CharField(
         _('thumbnail_link'), max_length=250, default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL)
@@ -376,10 +378,11 @@ class Order(models.Model):
             return False
         self.total_without_vat = Money(0, 'CHF')
         for item in items:
-            if not item.base_fee:
+            if item.base_fee is None:
                 self._reset_prices()
                 return False
-            if item.base_fee > (self.processing_fee or Money(0, 'CHF')):
+            self.processing_fee = Money(0, 'CHF')
+            if item.base_fee > self.processing_fee:
                 self.processing_fee = item.base_fee
             self.total_without_vat += item.price
         self.total_without_vat += self.processing_fee
@@ -492,6 +495,14 @@ class OrderItem(models.Model):
         self._price = None
         self._base_fee = None
         self.price_status = OrderItem.PricingStatus.PENDING
+
+        # prices are 0 when user is subscribed to the product
+        if self.product.free_when_subscribed and self.order.client.identity.subscribed:
+            self._price = Money(0, 'CHF')
+            self._base_fee = Money(0, 'CHF')
+            self.price_status = OrderItem.PricingStatus.CALCULATED
+            return
+
         if self.product.pricing.pricing_type != Pricing.PricingType.MANUAL:
             self._price, self._base_fee = self.product.pricing.get_price(self.order.geom)
             if self._price is not None:

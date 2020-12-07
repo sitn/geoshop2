@@ -73,7 +73,8 @@ class OrderTests(APITestCase):
         self.products = Product.objects.bulk_create([
             Product(
                 label="MO - Cadastre complet (Format A4-A3-A2-A1-A0)",
-                pricing=self.pricing_free),
+                pricing=self.pricing_free,
+                free_when_subscribed=True),
             Product(
                 label="Maquette 3D",
                 pricing=self.pricing_manual),
@@ -224,10 +225,40 @@ class OrderTests(APITestCase):
         # Client sees the quote
         url = reverse('order-detail', kwargs={'pk':order_id})
         response = self.client.get(url, format='json')
-        self.assertEqual(response.data['status'], Order.OrderStatus.PENDING, 'Check quote has been done')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(response.data['status'], Order.OrderStatus.PENDING, 'Check quote has been done')
         self.assertEqual(response.data['processing_fee'], '150.00', 'Check price is ok')
         self.assertEqual(response.data['total_without_vat'], '550.00', 'Check price is ok')
+        url = reverse('order-confirm', kwargs={'pk':order_id})
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+
+    def test_post_order_subscribed(self):
+        sub_user = UserModel.objects.get(username='private_user_order')
+        sub_user.identity.subscribed = True
+        sub_user.save()
+
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(url, self.order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        order_id = response.data['id']
+
+        data = {
+            "items": [
+                {
+                    "product": "MO - Cadastre complet (Format A4-A3-A2-A1-A0)",
+                    "data_format": "Geobat NE complet (DXF)"
+                }
+            ]
+        }
+        # Check price is PENDIND and no price is given
+        url = reverse('order-detail', kwargs={'pk':order_id})
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(response.data['processing_fee'], '0.00', 'Check price is 0')
+        self.assertEqual(response.data['total_without_vat'], '0.00', 'Check price is 0')
         url = reverse('order-confirm', kwargs={'pk':order_id})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
