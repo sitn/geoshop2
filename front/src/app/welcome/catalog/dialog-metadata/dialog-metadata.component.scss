@@ -74,4 +74,17 @@
     overflow: hidden;
     transition: max-height ease 500ms;
   }
+
+  .truncate-content {
+    width:100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
