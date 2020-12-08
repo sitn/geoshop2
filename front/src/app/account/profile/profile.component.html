@@ -1,6 +1,12 @@
-<mat-card *ngIf="user$|async as user">
+<button class="button-edit" mat-raised-button color="primary" (click)="isEditionMode = !isEditionMode">
+  <span *ngIf="isEditionMode">Afficher mes informations</span>
+  <span *ngIf="!isEditionMode">Modifier mes informations</span>
+</button>
+<mat-card *ngIf="user && !isEditionMode">
   <mat-card-header>
-    <div mat-card-avatar class="header-image"></div>
+    <div mat-card-avatar>
+      <mat-icon style="font-size: 40px;">face</mat-icon>
+    </div>
     <mat-card-title>{{user.company_name}}</mat-card-title>
     <mat-card-subtitle>{{user.first_name}} {{user.last_name}}</mat-card-subtitle>
   </mat-card-header>
@@ -25,3 +31,129 @@
     </a>
   </mat-card-actions>
 </mat-card>
+
+<form *ngIf="isEditionMode" [formGroup]="form"
+      (ngSubmit)="editUser()" class="mat-card">
+
+  <section class="flex-column section-mandatory">
+
+    <mat-form-field color="primary">
+      <textarea formControlName="company_name"
+             autocapitalize="off"
+             autofocus
+             spellcheck="false"
+             required
+             matInput
+             placeholder="Raison sociale"></textarea>
+      <mat-error *ngIf="companyName?.hasError('required')">Requis</mat-error>
+    </mat-form-field>
+
+    <mat-form-field color="primary">
+      <input id="registerInput1" formControlName="first_name"
+             autocapitalize="off"
+             autofocus
+             spellcheck="false"
+             required
+             matInput
+             placeholder="Prénom">
+      <mat-error *ngIf="firstName?.hasError('required')">Requis</mat-error>
+    </mat-form-field>
+
+    <mat-form-field color="primary">
+      <input formControlName="last_name"
+             autocapitalize="off"
+             autofocus
+             spellcheck="false"
+             required
+             matInput
+             placeholder="Nom">
+      <mat-error *ngIf="lastName?.hasError('required')">Requis</mat-error>
+    </mat-form-field>
+
+    <mat-form-field color="primary">
+      <input formControlName="email"
+             autocapitalize="off"
+             autocomplete="false"
+             autofocus
+             spellcheck="false"
+             required
+             matInput
+             placeholder="Courriel">
+      <mat-error *ngIf="email?.hasError('required')">Requis</mat-error>
+      <mat-error *ngIf="email?.hasError('email')">Format de courriel incorrect</mat-error>
+    </mat-form-field>
+    <mat-form-field color="primary">
+      <input formControlName="phone"
+             autocapitalize="off"
+             autocomplete="false"
+             autofocus
+             spellcheck="false"
+             required
+             matInput
+             placeholder="Téléphone">
+      <mat-error *ngIf="phone?.hasError('required')">Requis</mat-error>
+      <mat-error *ngIf="phone?.hasError('pattern')">
+        <ul>Mauvais format de téléphone, accepté :
+          <li>+41225252356</li>
+          <li>+41 22 225 25 23</li>
+          <li>0041222252523</li>
+          <li>0041 22 225 25 23</li>
+          <li>0225232523</li>
+          <li>02 25 25 25 23</li>
+        </ul>
+      </mat-error>
+    </mat-form-field>
+  </section>
+
+  <section class="flex-column section-optional">
+    <mat-form-field color="primary">
+      <input formControlName="street"
+             autocapitalize="off"
+             autofocus
+             spellcheck="false"
+             matInput
+             placeholder="Adresse">
+    </mat-form-field>
+
+    <mat-form-field color="primary">
+      <input formControlName="street2"
+             autocapitalize="off"
+             autofocus
+             spellcheck="false"
+             matInput
+             placeholder="Complément d'adresse">
+    </mat-form-field>
+
+    <mat-form-field color="primary">
+      <input formControlName="postcode"
+             autocapitalize="off"
+             autofocus
+             spellcheck="false"
+             matInput
+             placeholder="Code postal">
+    </mat-form-field>
+
+    <mat-form-field color="primary">
+      <input formControlName="city"
+             autocapitalize="off"
+             autofocus
+             spellcheck="false"
+             matInput
+             placeholder="Ville">
+    </mat-form-field>
+
+    <mat-form-field color="primary">
+      <input formControlName="country"
+             autocapitalize="off"
+             autofocus
+             spellcheck="false"
+             matInput
+             placeholder="Pays">
+    </mat-form-field>
+  </section>
+
+  <section class="flex-row buttons-action">
+    <button mat-button color="warn" [disabled]="form.pristine" (click)="updateForm(user)">Annuler</button>
+    <button mat-button color="primary" [disabled]="form.invalid || form.pristine" type="submit">Valider</button>
+  </section>
+</form>

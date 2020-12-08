@@ -3,10 +3,11 @@ import {HttpClient} from '@angular/common/http';
 import {IProduct} from '../_models/IProduct';
 import {ConfigService} from './config.service';
 import {Observable, of, zip} from 'rxjs';
-import {IApiResponse} from '../_models/IApi';
+import {IApiResponse, IApiResponseError} from '../_models/IApi';
 import {ICredentials, IIdentity} from '../_models/IIdentity';
 import {map, switchMap} from 'rxjs/operators';
 import {IMetadata} from '../_models/IMetadata';
+import {IUser, IUserChangeResponse, IUserToPost} from '../_models/IUser';
 
 @Injectable({
   providedIn: 'root'
@@ -120,8 +121,16 @@ export class ApiService {
     };
 
     return token ?
-      this.http.get<IIdentity>(this.apiUrl + '/auth/current/', {headers}) :
-      this.http.get<IIdentity>(this.apiUrl + '/auth/current/');
+      this.http.get<IUser>(this.apiUrl + '/auth/current/', {headers}) :
+      this.http.get<IUser>(this.apiUrl + '/auth/current/');
+  }
+
+  updateProfile(user: IUserToPost) {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    return this.http.post<IUserChangeResponse | IApiResponseError>(this.apiUrl + '/auth/change/', user);
   }
 
   register(user: IIdentity) {
