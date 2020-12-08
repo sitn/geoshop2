@@ -29,7 +29,7 @@ export class StoreService {
   public addOrderToStore(order: Order) {
     if (order.items.length === 0) {
       this.store.dispatch(reloadOrder({
-        order: order.toIorder,
+        order: order.toJson,
         products: []
       }));
       return;
@@ -48,7 +48,7 @@ export class StoreService {
         }
       }
       this.store.dispatch(reloadOrder({
-        order: order.toIorder,
+        order: order.toJson,
         products
       }));
     });

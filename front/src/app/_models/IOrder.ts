@@ -3,131 +3,168 @@
 import Polygon from 'ol/geom/Polygon';
 import GeoJSON from 'ol/format/GeoJSON';
 import Geometry from 'ol/geom/Geometry';
-import {IIdentity} from './IIdentity';
-import {GeoshopUtils} from '../_helpers/GeoshopUtils';
 import {Contact} from './IContact';
-
-export interface IOrderToPost {
-  id?: number;
-  title: string;
-  description: string;
-  order_type: string;
-  geom: string | undefined;
-  invoice_reference?: string;
-  order_contact: any;
-  invoice_contact: number;
-  items?: IOrderItem[];
-}
-
-export interface IOrder {
-  id?: number;
-  url: string;
-  title: string;
-  description: string;
-  processing_fee_currency: string;
-  processing_fee: string;
-  total_with_vat_currency: string;
-  total_with_vat: string;
-  part_vat_currency: string;
-  part_vat: string;
-  invoice_reference: string;
-  status: IOrderStatus;
-  date_ordered: string | undefined;
-  date_downloaded: string | undefined;
-  date_processed: string | undefined;
-  client: string | undefined;
-  order_contact: string;
-  invoice_contact: number;
-  order_type: string;
-  geom: any;
-  items: Array<IOrderItem>;
-}
-
-export interface IOrderItem {
-  id?: number;
-  product: string;
-  data_format?: string;
-  available_formats?: string[];
-  statusAsReadableIconText?: {
-    iconName: string;
-    text: string;
-    color: string;
-  };
-}
+import {PricingStatus} from './IPricing';
 
 export interface IOrderType {
   id: number;
   name: string;
 }
 
-export type IOrderStatus = 'DRAFT' | ' ARCHIVED' | 'PENDING' | 'DONE';
+export interface IStatusAsReadableIcon {
+  iconName: string;
+  text: string;
+  color: string;
+}
 
-export class Order {
-  private id?: number;
+export type OrderStatus = 'DRAFT' | 'PENDING' | 'READY' |
+  'PARTIALLY_DELIVERED' | 'PROCESSED' | 'DOWNLOADED' |
+  'ARCHIVED' | 'REJECTED';
+
+export interface IOrderItem {
+  id?: number;
+  price: string;
+  data_format?: string;
+  product: string;
+  available_formats?: string[];
+  srid: number;
+  price_status: PricingStatus;
+  /** id of the order   */
+  order?: number;
+}
+
+export interface IOrderToPost {
+  id?: number;
+  order_type: string;
+  title: string;
+  description: string;
+  total_without_vat: string;
+  total_with_vat: string;
+  geom: string | undefined;
+  invoice_reference?: string;
+  invoice_contact: number;
+  items: IOrderItem[];
+}
+
+/**
+ * Result for a get on the api (list of orders)
+ * ex: https://sitn.ne.ch/geoshop2_prepub_api/order/
+ */
+export interface IOrderSummary {
   url: string;
+  order_type: string;
+  title: string;
+  description: string;
+  total_without_vat_currency: string;
+  total_without_vat: string;
+  total_with_vat_currency: string;
+  total_with_vat: string;
+  invoice_reference: string;
+  status: OrderStatus;
+  date_ordered: string | undefined;
+  date_processed: string | undefined;
+  statusAsReadableIconText?: IStatusAsReadableIcon;
+  id?: number;
+}
+
+/**
+ * Result for a get on the api
+ * ex: https://sitn.ne.ch/geoshop2_prepub_api/order/11710/
+ */
+export interface IOrder {
+  id: number;
+  order_type: string;
+  items: Array<IOrderItem>;
   title: string;
   description: string;
   processing_fee_currency: string;
   processing_fee: string;
-  total_with_vat_currency: string;
-  total_with_vat: string;
+  total_without_vat_currency: string;
+  total_without_vat: string;
   part_vat_currency: string;
   part_vat: string;
+  total_with_vat_currency: string;
+  total_with_vat: string;
+  geom: string | undefined;
   invoice_reference: string;
-  status: IOrderStatus;
-  date_ordered: Date | undefined;
-  date_downloaded: Date | undefined;
-  date_processed: Date | undefined;
-  client: string | undefined;
-  order_contact: string;
-  invoice_contact: number;
+  status: OrderStatus;
+  date_ordered: string | undefined;
+  date_processed: string | undefined;
+  invoice_contact: string | number;
+}
+
+export class Order {
+  id: number;
   order_type: string;
-  geom: Polygon | undefined;
   items: Array<IOrderItem>;
+  title: string;
+  description: string;
+  processing_fee_currency: string;
+  processing_fee: string;
+  total_without_vat_currency: string;
+  total_without_vat: string;
+  part_vat_currency: string;
+  part_vat: string;
+  total_with_vat_currency: string;
+  total_with_vat: string;
+  geom: Polygon;
+  invoice_reference: string;
+  status: OrderStatus;
+  date_ordered: Date | undefined;
+  date_processed: Date | undefined;
+  invoice_contact: number;
 
-  orderType: IOrderType | undefined;
+  statusAsReadableIconText: IStatusAsReadableIcon;
 
-  private invoiceContact: Contact | undefined;
-
-  public get HasInvoiceContact() {
-    return this.invoice_contact != null;
+  private _invoiceContact: Contact | undefined;
+  get invoiceContact(): Contact | undefined {
+    return this._invoiceContact;
   }
 
-  public get InvoiceContact(): Contact | undefined {
-    return this.invoiceContact;
+  set invoiceContact(contact: Contact | undefined) {
+    this._invoiceContact = contact;
+    this.invoice_contact = contact ? contact.Id : -1;
   }
 
-  public set InvoiceContact(contact: Contact | undefined) {
-    this.invoiceContact = contact;
+  get HasInvoiceContact() {
+    return this.invoice_contact > -1;
   }
 
-  public get HasId() {
-    return this.id && this.id > 0;
+  get geometryAsGeoJson(): string {
+    return new GeoJSON().writeGeometry(this.geom);
   }
 
-  public get Id() {
-    return this.id;
-  }
-
-  statusAsReadableIconText = {
-    iconName: '',
-    text: '',
-    color: ''
-  };
-
-  get toIorder(): IOrder {
+  get toPostAsJson(): IOrderToPost {
     return {
-      geom: this.geom ? new GeoJSON().writeGeometry(this.geom) : undefined,
-      url: this.url || '',
-      id: this.id || undefined,
-      client: this.client || undefined,
-      date_downloaded: this.date_downloaded ? this.date_downloaded.getTime().toString() : undefined,
-      date_ordered: this.date_ordered ? this.date_ordered.getTime().toString() : undefined,
-      date_processed: this.date_processed ? this.date_processed.getTime().toString() : undefined,
+      id: this.id,
       description: this.description,
+      geom: this.geometryAsGeoJson,
       invoice_contact: this.invoice_contact,
       invoice_reference: this.invoice_reference,
-      order_contact: this.order_contact,
+      order_type: this.order_type,
+      title: this.title,
+      total_with_vat: this.total_with_vat,
+      total_without_vat: this.total_without_vat,
+      items: this.items.map(x => {
+        const item: IOrderItem = Object.assign({}, x);
+        if (!item.data_format) {
+          delete item.data_format;
+        }
+        return item;
+      })
+    };
+  }
+
+  get toJson(): IOrder {
+    return {
+      id: this.id,
+      invoice_contact: this.invoice_contact,
+      date_processed: this.date_processed ? this.date_processed.getTime().toString() : undefined,
+      date_ordered: this.date_ordered ? this.date_ordered.getTime().toString() : undefined,
+      description: this.description,
+      geom: this.geometryAsGeoJson,
+      invoice_reference: this.invoice_reference,
+      items: this.items,
       order_type: this.order_type,
       part_vat: this.part_vat,
       part_vat_currency: this.part_vat_currency,
@@ -137,117 +174,72 @@ export class Order {
       title: this.title,
       total_with_vat: this.total_with_vat,
       total_with_vat_currency: this.total_with_vat_currency,
-      items: this.items
+      total_without_vat: this.total_without_vat,
+      total_without_vat_currency: this.total_without_vat_currency
     };
   }
 
-  get getOrderTypeId() {
-    return this.orderType ? this.orderType.id : this.order_type;
-  }
-
-  get isOwnCustomer() {
-    return !this.invoiceContact;
-  }
-
-  get geometryAsGeoJson(): string | undefined {
-    return this.geom ? new GeoJSON().writeGeometry(this.geom) : undefined;
-  }
-
-  constructor(iOrder?: IOrder | null) {
-    if (iOrder) {
-      this.id = iOrder.id;
-      this.url = iOrder.url;
-      this.title = iOrder.title;
-      this.description = iOrder.description;
-      this.processing_fee_currency = iOrder.processing_fee_currency;
-      this.processing_fee = iOrder.processing_fee;
-      this.total_with_vat_currency = iOrder.total_with_vat_currency;
-      this.total_with_vat = iOrder.total_with_vat;
-      this.part_vat_currency = iOrder.part_vat_currency;
-      this.part_vat = iOrder.part_vat;
-      this.invoice_reference = iOrder.invoice_reference;
-      this.status = iOrder.status;
-      this.date_ordered = iOrder.date_ordered ? new Date(iOrder.date_ordered) : undefined;
-      this.date_downloaded = iOrder.date_downloaded ? new Date(iOrder.date_downloaded) : undefined;
-      this.date_processed = iOrder.date_processed ? new Date(iOrder.date_processed) : undefined;
-      this.client = iOrder.client;
-      this.order_contact = iOrder.order_contact;
-      this.invoice_contact = iOrder.invoice_contact;
-      this.order_type = iOrder.order_type;
-      this.items = iOrder.items;
-      this.initializeGeometry(iOrder.geom);
-    } else {
-      this.id = undefined;
-      this.url = '';
-      this.title = '';
-      this.description = '';
-      this.processing_fee_currency = '';
-      this.processing_fee = '';
-      this.total_with_vat_currency = '';
-      this.total_with_vat = '';
-      this.part_vat_currency = '';
-      this.part_vat = '';
-      this.invoice_reference = '';
-      this.status = 'DRAFT';
-      this.date_ordered = undefined;
-      this.date_downloaded = undefined;
-      this.date_processed = undefined;
-      this.client = '';
-      this.order_contact = '';
-      this.invoice_contact = -1;
-      this.order_type = '';
-      this.items = [];
-      this.geom = undefined;
+  constructor(options: IOrder) {
+    if (!options) {
+      throw new Error('Missing argument');
     }
 
-    this.initializeId();
-    this.initializeStatus();
-  }
+    Object.assign(this, options);
 
-  public deepInitialize(invoiceContact: Contact | undefined) {
-    this.invoiceContact = invoiceContact;
-  }
-
-  private initializeId() {
-    if (!this.HasId) {
-      this.id = GeoshopUtils.ExtractIdFromUrl(this.url);
+    if (options.date_ordered) {
+      this.date_ordered = new Date(options.date_ordered);
     }
-  }
-
-  private initializeGeometry(geom: Geometry) {
-    try {
-      if (geom instanceof Polygon) {
-        this.geom = geom;
-      } else {
-        const geo = new GeoJSON().readGeometry(geom);
-        if (geo instanceof Polygon) {
-          this.geom = geo;
-        }
-      }
-    } catch (error) {
-      console.error(error);
+    if (options.date_processed) {
+      this.date_processed = new Date(options.date_processed);
     }
+    this.invoice_contact = typeof options.invoice_contact === 'string' ? -1 : options.invoice_contact;
+    if (typeof this.id === 'string') {
+      this.id = -1;
+    }
+
+    this.initializeGeometry(options.geom);
+    this.statusAsReadableIconText = Order.initializeStatus(options);
   }
 
-  private initializeStatus() {
-    if (this.status === 'PENDING') {
-      this.statusAsReadableIconText = {
+  public static initializeStatus(order: IOrderSummary | IOrder) {
+    let result: IStatusAsReadableIcon = {
+      iconName: '',
+      text: '',
+      color: ''
+    };
+    if (order.status === 'PENDING') {
+      result = {
         iconName: 'warning',
         text: `Devis réalisé, en attente de validation de votre part</span></div>`,
         color: 'paleorange'
       };
-    } else if (this.status === 'DRAFT') {
-      this.statusAsReadableIconText = {
+    } else if (order.status === 'DRAFT') {
+      result = {
         text: `Brouillon`,
         iconName: 'info',
         color: 'paleblue'
       };
     } else {
-      this.statusAsReadableIconText = {
+      result = {
         text: `Traitée`,
         iconName: 'check_outline',
         color: '#2bae66'
       };
+    }
+    return result;
+  }
+
+  private initializeGeometry(geom: string | undefined) {
+    try {
+      if (!geom) {
+        return;
+      }
+      const geo = new GeoJSON().readGeometry(geom);
+      if (geo instanceof Polygon) {
+        this.geom = geo;
+      }
+    } catch (error) {
+      console.error(error);
     }
   }
 }

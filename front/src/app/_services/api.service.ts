@@ -23,10 +23,11 @@ export class ApiService {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    const url = new URL(`${this.apiUrl}/${endpoint}/`);
-    url.searchParams.append('search', inputText);
+    const url = `${this.apiUrl}/${endpoint}/`;
 
-    return this.http.get<IApiResponse<T>>(url.toString());
+    return this.http.get<IApiResponse<T>>(url, {
+      params: {search: inputText}
+    });
   }
 
   getProducts(offset?: number, limit?: number): Observable<IApiResponse<IProduct>> {

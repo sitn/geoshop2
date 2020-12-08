@@ -1,33 +1,33 @@
-<mat-horizontal-stepper *ngIf="step1FormGroup && step2FormGroup && lastStepFormGroup" #stepper [linear]="true">
-  <mat-step [stepControl]="step1FormGroup" label="Détails du mandat">
-    <form [formGroup]="step1FormGroup">
+<mat-horizontal-stepper #stepper [linear]="true">
+  <mat-step [stepControl]="orderFormGroup" label="Détails du mandat">
+    <form [formGroup]="orderFormGroup">
 
       <!-- Order type -->
       <mat-form-field>
         <mat-label>Type de mandat</mat-label>
-        <mat-select formControlName="orderType" required (selectionChange)="updateForm1()"
+        <mat-select formControlName="orderType" required (selectionChange)="clearForms()"
                     [compareWith]="orderTypeCompareWith">
           <mat-option *ngFor="let orderType of orderTypes" [value]="orderType">
             {{orderType.name}}
           </mat-option>
         </mat-select>
-        <mat-error *ngIf="step1FormGroup.get('orderType')?.hasError('required')">Requis</mat-error>
+        <mat-error *ngIf="orderFormGroup.get('orderType')?.hasError('required')">Requis</mat-error>
       </mat-form-field>
 
       <!-- title -->
       <mat-form-field>
         <mat-label>Titre du mandat</mat-label>
         <textarea matInput type="text" required formControlName="title"></textarea>
-        <mat-error *ngIf="step1FormGroup.get('title')?.hasError('required')">Requis</mat-error>
+        <mat-error *ngIf="orderFormGroup.get('title')?.hasError('required')">Requis</mat-error>
       </mat-form-field>
 
       <!-- Description -->
-      <mat-form-field *ngIf="step1FormGroup.get('orderType')?.value?.id !== 1">
+      <mat-form-field *ngIf="orderFormGroup.get('orderType')?.value?.id !== 1">
         <mat-label>Description du mandat</mat-label>
         <textarea matInput
                   formControlName="description"
                   placeholder="Renseigner une courte description du mandat..."></textarea>
-        <mat-error *ngIf="step1FormGroup.get('description')?.hasError('required')">Requis</mat-error>
+        <mat-error *ngIf="orderFormGroup.get('description')?.hasError('required')">Requis</mat-error>
       </mat-form-field>
 
       <div class="bottom-container flex-row">
@@ -37,20 +37,19 @@
     </form>
   </mat-step>
 
-  <mat-step [stepControl]="step2FormGroup" label="Facturation / Tiers">
-    <form [formGroup]="step2FormGroup">
+  <mat-step [stepControl]="contactFormGroup" label="Facturation / Tiers">
+    <form [formGroup]="contactFormGroup">
 
       <mat-radio-group *ngIf="IsOrderTypePrivate" class="flex-column"
                        formControlName="addressChoice"
-                       (change)="updateForm2($event.value)"
+                       (change)="updateContactForm($event.value)"
                        aria-label="Choisir une option">
         <mat-radio-button value="1">La facturation est adressé à
           l'utilisateur courant: {{(currentUser$|async)?.email}}</mat-radio-button>
         <mat-radio-button value="2">La facturation est adressé à un mandant</mat-radio-button>
       </mat-radio-group>
 
-      <ng-container
-        *ngIf="(IsOrderTypePrivate && !IsAddressForCurrentUser) || !IsOrderTypePrivate">
+      <ng-container *ngIf="(IsOrderTypePrivate && !IsAddressForCurrentUser) || !IsOrderTypePrivate">
         <div class="flex-row">
           <!-- Search -->
           <mat-form-field style="flex:0.4;">
@@ -63,7 +62,7 @@
               <mat-spinner *ngIf="isSearchLoading" diameter="16" color="accent"
                            style="margin-right: 10px"></mat-spinner>
               <button mat-button *ngIf="customerCtrl?.value" mat-icon-button aria-label="Clear"
-                      (click)="customerCtrl?.setValue(''); isCustomerSelected = false">
+                      (click)="customerCtrl?.setValue(''); isCustomerSelected = false; isNewInvoiceContact =false;">
                 <mat-icon>close</mat-icon>
               </button>
             </div>
@@ -84,21 +83,8 @@
           </button>
         </div>
 
-        <div class="flex-column" style="overflow: auto"
-             *ngIf="isCustomerSelected">
+        <div class="flex-column" style="overflow: auto" *ngIf="isCustomerSelected">
           <!-- Contact info -->
-          <mat-form-field color="primary">
-            <input formControlName="company_name"
-                   autocapitalize="off"
-                   autofocus
-                   spellcheck="false"
-                   required
-                   matInput
-                   [readonly]="isCustomerSelected"
-                   placeholder="Société">
-            <mat-error *ngIf="step2FormGroup.get('company_name')?.hasError('required')">Requis</mat-error>
-          </mat-form-field>
-
           <mat-form-field color="primary">
             <input formControlName="first_name"
                    autocapitalize="off"
@@ -106,9 +92,9 @@
                    spellcheck="false"
                    required
                    matInput
-                   [readonly]="isCustomerSelected"
+                   [readonly]="!isNewInvoiceContact"
                    placeholder="Prénom">
-            <mat-error *ngIf="step2FormGroup.get('first_name')?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="contactFormGroup.get('first_name')?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
           <mat-form-field color="primary">
@@ -118,24 +104,35 @@
                    spellcheck="false"
                    required
                    matInput
-                   [readonly]="isCustomerSelected"
+                   [readonly]="!isNewInvoiceContact"
                    placeholder="Nom">
-            <mat-error *ngIf="step2FormGroup.get('last_name')?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="contactFormGroup.get('last_name')?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
           <!-- Email -->
           <mat-form-field>
             <mat-label>Courriel mandant</mat-label>
-            <input matInput required type="email" formControlName="email" [readonly]="isCustomerSelected">
-            <mat-error *ngIf="step2FormGroup.get('email')?.hasError('required')">Requis</mat-error>
-            <mat-error *ngIf="step2FormGroup.get('email')?.hasError('pattern')">Format courriel uniquement</mat-error>
+            <input matInput required type="email" formControlName="email" [readonly]="!isNewInvoiceContact">
+            <mat-error *ngIf="contactFormGroup.get('email')?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="contactFormGroup.get('email')?.hasError('pattern')">Format courriel uniquement
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field color="primary">
+            <input formControlName="company_name"
+                   autocapitalize="off"
+                   autofocus
+                   spellcheck="false"
+                   matInput
+                   [readonly]="!isNewInvoiceContact"
+                   placeholder="Société">
           </mat-form-field>
 
           <!-- Phone -->
           <mat-form-field>
             <mat-label>Téléphone mandant</mat-label>
-            <input matInput type="tel" formControlName="phone" [readonly]="isCustomerSelected">
-            <mat-error *ngIf="step2FormGroup.get('phone')?.hasError('pattern')">
+            <input matInput type="tel" formControlName="phone" [readonly]="!isNewInvoiceContact">
+            <mat-error *ngIf="contactFormGroup.get('phone')?.hasError('pattern')">
               <ul>Mauvais format de téléphone, accepté :
                 <li>+41225252356</li>
                 <li>+41 22 225 25 23</li>
@@ -150,14 +147,14 @@
           <mat-form-field color="primary">
             <input formControlName="street"
                    matInput
-                   [readonly]="isCustomerSelected"
+                   [readonly]="!isNewInvoiceContact"
                    placeholder="Adresse">
           </mat-form-field>
 
           <mat-form-field color="primary">
             <input formControlName="street2"
                    matInput
-                   [readonly]="isCustomerSelected"
+                   [readonly]="!isNewInvoiceContact"
                    placeholder="Complément d'adresse">
           </mat-form-field>
 
@@ -165,14 +162,14 @@
             <input formControlName="postcode"
                    matInput
                    type="number"
-                   [readonly]="isCustomerSelected"
+                   [readonly]="!isNewInvoiceContact"
                    placeholder="Code postal">
           </mat-form-field>
 
           <mat-form-field color="primary">
             <input formControlName="city"
                    matInput
-                   [readonly]="isCustomerSelected"
+                   [readonly]="!isNewInvoiceContact"
                    placeholder="Ville">
           </mat-form-field>
 
@@ -193,15 +190,15 @@
       <div class="bottom-container flex-row">
         <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Réinitialiser</button>
         <button color="primary" mat-button matStepperPrevious>Retour</button>
-        <button color="primary" mat-raised-button [disabled]="step2FormGroup?.invalid"
+        <button color="primary" mat-raised-button [disabled]="contactFormGroup?.invalid"
                 (click)="createOrUpdateDraftOrder()">Suivant
         </button>
       </div>
     </form>
   </mat-step>
 
-  <mat-step [stepControl]="lastStepFormGroup" label="Aperçu de la commande">
-    <form [formGroup]="lastStepFormGroup" (submit)="confirm()">
+  <mat-step [stepControl]="orderItemFormGroup" label="Aperçu de la commande">
+    <form *ngIf="currentOrder" [formGroup]="orderItemFormGroup" (submit)="confirm()">
 
       <div class="table-container">
         <table mat-table [dataSource]="dataSource" matSort>
@@ -234,7 +231,7 @@
                     {{ format }}
                   </mat-option>
                 </mat-select>
-                <mat-error *ngIf="lastStepFormGroup.get(orderItem.product)?.hasError('required')">Requis</mat-error>
+                <mat-error *ngIf="orderItemFormGroup.get(orderItem.product)?.hasError('required')">Requis</mat-error>
               </mat-form-field>
             </td>
             <td mat-footer-cell *matFooterCellDef class="text-primary"></td>
@@ -263,7 +260,7 @@
         <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Réinitialiser</button>
         <button color="primary" mat-button matStepperPrevious>Retour</button>
         <button color="primary" mat-raised-button type="submit"
-                [disabled]="lastStepFormGroup.pristine || lastStepFormGroup.invalid">
+                [disabled]="orderItemFormGroup.pristine || orderItemFormGroup.invalid">
           Acheter maintenant
         </button>
       </div>

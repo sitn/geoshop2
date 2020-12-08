@@ -1,30 +1,41 @@
+// tslint:disable:variable-name
+
 import {IMetadata} from './IMetadata';
 
 export interface IProduct {
   url: string;
   label: string;
   status: string;
+  provider: string;
   order: number;
-  metadata?: string;
-  group: any;
   thumbnail_link: string;
+  /**
+   * Metadata url
+   */
+  metadata: string;
+  group: any;
+  /**
+   * Princing url
+   */
+  pricing: string;
 }
 
 export class Product {
-  public readonly url: string;
-  public readonly label: string;
-  public readonly status: string;
-  public readonly order: number;
-  /*
-  Url of the metadata
-   */
-  public readonly metadata: string;
-  public readonly group: any;
-  public readonly thumbnail_link: string;
+  url: string;
+  label: string;
+  status: string;
+  provider: string;
+  order: number;
+  thumbnail_link: string;
+  metadata: string;
+  pricing: string;
+  group: any;
 
-  public metadataObject: IMetadata;
+  metadataObject: IMetadata;
 
   constructor(args: IProduct) {
-    Object.assign(this, args);
+    if (args) {
+      Object.assign(this, args);
+    }
   }
 }

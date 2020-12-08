@@ -32,20 +32,20 @@ export const initialState: CartState = adapter.getInitialState({
   part_vat_currency: '',
   part_vat: '',
   order_type: '',
-  order_contact: '',
   invoice_reference: '',
   invoice_contact: -1,
   description: '',
   date_processed: undefined,
   date_ordered: undefined,
-  date_downloaded: undefined,
   client: '',
   id: -1,
   url: '',
-  geom: null,
   entities: {},
   ids: [],
-  items: []
+  items: [],
+  total_without_vat_currency: '',
+  total_without_vat: '',
+  geom: undefined
 });
 
 const cartReducer = createReducer(initialState,
@@ -141,18 +141,16 @@ export const selectOrder = (state: CartState) => {
     part_vat_currency: state.part_vat_currency,
     part_vat: state.part_vat,
     order_type: state.order_type,
-    order_contact: state.order_contact,
     invoice_reference: state.invoice_reference,
     invoice_contact: state.invoice_contact,
     description: state.description,
     date_processed: state.date_processed,
     date_ordered: state.date_ordered,
-    date_downloaded: state.date_downloaded,
-    client: state.client,
     id: state.id,
-    url: state.url,
     geom: state.geom,
-    items: state.items
+    items: state.items,
+    total_without_vat: state.total_without_vat,
+    total_without_vat_currency: state.total_without_vat_currency
   };
 
   return iOrder;

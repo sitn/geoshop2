@@ -2,7 +2,7 @@ import {Component, HostBinding, OnDestroy, OnInit, ViewChild} from '@angular/cor
 import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {ApiService} from '../../_services/api.service';
 import {PHONE_REGEX} from '../../_helpers/regex';
-import {Observable, of, Subject} from 'rxjs';
+import {Observable, Subject} from 'rxjs';
 import {IIdentity} from '../../_models/IIdentity';
 import {debounceTime, filter, map, mergeMap, startWith, switchMap, takeUntil} from 'rxjs/operators';
 import {Product} from '../../_models/IProduct';
@@ -17,7 +17,6 @@ import {MatStepper} from '@angular/material/stepper';
 import {StoreService} from '../../_services/store.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {IApiResponseError} from '../../_models/IApi';
-import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
 import {Contact, IContact} from '../../_models/IContact';
 
 @Component({
@@ -33,33 +32,35 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   @ViewChild(MatSort, {static: true}) sort: MatSort;
   @ViewChild('stepper') stepper: MatStepper;
 
-  step1FormGroup: FormGroup;
-  step2FormGroup: FormGroup;
-  newContactControls: { [key: string]: FormControl; };
-  lastStepFormGroup: FormGroup;
+  orderFormGroup: FormGroup;
+  contactFormGroup: FormGroup;
+  orderItemFormGroup: FormGroup;
+  invoiceContactsFormControls: { [key: string]: FormControl };
+
   isSearchLoading = false;
   isCustomerSelected = false;
+  isNewInvoiceContact = false;
 
   currentOrder: Order;
   currentUser$ = this.store.select(getUser);
   orderTypes: IOrderType[] = [];
   filteredCustomers$: Observable<IContact[]> | undefined;
 
-  // last step table attributes
+  // order item form: table's attributes
   dataSource: MatTableDataSource<IOrderItem>;
   products: Product[] = [];
   displayedColumns: string[] = ['label', 'format', 'price'];
 
   get customerCtrl() {
-    return this.step2FormGroup.get('customer');
+    return this.contactFormGroup.get('customer');
   }
 
   get IsOrderTypePrivate() {
-    return this.step1FormGroup?.get('orderType')?.value.name === 'Privé';
+    return this.orderFormGroup?.get('orderType')?.value?.name === 'Privé';
   }
 
   get IsAddressForCurrentUser() {
-    return this.step2FormGroup?.get('addressChoice')?.value === '1';
+    return this.contactFormGroup?.get('addressChoice')?.value === '1';
   }
 
   constructor(private formBuilder: FormBuilder,
@@ -69,38 +70,44 @@ export class NewOrderComponent implements OnInit, OnDestroy {
               private snackBar: MatSnackBar,
               private store: Store<AppState>) {
 
+    this.createForms();
+  }
+
+  ngOnInit(): void {
+    this.store.pipe(
+      takeUntil(this.onDestroy$),
+      select(selectAllProducts)
+    ).subscribe((cartProducts) => {
+      this.products = cartProducts;
+    });
+
+    this.apiOrderService.getOrderTypes()
+      .pipe(takeUntil(this.onDestroy$))
+      .subscribe(orderTypes => this.orderTypes = orderTypes);
+
+    this.filteredCustomers$ = this.contactFormGroup.get('customer')?.valueChanges.pipe(
+      debounceTime(500),
+      startWith(''),
+      filter(x => typeof x === 'string' && x.length > 2),
+      mergeMap(email => {
+        this.isSearchLoading = true;
+        return this.apiService.find<IContact>(email, 'contact');
+      }),
+      map(x => {
+        this.isSearchLoading = false;
+        return x.results;
+      })
+    );
+
     this.store.pipe(
       takeUntil(this.onDestroy$),
       select(selectOrder),
       switchMap(x => this.apiOrderService.getFullOrder(x)),
     ).subscribe(order => {
-      this.currentOrder = order || new Order();
-      this.apiOrderService.getOrderTypes().subscribe(orderTypes => {
-        this.orderTypes = orderTypes;
-
-        this.createForms();
-
-        this.filteredCustomers$ = this.step2FormGroup.get('customer')?.valueChanges.pipe(
-          debounceTime(500),
-          startWith(''),
-          filter(x => typeof x === 'string' && x.length > 2),
-          mergeMap(email => {
-            this.isSearchLoading = true;
-            return this.apiService.find<IContact>(email, 'contact');
-          }),
-          map(x => {
-            this.isSearchLoading = false;
-            return x.results;
-          })
-        );
-      });
-    });
-
-  }
-
-  ngOnInit(): void {
-    this.store.select(selectAllProducts).subscribe((cartProducts) => {
-      this.products = cartProducts;
+      if (order) {
+        this.currentOrder = order;
+        this.updateForms(this.currentOrder);
+      }
     });
   }
 
@@ -109,11 +116,24 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   }
 
   private getInvoiceContact(): Contact {
-    const iContact: IContact = {company_name: '', email: '', first_name: '', last_name: ''};
+    const iContact: IContact = {
+      first_name: '',
+      last_name: '',
+      email: '',
+      company_name: '',
+      url: '',
+      city: '',
+      country: '',
+      postcode: '',
+      phone: '',
+      sap_id: '',
+      street: '',
+      street2: '',
+    };
 
-    for (const attr in this.newContactControls) {
-      if (this.newContactControls[attr]) {
-        iContact[attr] = this.newContactControls[attr].value;
+    for (const attr in iContact) {
+      if (this.contactFormGroup.controls[attr]) {
+        iContact[attr] = this.contactFormGroup.controls[attr].value;
       }
     }
 
@@ -122,45 +142,75 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   private getOrderType(id: string | number) {
     return this.orderTypes.find(x => typeof id === 'number' ?
-      id === x.id : id === x.name);
+      id === x.id : id === x.name) || {
+      id: 1,
+      name: 'Privé'
+    };
   }
 
   private createForms() {
-    this.newContactControls = {
-      company_name: new FormControl(this.currentOrder.InvoiceContact?.company_name, Validators.required),
-      first_name: new FormControl(this.currentOrder.InvoiceContact?.first_name, Validators.required),
-      last_name: new FormControl(this.currentOrder.InvoiceContact?.last_name, Validators.required),
-      email: new FormControl(this.currentOrder.InvoiceContact?.email, Validators.compose(
+    this.orderFormGroup = this.formBuilder.group({
+      orderType: new FormControl(null, Validators.required),
+      title: new FormControl('', Validators.required),
+      description: new FormControl('', Validators.required),
+    });
+
+    this.invoiceContactsFormControls = {
+      first_name: new FormControl(null, Validators.required),
+      last_name: new FormControl(null, Validators.required),
+      email: new FormControl(null, Validators.compose(
         [Validators.required, Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$')])),
-      phone: new FormControl(this.currentOrder.InvoiceContact?.phone, Validators.pattern(PHONE_REGEX)),
-      street: new FormControl(this.currentOrder.InvoiceContact?.street),
-      street2: new FormControl(this.currentOrder.InvoiceContact?.street2),
-      postcode: new FormControl(this.currentOrder.InvoiceContact?.postcode),
-      city: new FormControl(this.currentOrder.InvoiceContact?.city),
-      country: new FormControl(this.currentOrder.InvoiceContact?.country),
-      url: new FormControl(this.currentOrder.InvoiceContact?.url),
+      company_name: new FormControl(),
+      phone: new FormControl(null, Validators.pattern(PHONE_REGEX)),
+      street: new FormControl(),
+      street2: new FormControl(),
+      postcode: new FormControl(),
+      city: new FormControl(),
+      country: new FormControl(),
+      url: new FormControl(),
     };
-    this.step1FormGroup = this.formBuilder.group({
-      orderType: new FormControl(this.getOrderType(this.currentOrder.getOrderTypeId), Validators.required),
-      title: new FormControl(this.currentOrder.title, Validators.required),
-      description: new FormControl(this.currentOrder.description, Validators.required),
-    });
-    this.step2FormGroup = this.formBuilder.group({
-      addressChoice: new FormControl(this.currentOrder.isOwnCustomer ? '1' : '2'),
+    this.contactFormGroup = this.formBuilder.group({
+      addressChoice: new FormControl('2'),
       customer: new FormControl(null),
-
-      ...this.newContactControls
+      ...this.invoiceContactsFormControls
     });
-    this.lastStepFormGroup = this.formBuilder.group({});
-    this.dataSource = new MatTableDataSource(this.currentOrder.items);
-    this.currentOrder.items.forEach((item) => {
+
+    this.orderItemFormGroup = this.formBuilder.group({});
+  }
+
+  private updateForms(order: Order) {
+    this.isCustomerSelected = order.HasInvoiceContact;
+
+    this.orderFormGroup.setValue({
+      orderType: this.getOrderType(order.order_type),
+      title: order.title,
+      description: order.description
+    });
+
+    this.contactFormGroup.setValue({
+      addressChoice: order.HasInvoiceContact ? '2' : '1',
+      customer: null,
+      first_name: order.invoiceContact?.first_name || '',
+      last_name: order.invoiceContact?.last_name || '',
+      email: order.invoiceContact?.email || '',
+      company_name: order.invoiceContact?.company_name || '',
+      phone: order.invoiceContact?.phone || '',
+      street: order.invoiceContact?.street || '',
+      street2: order.invoiceContact?.street2 || '',
+      postcode: order.invoiceContact?.postcode || '',
+      city: order.invoiceContact?.city || '',
+      country: order.invoiceContact?.country || '',
+      url: order.invoiceContact?.url || '',
+    });
+
+    this.dataSource = new MatTableDataSource(order.items);
+    order.items.forEach((item) => {
       const itemFormControl = new FormControl(item.data_format, Validators.required);
-      this.lastStepFormGroup.addControl(item.product, itemFormControl);
+      this.orderItemFormGroup.addControl(item.product, itemFormControl);
     });
 
-    this.isCustomerSelected = this.currentOrder.HasInvoiceContact;
-    this.updateDescription(this.step1FormGroup?.get('orderType')?.value);
-    this.updateForm2();
+    this.updateDescription(this.orderFormGroup?.get('orderType')?.value);
+    this.updateContactForm();
   }
 
   displayCustomer(customer: IIdentity) {
@@ -171,11 +221,12 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   updateCustomerForm(event: MatAutocompleteSelectedEvent) {
     this.isCustomerSelected = true;
+    this.isNewInvoiceContact = false;
 
     const iContact: IContact = event.option.value;
     for (const key in iContact) {
-      if (this.step2FormGroup.contains(key)) {
-        this.step2FormGroup.get(key)?.setValue(iContact[key]);
+      if (this.contactFormGroup.contains(key)) {
+        this.contactFormGroup.get(key)?.setValue(iContact[key]);
       }
     }
   }
@@ -183,71 +234,76 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   clearCustomerForm() {
     this.customerCtrl?.setValue('');
     this.isCustomerSelected = true;
+    this.isNewInvoiceContact = true;
 
-    for (const key in this.newContactControls) {
+    for (const key in this.invoiceContactsFormControls) {
       if (key === 'country') {
-        this.step2FormGroup.get(key)?.setValue('Suisse');
+        this.contactFormGroup.get(key)?.setValue('Suisse');
       } else {
-        this.step2FormGroup.get(key)?.setValue('');
+        this.contactFormGroup.get(key)?.setValue('');
       }
     }
   }
 
   updateDescription(orderType: IOrderType) {
     if (orderType && orderType.id === 1) {
-      this.step1FormGroup.get('description')?.clearValidators();
+      this.orderFormGroup.get('description')?.clearValidators();
     } else {
-      this.step1FormGroup.get('description')?.setValidators(Validators.required);
+      this.orderFormGroup.get('description')?.setValidators(Validators.required);
     }
-    this.step1FormGroup.get('description')?.updateValueAndValidity();
+    this.orderFormGroup.get('description')?.updateValueAndValidity();
   }
 
-  updateForm1() {
-    this.updateDescription(this.step1FormGroup?.get('orderType')?.value);
+  clearForms() {
+    this.updateDescription(this.orderFormGroup?.get('orderType')?.value);
 
-    this.step1FormGroup.get('title')?.setValue('');
-    this.step1FormGroup.get('description')?.setValue('');
+    this.orderFormGroup.get('title')?.setValue('');
+    this.orderFormGroup.get('description')?.setValue('');
 
-    this.step2FormGroup.reset();
+    this.contactFormGroup.reset();
     this.isCustomerSelected = false;
   }
 
-  updateForm2(isNewClient = false) {
+  updateContactForm(isNewClient = false) {
     // current user, disable required form controls
 
-    if (this.step2FormGroup.get('addressChoice')?.value === '1') {
-      for (const key of Object.keys(this.newContactControls)) {
-        this.step2FormGroup.removeControl(key);
-        this.step2FormGroup.get(key)?.updateValueAndValidity();
+    if (this.contactFormGroup.get('addressChoice')?.value === '1') {
+      for (const key in this.invoiceContactsFormControls) {
+        if (this.invoiceContactsFormControls[key]) {
+          this.contactFormGroup.removeControl(key);
+          this.contactFormGroup.get(key)?.updateValueAndValidity();
+        }
       }
     } else {
-      for (const key of Object.keys(this.newContactControls)) {
-        this.step2FormGroup.addControl(key, this.newContactControls[key]);
-        this.step2FormGroup.get(key)?.updateValueAndValidity();
+      for (const key in this.invoiceContactsFormControls) {
+        if (this.invoiceContactsFormControls[key]) {
+          this.contactFormGroup.addControl(key, this.invoiceContactsFormControls[key]);
+          this.contactFormGroup.get(key)?.updateValueAndValidity();
+        }
       }
     }
   }
 
   resetForms() {
     this.isCustomerSelected = this.currentOrder.HasInvoiceContact;
-    this.step1FormGroup.reset({
-      orderType: this.getOrderType(this.currentOrder.getOrderTypeId),
+    this.orderFormGroup.reset({
+      orderType: this.getOrderType(this.currentOrder.order_type),
       title: this.currentOrder.title,
       description: this.currentOrder.description,
     });
-    this.step2FormGroup.reset({
-      addressChoice: this.currentOrder.isOwnCustomer ? '1' : '2',
+    this.contactFormGroup.reset({
+      addressChoice: this.currentOrder.HasInvoiceContact ? '2' : '1',
       customer: null,
     });
 
-    for (const key in this.newContactControls) {
-      if (this.currentOrder.InvoiceContact && this.currentOrder.InvoiceContact.hasOwnProperty(key)) {
-        this.step2FormGroup.get(key)?.setValue(this.currentOrder.InvoiceContact[key]);
+    for (const key in this.invoiceContactsFormControls) {
+      if (this.currentOrder.invoiceContact && this.currentOrder.invoiceContact.hasOwnProperty(key)) {
+        this.contactFormGroup.get(key)?.setValue(this.currentOrder.invoiceContact[key]);
       }
     }
 
-    this.updateDescription(this.step1FormGroup?.get('orderType')?.value);
-    this.updateForm2();
+    this.updateDescription(this.orderFormGroup?.get('orderType')?.value);
+    this.updateContactForm();
   }
 
   orderTypeCompareWith(a: IOrderType, b: IOrderType) {
@@ -255,24 +311,36 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   }
 
   createOrUpdateDraftOrder() {
-    this.currentOrder.title = this.step1FormGroup.get('title')?.value;
-    this.currentOrder.description = this.step1FormGroup.get('description')?.value;
-    this.currentOrder.order_type = this.step1FormGroup.get('orderType')?.value.name;
+    this.currentOrder.title = this.orderFormGroup.get('title')?.value;
+    this.currentOrder.description = this.orderFormGroup.get('description')?.value;
+    this.currentOrder.order_type = this.orderFormGroup.get('orderType')?.value.name;
     const invoiceContact = this.getInvoiceContact();
 
-    this.apiOrderService.updateOrPostOrder(this.currentOrder, this.products, invoiceContact).subscribe(newOrder => {
-      if ((newOrder as IApiResponseError).error) {
-        this.snackBar.open(
-          (newOrder as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'});
-      } else {
-        this.storeService.addOrderToStore(new Order(newOrder as IOrder));
-        this.stepper.next();
-      }
-    });
+    if (this.currentOrder.id === -1) {
+      this.apiOrderService.createOrder(this.currentOrder.toPostAsJson).subscribe(newOrder => {
+        if ((newOrder as IApiResponseError).error) {
+          this.snackBar.open(
+            (newOrder as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'});
+        } else {
+          this.storeService.addOrderToStore(new Order(newOrder as IOrder));
+          this.stepper.next();
+        }
+      });
+    } else {
+      this.apiOrderService.updateOrder(this.currentOrder, invoiceContact).subscribe(newOrder => {
+        if ((newOrder as IApiResponseError).error) {
+          this.snackBar.open(
+            (newOrder as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'});
+        } else {
+          this.storeService.addOrderToStore(new Order(newOrder as IOrder));
+          this.stepper.next();
+        }
+      });
+    }
   }
 
   updateDataFormat(orderItem: IOrderItem) {
-    const dataFormat = this.lastStepFormGroup.get(orderItem.product)?.value;
+    const dataFormat = this.orderItemFormGroup.get(orderItem.product)?.value;
     const orderItemId = orderItem.id || null;
     if (orderItemId === null) {
       return;

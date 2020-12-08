@@ -1,12 +1,10 @@
 import {Injectable} from '@angular/core';
 import {Observable, of, zip} from 'rxjs';
-import {IOrder, IOrderItem, IOrderToPost, IOrderType, Order} from '../_models/IOrder';
+import {IOrder, IOrderItem, IOrderSummary, IOrderToPost, IOrderType, Order} from '../_models/IOrder';
 import {HttpClient} from '@angular/common/http';
 import {ConfigService} from './config.service';
 import {IApiResponse, IApiResponseError} from '../_models/IApi';
-import {catchError, flatMap, map, mergeMap} from 'rxjs/operators';
-import {ApiService} from './api.service';
-import {Product} from '../_models/IProduct';
+import {catchError, flatMap, map} from 'rxjs/operators';
 import {Contact, IContact} from '../_models/IContact';
 import {GeoshopUtils} from '../_helpers/GeoshopUtils';
 
@@ -20,16 +18,15 @@ export class ApiOrderService {
   constructor(
     private http: HttpClient,
     private configService: ConfigService,
-    private apiService: ApiService,
   ) {
   }
 
-  getOrder(url: string): Observable<IOrder> {
+  getOrder(url: string): Observable<IOrder | undefined> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    return this.http.get<IOrder>(url);
+    return !url ? of(undefined) : this.http.get<IOrder>(url);
   }
 
   getOrderType(url: string): Observable<IOrderType | undefined> {
@@ -40,7 +37,7 @@ export class ApiOrderService {
     return !url ? of(undefined) : this.http.get<IOrderType>(url);
   }
 
-  getOrderTypes() {
+  getOrderTypes(): Observable<Array<IOrderType>> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
@@ -53,7 +50,7 @@ export class ApiOrderService {
       );
   }
 
-  getOrders(offset?: number, limit?: number): Observable<IApiResponse<Order>> {
+  getOrders(offset?: number, limit?: number): Observable<IApiResponse<IOrderSummary>> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
@@ -66,25 +63,30 @@ export class ApiOrderService {
       url.searchParams.append('offset', offset.toString());
     }
 
-    return this.http.get<IApiResponse<Order>>(url.toString());
+    return this.http.get<IApiResponse<IOrderSummary>>(url.toString());
   }
 
-  getFullOrder(order: IOrder): Observable<Order | null> {
+  getFullOrder(orderJson: IOrder): Observable<Order | undefined> {
     return zip(
-      this.getContact(order.invoice_contact),
+      this.getContact(orderJson.invoice_contact),
     ).pipe(
       map(data => {
-        if (data[0].hasOwnProperty('error')) {
+        if (data[0] && data[0].hasOwnProperty('error')) {
           throw data[0];
         }
-        const newOrder = new Order(order);
-        const contact = new Contact(data[0] as IContact);
-        newOrder.deepInitialize(contact);
+
+        const newOrder = new Order(orderJson);
+
+        if (data[0]) {
+          const contact = new Contact(data[0] as IContact);
+          newOrder.invoiceContact = contact;
+        }
+
         return newOrder;
       }),
       catchError(error => {
         console.error(error);
-        return of(null);
+        return of(undefined);
       })
     );
   }
@@ -99,59 +101,55 @@ export class ApiOrderService {
     return this.http.get<IOrder>(url.toString()).pipe(map(iOrder => iOrder ? new Order(iOrder) : null));
   }
 
-  updateOrPostOrder(order: Order, products: Product[], contact: Contact): Observable<IOrder | IApiResponseError> {
+  createOrder(jsonOrder: IOrderToPost): Observable<IOrder | IApiResponseError> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
     const url = new URL(`${this.apiUrl}/order/`);
 
-    const currentOrderItems = order.items.map(oi => oi.product);
-    const orderToPost: IOrderToPost = {
-      title: order.title,
-      description: order.description,
-      geom: order.geometryAsGeoJson,
-      order_type: order.order_type ? order.order_type : '',
-      order_contact: order.order_contact,
-      invoice_contact: -1,
-      items: []
-    };
-
-    products.forEach(product => {
-      if (currentOrderItems.indexOf(product.label) === -1) {
-        const item: IOrderItem = {
-          product: product.label,
-        };
-        orderToPost.items?.push(item);
-      }
-    });
-
-    return this.createOrUpdateContact(contact).pipe(
-      flatMap((iContact) => {
-        if (iContact.hasOwnProperty('error')) {
-          return of(iContact as IApiResponseError);
-        } else {
-          orderToPost.invoice_contact = GeoshopUtils.ExtractIdFromUrl((contact as IContact).url);
-        }
-
-        return order.HasId ?
-          this.http.put<IOrder | IApiResponseError>(`${url.toString()}${order.Id}/`, orderToPost).pipe(
-            catchError((error: IApiResponseError) => {
-              console.error(error);
-              return of(error);
-            })
-          ) :
-          this.http.post<IOrder | IApiResponseError>(url.toString(), orderToPost).pipe(
-            catchError((error: IApiResponseError) => {
-              console.error(error);
-              return of(error);
-            })
-          );
-      })
-    );
+    return this.http.post<IOrder | IApiResponseError>(url.toString(), jsonOrder)
+      .pipe(
+        catchError((error: IApiResponseError) => {
+          console.error(error);
+          return of(error);
+        })
+      );
   }
 
-  getContact(contactId: number) {
+  updateOrder(order: Order, contact: Contact): Observable<IOrder | IApiResponseError> {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    const url = new URL(`${this.apiUrl}/order/`);
+
+    return this.createOrUpdateContact(contact)
+      .pipe(
+        flatMap((newJsonContact) => {
+            if (newJsonContact.hasOwnProperty('error')) {
+              return of(newJsonContact as IApiResponseError);
+            }
+
+            const orderToPost = order.toPostAsJson;
+            orderToPost.invoice_contact = GeoshopUtils.ExtractIdFromUrl((newJsonContact as IContact).url);
+
+            return this.http.put<IOrder | IApiResponseError>(`${url.toString()}${order.id}/`, orderToPost)
+              .pipe(
+                catchError((error: IApiResponseError) => {
+                  console.error(error);
+                  return of(error);
+                })
+              );
+          }
+        ));
+  }
+
+  getContact(contactId: number | string) {
+    if (contactId < 0 || typeof contactId !== 'number') {
+      return of(undefined);
+    }
+
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
@@ -162,17 +160,17 @@ export class ApiOrderService {
   }
 
   createOrUpdateContact(contact: Contact) {
+    if (contact.HasId) {
+      return of(contact);
+    }
+
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    const url = contact.HasId ?
-      new URL(`${this.apiUrl}/contact/${contact.Id}/`) :
-      new URL(`${this.apiUrl}/contact`);
+    const url = new URL(`${this.apiUrl}/contact/`);
 
-    return contact.HasId ?
-      this.http.put<IContact | IApiResponseError>(url.toString(), contact) :
-      this.http.post<IContact | IApiResponseError>(url.toString(), contact);
+    return this.http.post<IContact | IApiResponseError>(url.toString(), contact);
   }
 
   updateOrderItemDataFormat(dataFormat: string, orderItemId: number): Observable<IOrderItem | IApiResponseError> {

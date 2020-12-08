@@ -26,11 +26,11 @@
       <ng-container *ngFor="let orderItem of order.items">
         <div class="order-item-container flex-column" *ngIf="orderItem">
           <span>{{orderItem.product}}</span>
-          <gs2-icon-text *ngIf="orderItem.statusAsReadableIconText"
+          <!--TODO: <gs2-icon-text *ngIf="orderItem.statusAsReadableIconText"
                          [text]="orderItem.statusAsReadableIconText.text"
                          [matIconName]="orderItem.statusAsReadableIconText.iconName"
                          [fontColor]="orderItem.statusAsReadableIconText.color"
-                         [fontSize]="16"></gs2-icon-text>
+                         [fontSize]="16"></gs2-icon-text>-->
         </div>
       </ng-container>
 

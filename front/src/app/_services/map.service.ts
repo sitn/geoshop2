@@ -171,7 +171,9 @@ export class MapService {
       this.drawingSource.removeFeature(this.featureFromDrawing);
     }
 
-    this.geocoderSource.clear();
+    if (this.geocoderSource) {
+      this.geocoderSource.clear();
+    }
 
     if (this.snackBarRef) {
       this.snackBarRef.dismiss();

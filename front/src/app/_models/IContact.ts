@@ -20,6 +20,7 @@ export interface IContact {
 
 export class Contact {
   [key: string]: any;
+
   url: string;
   company_name: string;
   first_name: string;
@@ -54,6 +55,9 @@ export class Contact {
 
   private initializeId(url?: string) {
     this.id = GeoshopUtils.ExtractIdFromUrl(url);
+    if (!this.sap_id || this.sap_id === '') {
+      this.sap_id = undefined;
+    }
   }
 
 }
