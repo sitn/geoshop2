@@ -581,6 +581,7 @@ class UserChange(AbstractIdentity):
     """
     Stores temporary data in order to proceed user profile change requests.
     """
+    client = models.ForeignKey(UserModel, models.DO_NOTHING, verbose_name=_('client'))
 
     class Meta:
         db_table = 'user_change'
