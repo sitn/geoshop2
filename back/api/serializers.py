@@ -145,7 +145,7 @@ class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):
         exclude = [
             'geom', 'date_downloaded', 'client',
             'processing_fee_currency', 'processing_fee',
-            'part_vat_currency', 'part_vat',
+            'part_vat_currency', 'part_vat', 'extract_result',
             'invoice_contact']
 
 
@@ -294,6 +294,7 @@ class ExtractOrderItemSerializer(OrderItemSerializer):
             # deletes previous file in filesystem
             instance.extract_result.delete()
         instance.extract_result = validated_data.pop('extract_result')
+        instance.status = OrderItem.OrderItemStatus.PROCESSED
         instance.save()
         status = instance.order.next_status_when_file_uploaded()
         if status == Order.OrderStatus.PROCESSED:

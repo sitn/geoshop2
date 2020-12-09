@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
 from djmoney.money import Money
 from api.models import Contact, Order, OrderItem, OrderType, Product, DataFormat
+from api.helpers import zip_all_orderitems
 
 UserModel = get_user_model()
 
@@ -233,6 +234,8 @@ class Command(BaseCommand):
         extract_file = SimpleUploadedFile("result.zip", empty_zip_data, content_type="multipart/form-data")
         for order_item in order_download.items.all():
             order_item.extract_result = extract_file
+            order_item.status = OrderItem.OrderItemStatus.PROCESSED
             order_item.save()
         order_download.status = Order.OrderStatus.PROCESSED
+        zip_all_orderitems(order_download)
         order_download.save()

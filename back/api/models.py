@@ -450,6 +450,11 @@ class OrderItem(models.Model):
         CALCULATED = 'CALCULATED', _('Calculated')
         IMPORTED = 'IMPORTED', _('Imported')  # from old database
 
+    class OrderItemStatus(models.TextChoices):
+        PENDING = 'PENDING', _('Pending')
+        PROCESSED = 'PROCESSED', _('Processed')
+        ARCHIVED = 'ARCHIVED', _('Archived')
+
     order = models.ForeignKey(
         Order, models.CASCADE, related_name='items', verbose_name=_('order'), blank=True, null=True)
     product = models.ForeignKey(
@@ -460,6 +465,8 @@ class OrderItem(models.Model):
     last_download = models.DateTimeField(_('last_download'), blank=True, null=True)
     price_status = models.CharField(
         _('price_status'), max_length=20, choices=PricingStatus.choices, default=PricingStatus.PENDING)
+    status = models.CharField(
+        _('status'), max_length=20, choices=OrderItemStatus.choices, default=OrderItemStatus.PENDING)
     _price = MoneyField(
         _('price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
     _base_fee = MoneyField(
