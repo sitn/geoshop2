@@ -1,8 +1,7 @@
-import os
 from django.urls import reverse
 from django.core import management, mail
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
+
 from djmoney.money import Money
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -143,7 +142,7 @@ class OrderTests(APITestCase):
         # Confirm order that's already confirmed, should not work
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
-        # Edit order that's already confimed, should not work
+        # Edit order that's already confirmed, should not work
         data = {
             "items": [{
                 "product": "Maquette 3D"}]
@@ -152,33 +151,6 @@ class OrderTests(APITestCase):
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
 
-        # Extract
-        url = reverse('token_obtain_pair')
-        response = self.client.post(url, {'username':'extract', 'password':os.environ['EXTRACT_USER_PASSWORD']}, format='json')
-        extract_token = response.data['access']
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + extract_token)
-        url = reverse('extract_order')
-        response = self.client.get(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.data[0]['title'], 'Test 1734', 'Check that previous confirmed order is available')
-        order_item_id = response.data[0]['items'][0]['id']
-        url = reverse('extract_orderitem', kwargs={'pk':order_item_id})
-        extract_file = SimpleUploadedFile("result.zip", b"file_content", content_type="multipart/form-data")
-        response = self.client.put(url, {'extract_result': extract_file})
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
-
-        # Download file by user
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        url = reverse('order-detail', kwargs={'pk':order_item_id})
-        response = self.client.get(url)
-        self.assertEqual(response.data['status'], Order.OrderStatus.PROCESSED, 'Check order status is processed')
-        url = reverse('orderitem-download-link', kwargs={'pk':order_item_id})
-        response = self.client.get(url)
-        self.assertIsNotNone(response.data['download_link'], 'Check file is visible for user')
-
-        # check if file has been downloaded
-        order_item = OrderItem.objects.get(pk=order_item_id)
-        self.assertIsNotNone(order_item.last_download, 'Check if theres a last_download date')
 
     def test_post_order_quote(self):
         # POST an order
@@ -262,3 +234,42 @@ class OrderTests(APITestCase):
         url = reverse('order-confirm', kwargs={'pk':order_id})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+
+
+    def test_patch_put_order_items(self):
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(url, self.order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        order_id = response.data['id']
+        # PATCH order with a product
+        data1 = {
+            "items": [
+                {
+                    "product": "Maquette 3D"
+                }
+            ]
+        }
+        url = reverse('order-detail', kwargs={'pk':order_id})
+        response = self.client.patch(url, data1, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(len(response.data['items']), 1, 'One product is present')
+        data2 = {
+            "items": [
+                {
+                    "product": "Maquette 3D"
+                },{
+                    "product": "MO - Cadastre complet (Format A4-A3-A2-A1-A0)"
+                }
+            ]
+        }
+        response = self.client.patch(url, data2, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(len(response.data['items']), 2, 'Two products are present')
+        response = self.client.patch(url, data1, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(len(response.data['items']), 1, 'One product is present')
+        response = self.client.put(url, self.order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(len(response.data['items']), 0, 'No product is present')
+
