@@ -70,16 +70,6 @@ export class ApiService {
     }
   }
 
-  getCustomers(userId: string = 'https://sitn.ne.ch/geoshop2_dev/identity/3') {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
-
-    return this.http.get<IIdentity[]>(userId).pipe(
-      map(x => Array.isArray(x) ? x : [x])
-    );
-  }
-
   getIdentity(url: string | undefined): Observable<IIdentity | undefined> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
@@ -129,6 +119,14 @@ export class ApiService {
     }
 
     return this.http.post(this.apiUrl + '/auth/register/', user);
+  }
+
+  change(user: IIdentity) {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    return this.http.post(this.apiUrl + '/auth/change/', user);
   }
 
   refreshToken(token: string): Observable<{ access: string; }> {

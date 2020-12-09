@@ -33,6 +33,8 @@ from .serializers import (
     ProductFormatSerializer, RegisterSerializer, UserChangeSerializer,
     VerifyEmailSerializer)
 
+from .helpers import send_email_to_admin, send_email_to_identity
+
 from .faker import generate_fake_order
 from .filters import FullTextSearchFilter
 
@@ -417,25 +419,34 @@ class UserChangeView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        emails = UserModel.objects.filter(is_staff=True).values_list('email', flat=True)
+
+        request.data['client'] = request.user.id
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
         id_ = obj.id
-
+ 
         context = ({
             'id': id_,
-            'username': request.user.username
+            'username': request.user.username,
+            'modified': {}
         })
+
+        base_user = Identity.objects.values().get(user_id=request.user.id)
+
+        for key in request.data:
+            if key in base_user:
+                request_value = request.data[key]
+                if request_value != base_user[key]:
+                    context['modified'][_(key)] = request_value
+
         lang = getattr(settings, 'LANGUAGE_CODE')
+        admin_text_content = render_to_string('change_user_admin_email_'+lang+'.txt', context, request=request)
         text_content = render_to_string('change_user_email_'+lang+'.txt', context, request=request)
-        send_mail(
-            _('Geoshop - User change request'),
-            text_content,
-            getattr(settings, 'DEFAULT_FROM_EMAIL'),
-            emails
-        )
+
+        send_email_to_admin(_('Geoshop - User change request'), admin_text_content)
+        send_email_to_identity(_('Geoshop - User change request'), text_content, request.user.identity)
 
         return Response({'detail': _('Your data was successfully submitted')}, status=status.HTTP_200_OK)
 
