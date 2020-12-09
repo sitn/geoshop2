@@ -116,20 +116,26 @@ class OrderTests(APITestCase):
 
         # Download file by user
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.client_token)
-        url = reverse('order-detail', kwargs = {'pk': order_id})
+        url = reverse('order-detail', kwargs={'pk': order_id})
         response = self.client.get(url)
         self.assertEqual(
             response.data['status'], Order.OrderStatus.PROCESSED, 'Check order status is processed')
-        self.assertIsNotNone(response.data['extract_result'], 'Check link for full download is there')
         url = reverse('orderitem-download-link', kwargs={'pk': order_item_id1})
         response = self.client.get(url)
-        self.assertIsNotNone(
-            response.data['download_link'], 'Check file is visible for user')
+        self.assertIsNotNone(response.data['download_link'], 'Check file is visible for user')
 
         # check if file has been downloaded
         order_item1 = OrderItem.objects.get(pk=order_item_id1)
-        self.assertIsNotNone(order_item1.last_download, 'Check if theres a last_download date')
+        self.assertIsNotNone(order_item1.last_download, 'Check if there\'s a last_download date')
 
         # check other file has not been downloaded
         order_item2 = OrderItem.objects.get(pk=order_item_id2)
-        self.assertIsNone(order_item2.last_download, 'Check if theres a last_download date')
+        self.assertIsNone(order_item2.last_download, 'Check if there\'s not a last_download date')
+
+        url = reverse('order-download-link', kwargs={'pk': order_id})
+        response = self.client.get(url)
+        self.assertIsNotNone(response.data['download_link'], 'Check file is visible for user')
+
+        # check if second file has been downloaded
+        order_item2 = OrderItem.objects.get(pk=order_item_id2)
+        self.assertIsNotNone(order_item2.last_download, 'Check if there\'s a last_download date')

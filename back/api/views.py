@@ -208,6 +208,14 @@ class OrderViewSet(MultiSerializerViewSet):
     Searchable properties are:
      - title
      - description
+
+    `PUT` or `PATCH` on the items property will behave the same.
+    The route will check for each product name if is is already present in existing items list.
+    If yes, no action is taken, if no, product is added.
+    If an existing product is present in the list of items but the
+    `PUT` or `PATCH` data doesn't mention it, then the existing item is deleted.
+
+    To modify or delete an existing item, please use `/orderitem/` endpoint.
     """
     search_fields = ['title', 'description']
     filter_backends = [filters.SearchFilter]
