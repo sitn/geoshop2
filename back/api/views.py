@@ -1,6 +1,6 @@
+from pathlib import Path
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -185,8 +185,12 @@ class OrderItemViewSet(viewsets.ModelViewSet):
             instance.save()
             file_url = getattr(settings, 'DOCUMENT_BASE_URL') + getattr(
                 settings, 'FORCE_SCRIPT_NAME') + instance.extract_result.url
-            return Response({
-                'download_link' : file_url})
+            if Path(settings.MEDIA_ROOT, instance.extract_result.name).is_file():
+                return Response({
+                    'download_link' : file_url})
+            return Response(
+                {"detail": _("Zip does not exist")},
+                status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
@@ -278,8 +282,12 @@ class OrderViewSet(MultiSerializerViewSet):
                 item.save()
             file_url = getattr(settings, 'DOCUMENT_BASE_URL') + getattr(
                 settings, 'FORCE_SCRIPT_NAME') + instance.extract_result.url
-            return Response({
-                'download_link' : file_url})
+            if Path(settings.MEDIA_ROOT, instance.extract_result.name).is_file():
+                return Response({
+                    'download_link' : file_url})
+            return Response(
+                {"detail": _("Full zip is not ready")},
+                status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
@@ -452,7 +460,7 @@ class UserChangeView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
         id_ = obj.id
- 
+
         context = ({
             'id': id_,
             'username': request.user.username,
