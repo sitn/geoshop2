@@ -2,11 +2,13 @@ import os
 import copy
 import datetime
 from django.utils import timezone
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
 from djmoney.money import Money
 from api.models import Contact, Order, OrderItem, OrderType, Product, DataFormat
+from api.helpers import zip_all_orderitems
 
 UserModel = get_user_model()
 
@@ -16,10 +18,13 @@ class Command(BaseCommand):
     This is a manage.py command that sets up basic objects allowing to proceed user tests.
     """
     def handle(self, *args, **options):
+        # Set all ready orders to ARCHIVED
         orders_ready = Order.objects.filter(status=Order.OrderStatus.READY).all()
         for order in orders_ready:
             order.status = Order.OrderStatus.ARCHIVED
             order.save()
+
+        # Create users
         rincevent = UserModel.objects.create_user(
             username='rincevent', password='rincevent')
         rincevent.identity.email = os.environ.get('EMAIL_TEST_TO', 'admin@admin.com')
@@ -32,6 +37,7 @@ class Command(BaseCommand):
         rincevent.identity.company_name = 'Service du Registre Foncier et de la Géomatique - SITN'
         rincevent.identity.phone = '+41 32 000 00 00'
         rincevent.save()
+
         mmi = UserModel.objects.create_user(
             username='mmi', password='mmi')
         mmi.identity.email = os.environ.get('EMAIL_TEST_TO_ARXIT', 'admin@admin.com')
@@ -72,6 +78,7 @@ class Command(BaseCommand):
         mka.identity.subscribed = True
         mka.save()
 
+        # contacts
         contact1 = Contact.objects.create(
             first_name='Marc',
             last_name='Riedo',
@@ -84,7 +91,6 @@ class Command(BaseCommand):
             belongs_to=mmi
         )
         contact1.save()
-
         contact2 = Contact.objects.create(
             first_name='Marcelle',
             last_name='Rieda',
@@ -97,8 +103,7 @@ class Command(BaseCommand):
             belongs_to=mmi
         )
         contact2.save()
-
-        contact2 = Contact.objects.create(
+        contact3 = Contact.objects.create(
             first_name='Jean',
             last_name='Doe',
             email='test3@admin.com',
@@ -109,8 +114,7 @@ class Command(BaseCommand):
             phone='+41 00 787 29 16',
             belongs_to=mmi
         )
-        contact2.save()
-
+        contact3.save()
         contact_mka = Contact.objects.create(
             first_name='Jean',
             last_name='Doe',
@@ -148,6 +152,8 @@ class Command(BaseCommand):
         ))
 
         order_type_prive = OrderType.objects.filter(name='Privé').first()
+
+        # Create orders
         order1 = Order.objects.create(
             title='Plan de situation pour enquête',
             description='C\'est un test',
@@ -157,25 +163,37 @@ class Command(BaseCommand):
             invoice_reference='Dossier n°545454',
             date_ordered=timezone.now())
         order1.save()
+
         order2 = copy.copy(order1)
         order2.pk = None
+
         order3 = copy.copy(order2)
         order4 = copy.copy(order2)
+        order4.client = mma
         order_mka = copy.copy(order2)
+        order_mka.client = mka
+        order_download = copy.copy(order2)
+        order_download.client = mmi
+
         order2.save()
         order3.save()
-        order4.client = mma
         order4.save()
-        order_mka.client = mka
         order_mka.save()
+        order_download.save()
+
+        # Products
         product1 = Product.objects.filter(label='MO - Cadastre complet').first()
         product2 = Product.objects.filter(label='Maquette 3D').first()
         product_deprecated = Product.objects.filter(
             label='MO07 - Objets divers et éléments linéaires - linéaires').first()
+
         data_format = DataFormat.objects.filter(name='Geobat NE complet (DXF)').first()
+        data_format_maquette = DataFormat.objects.filter(name='3dm (Fichier Rhino)').first()
+
         orderitems = [
             OrderItem.objects.create(order=order1, product=product1),
             OrderItem.objects.create(order=order1, product=product2),
+            OrderItem.objects.create(order=order_download, product=product1),
             OrderItem.objects.create(order=order2, product=product1),
             OrderItem.objects.create(order=order3, product=product1, data_format=data_format),
             OrderItem.objects.create(order=order4, product=product2),
@@ -184,6 +202,16 @@ class Command(BaseCommand):
         for order_item in orderitems:
             order_item.set_price()
             order_item.save()
+        order_item_deprecated = OrderItem.objects.create(
+            order=order_mka, product=product_deprecated, data_format=data_format)
+        order_item_deprecated.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
+        order_item_deprecated.price_status = OrderItem.PricingStatus.CALCULATED
+        order_item_deprecated.save()
+        order_item_download = OrderItem.objects.create(
+            order=order_download, product=product2, data_format=data_format_maquette)
+        order_item_download.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
+        order_item_download.price_status = OrderItem.PricingStatus.CALCULATED
+        order_item_download.save()
 
         order2.set_price()
         order2.save()
@@ -195,12 +223,19 @@ class Command(BaseCommand):
 
         order4.save()
 
-        order_item_deprecated = OrderItem.objects.create(order=order_mka, product=product_deprecated, data_format=data_format)
-        order_item_deprecated.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
-        order_item_deprecated.price_status = OrderItem.PricingStatus.CALCULATED
-        order_item_deprecated.save()
         order_mka.invoice_contact = contact_mka
         order_mka.set_price()
         order_mka.date_ordered = datetime.datetime(2018, 12, 1, 8, 20, 3, 0, tzinfo=datetime.timezone.utc)
         order_mka.status = Order.OrderStatus.ARCHIVED
         order_mka.save()
+
+        order_download.set_price()
+        empty_zip_data = b'PK\x05\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+        extract_file = SimpleUploadedFile("result.zip", empty_zip_data, content_type="multipart/form-data")
+        for order_item in order_download.items.all():
+            order_item.extract_result = extract_file
+            order_item.status = OrderItem.OrderItemStatus.PROCESSED
+            order_item.save()
+        order_download.status = Order.OrderStatus.PROCESSED
+        zip_all_orderitems(order_download)
+        order_download.save()

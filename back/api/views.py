@@ -1,6 +1,6 @@
+from pathlib import Path
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -185,8 +185,12 @@ class OrderItemViewSet(viewsets.ModelViewSet):
             instance.save()
             file_url = getattr(settings, 'DOCUMENT_BASE_URL') + getattr(
                 settings, 'FORCE_SCRIPT_NAME') + instance.extract_result.url
-            return Response({
-                'download_link' : file_url})
+            if Path(settings.MEDIA_ROOT, instance.extract_result.name).is_file():
+                return Response({
+                    'download_link' : file_url})
+            return Response(
+                {"detail": _("Zip does not exist")},
+                status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
@@ -208,6 +212,14 @@ class OrderViewSet(MultiSerializerViewSet):
     Searchable properties are:
      - title
      - description
+
+    `PUT` or `PATCH` on the items property will behave the same.
+    The route will check for each product name if is is already present in existing items list.
+    If yes, no action is taken, if no, product is added.
+    If an existing product is present in the list of items but the
+    `PUT` or `PATCH` data doesn't mention it, then the existing item is deleted.
+
+    To modify or delete an existing item, please use `/orderitem/` endpoint.
     """
     search_fields = ['title', 'description']
     filter_backends = [filters.SearchFilter]
@@ -258,6 +270,26 @@ class OrderViewSet(MultiSerializerViewSet):
         order.save()
         return Response(status=status.HTTP_202_ACCEPTED)
 
+    @action(detail=True, methods=['get'])
+    def download_link(self, request, pk=None):
+        """
+        Returns the download link
+        """
+        instance = self.get_object()
+        if instance.extract_result:
+            for item in instance.items.all():
+                item.last_download = timezone.now()
+                item.save()
+            file_url = getattr(settings, 'DOCUMENT_BASE_URL') + getattr(
+                settings, 'FORCE_SCRIPT_NAME') + instance.extract_result.url
+            if Path(settings.MEDIA_ROOT, instance.extract_result.name).is_file():
+                return Response({
+                    'download_link' : file_url})
+            return Response(
+                {"detail": _("Full zip is not ready")},
+                status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
 
 class ExtractOrderFake(views.APIView):
     """
@@ -293,7 +325,9 @@ class ExtractOrderItemView(generics.UpdateAPIView):
     parser_classes = [MultiPartParser]
     serializer_class = ExtractOrderItemSerializer
     permission_classes = [ExtractGroupPermission]
-    queryset = OrderItem.objects.filter(order__status=Order.OrderStatus.READY).all()
+    queryset = OrderItem.objects.filter(
+        Q(order__status=Order.OrderStatus.READY) | \
+            Q(order__status=Order.OrderStatus.PARTIALLY_DELIVERED)).all()
     http_method_names = ['put']
 
     def put(self, request, *args, **kwargs):
@@ -426,7 +460,7 @@ class UserChangeView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
         id_ = obj.id
- 
+
         context = ({
             'id': id_,
             'username': request.user.username,

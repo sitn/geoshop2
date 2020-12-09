@@ -13,6 +13,7 @@ from rest_framework.exceptions import ValidationError
 
 from allauth.account.adapter import get_adapter
 
+from .helpers import zip_all_orderitems
 from .models import (
     Copyright, Contact, Document, DataFormat, Identity,
     Metadata, MetadataContact, Order, OrderItem, OrderType,
@@ -144,7 +145,7 @@ class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):
         exclude = [
             'geom', 'date_downloaded', 'client',
             'processing_fee_currency', 'processing_fee',
-            'part_vat_currency', 'part_vat',
+            'part_vat_currency', 'part_vat', 'extract_result',
             'invoice_contact']
 
 
@@ -201,7 +202,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'date_ordered', 'date_processed',
             'processing_fee_currency', 'processing_fee',
             'total_cost_currency', 'total_cost',
-            'part_vat_currency', 'part_vat',
+            'part_vat_currency', 'part_vat', 'extract_result',
             'status']
 
     def create(self, validated_data):
@@ -227,18 +228,31 @@ class OrderSerializer(serializers.ModelSerializer):
         items_data = validated_data.pop('items', None)
         geom = validated_data.pop('geom', None)
 
-        if geom:
+        if geom is not None:
             instance.geom = Polygon(geom.coords[0], srid=settings.DEFAULT_SRID)
 
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get(
             'description', instance.description)
-
         instance.save()
-        for item_data in items_data:
-            item = OrderItem.objects.create(order=instance, **item_data)
-            item.set_price()
-            item.save()
+
+        existing_products = instance.items.all().values_list('product__label', flat=True)
+        update_products = [item['product'] for item in items_data]
+
+        # update order_items on PUT, no matter what is in items_data
+        # update order_items on PATCH if items_data is present
+        if not self.partial or (self.partial and items_data is not None):
+            for existing_item in instance.items.all():
+                if existing_item.product.label not in update_products:
+                    existing_item.delete()
+
+            for item_data in items_data:
+                if item_data['product'] not in existing_products:
+                    item = OrderItem.objects.create(order=instance, **item_data)
+                    item.set_price()
+                    item.save()
+            instance.set_price()
+            instance.save()
 
         if instance.order_type:
             if items_data or geom or validated_data['order_type']:
@@ -280,8 +294,11 @@ class ExtractOrderItemSerializer(OrderItemSerializer):
             # deletes previous file in filesystem
             instance.extract_result.delete()
         instance.extract_result = validated_data.pop('extract_result')
+        instance.status = OrderItem.OrderItemStatus.PROCESSED
         instance.save()
-        instance.order.next_status_when_file_uploaded()
+        status = instance.order.next_status_when_file_uploaded()
+        if status == Order.OrderStatus.PROCESSED:
+            zip_all_orderitems(instance.order)
         instance.order.save()
         return instance
 

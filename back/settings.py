@@ -170,7 +170,7 @@ FORCE_SCRIPT_NAME = os.environ.get('ROOTURL', '')
 
 STATIC_URL = FORCE_SCRIPT_NAME + '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-MEDIA_ROOT = os.environ.get('MEDIA_ROOT', 'files')
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', os.path.join(BASE_DIR, 'files'))
 MEDIA_URL = FORCE_SCRIPT_NAME + '/files/'
 
 if os.environ.get('GDAL_IN_VENV', None) == "True":

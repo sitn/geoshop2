@@ -51,6 +51,7 @@ class Contact(AbstractIdentity):
     belongs_to = models.ForeignKey(
         UserModel, on_delete=models.DO_NOTHING, verbose_name=_('belongs_to'))
     sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
+    subscribed = models.BooleanField(_('subscribed'), default=False)
 
     class Meta:
         db_table = 'contact'
@@ -325,7 +326,6 @@ class Order(models.Model):
         READY = 'READY', _('Ready')
         PARTIALLY_DELIVERED = 'PARTIALLY_DELIVERED', _('Partially delivered')
         PROCESSED = 'PROCESSED', _('Processed')
-        DOWNLOADED = 'DOWNLOADED', _('Downloaded')
         ARCHIVED = 'ARCHIVED', _('Archived')
         REJECTED = 'REJECTED', _('Rejected')
 
@@ -356,6 +356,7 @@ class Order(models.Model):
     date_ordered = models.DateTimeField(_('date_ordered'), blank=True, null=True)
     date_downloaded = models.DateTimeField(_('date_downloaded'), blank=True, null=True)
     date_processed = models.DateTimeField(_('date_processed'), blank=True, null=True)
+    extract_result = models.FileField(upload_to='extract', null=True, blank=True)
 
     class Meta:
         db_table = 'order'
@@ -422,13 +423,14 @@ class Order(models.Model):
             Order.OrderStatus.PARTIALLY_DELIVERED
         ]
         if self.status not in previous_accepted_status:
-            raise Exception("Order has an innapropriate status for this operation")
+            raise Exception("Order has an inappropriate status for this operation")
         items = self.items.all()
         for item in items:
             if not item.extract_result:
                 self.status = Order.OrderStatus.PARTIALLY_DELIVERED
-                return
+                return self.status
         self.status = Order.OrderStatus.PROCESSED
+        return self.status
 
     @property
     def geom_srid(self):
@@ -448,6 +450,11 @@ class OrderItem(models.Model):
         CALCULATED = 'CALCULATED', _('Calculated')
         IMPORTED = 'IMPORTED', _('Imported')  # from old database
 
+    class OrderItemStatus(models.TextChoices):
+        PENDING = 'PENDING', _('Pending')
+        PROCESSED = 'PROCESSED', _('Processed')
+        ARCHIVED = 'ARCHIVED', _('Archived')
+
     order = models.ForeignKey(
         Order, models.CASCADE, related_name='items', verbose_name=_('order'), blank=True, null=True)
     product = models.ForeignKey(
@@ -458,6 +465,8 @@ class OrderItem(models.Model):
     last_download = models.DateTimeField(_('last_download'), blank=True, null=True)
     price_status = models.CharField(
         _('price_status'), max_length=20, choices=PricingStatus.choices, default=PricingStatus.PENDING)
+    status = models.CharField(
+        _('status'), max_length=20, choices=OrderItemStatus.choices, default=OrderItemStatus.PENDING)
     _price = MoneyField(
         _('price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
     _base_fee = MoneyField(
@@ -476,7 +485,7 @@ class OrderItem(models.Model):
 
     def _get_price_values(self, price_value):
         if self.price_status == OrderItem.PricingStatus.PENDING:
-            LOGGER.warning("You are trying to get a pricing value but pricing status is still PENDING")
+            LOGGER.info("You are trying to get a pricing value but pricing status is still PENDING")
             return None
         return price_value
 
@@ -496,12 +505,15 @@ class OrderItem(models.Model):
         self._base_fee = None
         self.price_status = OrderItem.PricingStatus.PENDING
 
-        # prices are 0 when user is subscribed to the product
-        if self.product.free_when_subscribed and self.order.client.identity.subscribed:
-            self._price = Money(0, 'CHF')
-            self._base_fee = Money(0, 'CHF')
-            self.price_status = OrderItem.PricingStatus.CALCULATED
-            return
+        # prices are 0 when user or invoice_contact is subscribed to the product
+        # TODO: Test invoice_contact subscribed
+        if self.product.free_when_subscribed:
+            if self.order.client.identity.subscribed or (
+                    self.order.invoice_contact is not None and self.order.invoice_contact.subscribed):
+                self._price = Money(0, 'CHF')
+                self._base_fee = Money(0, 'CHF')
+                self.price_status = OrderItem.PricingStatus.CALCULATED
+                return
 
         if self.product.pricing.pricing_type != Pricing.PricingType.MANUAL:
             self._price, self._base_fee = self.product.pricing.get_price(self.order.geom)
