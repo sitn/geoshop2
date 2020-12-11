@@ -50,9 +50,9 @@ class IdentityInline(admin.StackedInline):
 
 
 class MetadataContactInline(admin.StackedInline):
+    raw_id_fields = ['contact_person']
     model = MetadataContact
     extra = 1
-    list_filter = ['contact_person']
 
 
 class MetadataAdmin(CustomModelAdmin):
