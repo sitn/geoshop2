@@ -11,7 +11,7 @@ export class CustomIconService {
   init() {
     this.matIconRegistry.addSvgIcon(
       "format",
-      this.domSanitizer.bypassSecurityTrustResourceUrl("../../assets/icons/format.svg" )
+      this.domSanitizer.bypassSecurityTrustResourceUrl("assets/icons/format.svg" )
     );
   }
 }
