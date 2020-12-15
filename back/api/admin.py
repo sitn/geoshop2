@@ -50,16 +50,22 @@ class IdentityInline(admin.StackedInline):
 
 
 class MetadataContactInline(admin.StackedInline):
+    raw_id_fields = ['contact_person']
     model = MetadataContact
     extra = 1
-    list_filter = ['contact_person']
 
 
 class MetadataAdmin(CustomModelAdmin):
     inlines = [MetadataContactInline]
+    raw_id_fields = ['modified_user']
     search_fields = ['name', 'id_name']
     list_display = ('id_name', 'name')
     readonly_fields = ('image_tag', 'legend_tag')
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        form = super(MetadataAdmin, self).get_form(request, obj, change, **kwargs)
+        form.base_fields['modified_user'].initial = request.user.id
+        return form
 
 
 class OrderItemInline(admin.StackedInline):

@@ -1,38 +1,39 @@
 <button color="primary" class="close-button" mat-mini-fab (click)="dialogRef.close()"><mat-icon>close</mat-icon></button>
 
-<mat-card class="contacts-container">
-    <mat-card-title>Contacts</mat-card-title>
-  <mat-card-content>
-    <div class="person-container">
-      <div *ngFor="let person of data.contact_persons" class="flex-row">
-
-        <div class="flex-column">
-          <span class="line-height-36">{{person.contact_person.first_name}} {{person.contact_person.last_name}}</span>
-          <span class="line-height-36">{{person.metadata_role}}</span>
+<div class="flex-row">
+  <mat-card class="contacts-container" *ngFor="let person of data.contact_persons">
+      <mat-card-title>{{person.metadata_role}}</mat-card-title>
+    <mat-card-content>
+      <div class="person-container">
+        <div class="flex-row">
+  
+          <div class="flex-column">
+            <span class="line-height-36">{{person.contact_person.first_name}} {{person.contact_person.last_name}}</span>
+          </div>
+  
+          <div class="flex-column">
+            <a class="flex-row" [href]="'mailto:'+person.contact_person.email" mat-button color="primary">
+              <mat-icon class="m-r-5">email</mat-icon>
+              <span>{{person.contact_person.email}}</span>
+            </a>
+            <a class="flex-row" [href]="'tel:'+person.contact_person.phone" mat-button color="primary">
+              <mat-icon class="m-r-5">phone</mat-icon>
+              <span>{{person.contact_person.phone}}</span>
+            </a>
+          </div>
+  
         </div>
-
-        <div class="flex-column">
-          <a class="flex-row" [href]="'mailto:'+person.contact_person.email" mat-button color="primary">
-            <mat-icon class="m-r-5">email</mat-icon>
-            <span>{{person.contact_person.email}}</span>
-          </a>
-          <a class="flex-row" [href]="'tel:'+person.contact_person.phone" mat-button color="primary">
-            <mat-icon class="m-r-5">phone</mat-icon>
-            <span>{{person.contact_person.phone}}</span>
-          </a>
-        </div>
-
       </div>
-    </div>
-  </mat-card-content>
-</mat-card>
+    </mat-card-content>
+  </mat-card>
+</div>
 
 <mat-card class="metadata-main-container">
   <mat-card-header>
     <div mat-card-avatar class="header-image"
          [style.backgroundImage]="'url(' + mediaUrl + '/' + data.image_link + ')'"></div>
-    <mat-card-title>Métadonnée</mat-card-title>
-    <mat-card-subtitle>{{data.name}}</mat-card-subtitle>
+    <mat-card-title>{{data.name}}</mat-card-title>
+    <mat-card-subtitle>Métadonnée</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
 
@@ -41,7 +42,7 @@
     </div>
 
 
-    <mat-accordion *ngIf="data.legend_link.indexOf('http') > -1">
+    <mat-accordion>
       <mat-expansion-panel expanded="true" *ngIf="data.description_short || data.description_long">
         <mat-expansion-panel-header>
           <mat-panel-title>Description</mat-panel-title>
@@ -50,7 +51,7 @@
 
         <p class="long-description">{{data.description_long}}</p>
       </mat-expansion-panel>
-      <mat-expansion-panel *ngIf="data.legend_link.indexOf('http') > -1">
+      <mat-expansion-panel *ngIf="data.legend_link?.indexOf('http') > -1">
         <mat-expansion-panel-header>
           <mat-panel-title>Légende</mat-panel-title>
           <mat-panel-description></mat-panel-description>
@@ -67,7 +68,5 @@
       Ouvrir géocat
       <mat-icon>open_in_new</mat-icon>
     </a>
-
-    <img class="logo-image" src="assets/images/logo_ne.png" alt="Logo Neuchâtel">
   </mat-card-actions>
 </mat-card>

@@ -325,9 +325,7 @@ class ExtractOrderItemView(generics.UpdateAPIView):
     parser_classes = [MultiPartParser]
     serializer_class = ExtractOrderItemSerializer
     permission_classes = [ExtractGroupPermission]
-    queryset = OrderItem.objects.filter(
-        Q(order__status=Order.OrderStatus.READY) | \
-            Q(order__status=Order.OrderStatus.PARTIALLY_DELIVERED)).all()
+    queryset = OrderItem.objects.all()
     http_method_names = ['put']
 
     def put(self, request, *args, **kwargs):

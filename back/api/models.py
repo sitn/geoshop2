@@ -162,14 +162,18 @@ class Metadata(models.Model):
         return self.id_name
 
     def legend_tag(self):
+        if self.legend_link is None or self.legend_link == '':
+            return mark_safe('<img src="%s%s" />' % (settings.MEDIA_URL, 'no_image.jpg'))
         """When legend_link is 0, returns legend from mapserver"""
         if self.legend_link == '0':
             return mark_safe('<img src="%s%s" />' % (settings.AUTO_LEGEND_URL, self.id_name))
-        return mark_safe('<img src="/%s" />' % self.legend_link)
+        return mark_safe('<img src="/%s%s" />' % (settings.MEDIA_URL, self.legend_link))
     legend_tag.short_description = _('legend')
 
     def image_tag(self):
-        return mark_safe('<img src="%s%s" />' % (settings.STATIC_URL, self.image_link))
+        if self.image_link is None or self.image_link == '':
+            return mark_safe('<img src="%s%s" />' % (settings.MEDIA_URL, 'no_image.jpg'))
+        return mark_safe('<img src="%s%s" />' % (settings.MEDIA_URL, self.image_link))
     image_tag.short_description = _('image')
 
 
@@ -180,7 +184,7 @@ class MetadataContact(models.Model):
     metadata = models.ForeignKey(Metadata, models.DO_NOTHING, verbose_name=_('metadata'))
     contact_person = models.ForeignKey(
         Identity, models.DO_NOTHING, verbose_name=_('contact_person'), limit_choices_to={'is_public': True})
-    metadata_role = models.CharField(_('role'), max_length=150, blank=True)
+    metadata_role = models.CharField(_('role'), max_length=150, default='Gestionnaire')
 
     class Meta:
         db_table = 'metadata_contact_persons'
@@ -311,7 +315,9 @@ class Product(models.Model):
         return self.label
 
     def thumbnail_tag(self):
-        return mark_safe('<img src="%s%s" />' % (settings.STATIC_URL, self.thumbnail_link))
+        if self.thumbnail_link is None or self.thumbnail_link == '':
+            return mark_safe('<img src="%s%s" />' % (settings.MEDIA_URL, 'no_image.jpg'))
+        return mark_safe('<img src="%s%s" />' % (settings.MEDIA_URL, self.thumbnail_link))
     thumbnail_tag.short_description = _('thumbnail')
 
 
