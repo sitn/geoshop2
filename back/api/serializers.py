@@ -1,8 +1,10 @@
+import json
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.gdal import GDALException
+from django.contrib.gis.geos import Polygon, GEOSException, GEOSGeometry
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
@@ -21,6 +23,36 @@ from .models import (
 
 # Get the UserModel
 UserModel = get_user_model()
+
+class WKTField(serializers.Field):
+    """
+    Geom objects are serialized to GEOMETRY((coords, coords)) notation
+    """
+    def to_representation(self, value):
+        if isinstance(value, dict) or value is None:
+            return value
+        return value.wkt or 'POLYGON EMPTY'
+
+    def to_internal_value(self, value):
+        if value == '' or value is None:
+            return value
+        if isinstance(value, GEOSGeometry):
+            # value already has the correct representation
+            return value
+        if isinstance(value, dict):
+            value = json.dumps(value)
+        try:
+            return GEOSGeometry(value)
+        except (GEOSException):
+            raise ValidationError(
+                _(
+                    'Invalid format: string or unicode input unrecognized as GeoJSON, WKT EWKT or HEXEWKB.'
+                )
+            )
+        except (ValueError, TypeError, GDALException) as error:
+            raise ValidationError(
+                _('Unable to convert to python object: {}'.format(str(error)))
+            )
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -314,6 +346,7 @@ class ExtractOrderSerializer(serializers.ModelSerializer):
     items = ExtractOrderItemSerializer(many=True)
     client = UserIdentitySerializer()
     invoice_contact = IdentitySerializer()
+    geom = WKTField()
     geom_srid = serializers.IntegerField()
 
     class Meta:
