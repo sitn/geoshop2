@@ -317,6 +317,14 @@ class ExtractOrderView(generics.ListAPIView):
     queryset = Order.objects.filter(status=Order.OrderStatus.READY).all()
     pagination_class = None
 
+    def get(self, request, *args, **kwargs):
+        """
+        Once fetched by extract, status changes
+        """
+        data = self.list(request, *args, **kwargs)
+        self.queryset.update(status=Order.OrderStatus.IN_EXTRACT)
+        return data
+
 
 class ExtractOrderItemView(generics.UpdateAPIView):
     """
