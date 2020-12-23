@@ -3,6 +3,7 @@ export interface IUserChangeResponse {
 }
 
 export interface IUserToPost {
+  username: string;
   first_name: string;
   last_name: string;
   email: string;

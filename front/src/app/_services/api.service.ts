@@ -99,7 +99,7 @@ export class ApiService {
       this.http.get<IUser>(this.apiUrl + '/auth/current/');
   }
 
-  updateProfile(user: IUserToPost) {
+  change(user: IUserToPost) {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
@@ -113,14 +113,6 @@ export class ApiService {
     }
 
     return this.http.post(this.apiUrl + '/auth/register/', user);
-  }
-
-  change(user: IIdentity) {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
-
-    return this.http.post(this.apiUrl + '/auth/change/', user);
   }
 
   refreshToken(token: string): Observable<{ access: string; }> {
