@@ -25,6 +25,7 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatRadioModule} from '@angular/material/radio';
 import {MatExpansionModule} from '@angular/material/expansion';
+import {ModifyProfileComponent} from './profile/modify-profile.component';
 
 const MODULES = [
   ReactiveFormsModule,
@@ -50,7 +51,7 @@ const MODULES = [
 ];
 
 @NgModule({
-  declarations: [AccountComponent, NewOrderComponent, OrdersComponent, ProfileComponent],
+  declarations: [AccountComponent, NewOrderComponent, OrdersComponent, ProfileComponent, ModifyProfileComponent],
   imports: [
     CommonModule,
     AccountRoutingModule,

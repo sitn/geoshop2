@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth import get_user_model
 from django.contrib.gis import admin
+from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext
 
@@ -49,16 +50,22 @@ class IdentityInline(admin.StackedInline):
 
 
 class MetadataContactInline(admin.StackedInline):
+    raw_id_fields = ['contact_person']
     model = MetadataContact
     extra = 1
-    list_filter = ['contact_person']
 
 
 class MetadataAdmin(CustomModelAdmin):
     inlines = [MetadataContactInline]
+    raw_id_fields = ['modified_user']
     search_fields = ['name', 'id_name']
     list_display = ('id_name', 'name')
     readonly_fields = ('image_tag', 'legend_tag')
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        form = super(MetadataAdmin, self).get_form(request, obj, change, **kwargs)
+        form.base_fields['modified_user'].initial = request.user.id
+        return form
 
 
 class OrderItemInline(admin.StackedInline):
@@ -68,37 +75,29 @@ class OrderItemInline(admin.StackedInline):
 
 
 class OrderAdmin(admin.OSMGeoAdmin):
+    change_form_template = 'admin/api/order_change_form.html'
     inlines = [OrderItemInline]
     raw_id_fields = ['client']
     map_template = 'admin/gis/osm.html'
     ordering = ['-id']
     actions = ['quote']
+    list_filter = ['status',]
 
-    def quote(self, request, queryset):
-        """
-        Custom admin action that allows to quote an order.
-        This is typically called after a quote is requested by a customer
-        Once manual price is setted, this can be called and will trigger
-        an email to customer saying quote has been done.
-        """
-        orders = queryset.all()
-        to_be_updated = orders.count()
-        updated = 0
-        for order in orders:
-            quote_done = order.quote_done()
-            order.save()
-            if quote_done:
-                updated = updated + 1
-        if updated == to_be_updated:
-            status = messages.SUCCESS
-        else:
-            status = messages.ERROR
-        self.message_user(request, ngettext(
-            '%d order had its quote done.',
-            '%d orders had their quotes done.',
-            updated,
-        ) % updated, status)
-    quote.short_description = _("Confirm quotes for selected orders")
+    def response_change(self, request, obj):
+        if "_quote-done" in request.POST:
+            obj.save()
+            is_quote_ok = obj.quote_done()
+            if is_quote_ok:
+                self.message_user(
+                    request,
+                    _("Quote has been successfully done and an email has been sent to client"))
+            else:
+                self.message_user(
+                    request,
+                    _("Order prices cannot be calculated! Client will not be notified!"), messages.ERROR)
+            redirect_url = request.path
+            return HttpResponseRedirect(redirect_url)
+        return super().response_change(request, obj)
 
 
 class ProductAdmin(CustomModelAdmin):

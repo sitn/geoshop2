@@ -26,7 +26,7 @@ export interface IMetadata {
   description_long: string;
   scale: string;
   geocat_link: string;
-  legend_link: string;
+  legend_link?: string;
   image_link: string;
   modified_date: string;
   copyright: string;

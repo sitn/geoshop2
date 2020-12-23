@@ -51,6 +51,7 @@ class Contact(AbstractIdentity):
     belongs_to = models.ForeignKey(
         UserModel, on_delete=models.DO_NOTHING, verbose_name=_('belongs_to'))
     sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
+    subscribed = models.BooleanField(_('subscribed'), default=False)
 
     class Meta:
         db_table = 'contact'
@@ -119,6 +120,7 @@ class Identity(AbstractIdentity):
     sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
     contract_accepted = models.DateField(_('contract_accepted'), null=True, blank=True)
     is_public = models.BooleanField(_('is_public'), default=False)
+    subscribed = models.BooleanField(_('subscribed'), default=False)
 
     class Meta:
         db_table = 'identity'
@@ -160,14 +162,18 @@ class Metadata(models.Model):
         return self.id_name
 
     def legend_tag(self):
+        if self.legend_link is None or self.legend_link == '':
+            return mark_safe('<img src="%s%s" />' % (settings.MEDIA_URL, 'no_image.jpg'))
         """When legend_link is 0, returns legend from mapserver"""
         if self.legend_link == '0':
             return mark_safe('<img src="%s%s" />' % (settings.AUTO_LEGEND_URL, self.id_name))
-        return mark_safe('<img src="/%s" />' % self.legend_link)
+        return mark_safe('<img src="/%s%s" />' % (settings.MEDIA_URL, self.legend_link))
     legend_tag.short_description = _('legend')
 
     def image_tag(self):
-        return mark_safe('<img src="%s%s" />' % (settings.STATIC_URL, self.image_link))
+        if self.image_link is None or self.image_link == '':
+            return mark_safe('<img src="%s%s" />' % (settings.MEDIA_URL, 'no_image.jpg'))
+        return mark_safe('<img src="%s%s" />' % (settings.MEDIA_URL, self.image_link))
     image_tag.short_description = _('image')
 
 
@@ -178,7 +184,7 @@ class MetadataContact(models.Model):
     metadata = models.ForeignKey(Metadata, models.DO_NOTHING, verbose_name=_('metadata'))
     contact_person = models.ForeignKey(
         Identity, models.DO_NOTHING, verbose_name=_('contact_person'), limit_choices_to={'is_public': True})
-    metadata_role = models.CharField(_('role'), max_length=150, blank=True)
+    metadata_role = models.CharField(_('role'), max_length=150, default='Gestionnaire')
 
     class Meta:
         db_table = 'metadata_contact_persons'
@@ -292,6 +298,7 @@ class Product(models.Model):
         'self', models.DO_NOTHING, verbose_name=_('group'), blank=True, null=True)
     provider = models.CharField(_('provider'), max_length=30, default='SITN')
     pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'))
+    free_when_subscribed = models.BooleanField(_('free_when_subscribed'), default=False)
     order = models.BigIntegerField(_('order_index'), blank=True, null=True)
     thumbnail_link = models.CharField(
         _('thumbnail_link'), max_length=250, default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL)
@@ -308,7 +315,9 @@ class Product(models.Model):
         return self.label
 
     def thumbnail_tag(self):
-        return mark_safe('<img src="%s%s" />' % (settings.STATIC_URL, self.thumbnail_link))
+        if self.thumbnail_link is None or self.thumbnail_link == '':
+            return mark_safe('<img src="%s%s" />' % (settings.MEDIA_URL, 'no_image.jpg'))
+        return mark_safe('<img src="%s%s" />' % (settings.MEDIA_URL, self.thumbnail_link))
     thumbnail_tag.short_description = _('thumbnail')
 
 
@@ -321,9 +330,9 @@ class Order(models.Model):
         DRAFT = 'DRAFT', _('Draft')
         PENDING = 'PENDING', _('Pending')
         READY = 'READY', _('Ready')
+        IN_EXTRACT = 'IN_EXTRACT', _('In extract')
         PARTIALLY_DELIVERED = 'PARTIALLY_DELIVERED', _('Partially delivered')
         PROCESSED = 'PROCESSED', _('Processed')
-        DOWNLOADED = 'DOWNLOADED', _('Downloaded')
         ARCHIVED = 'ARCHIVED', _('Archived')
         REJECTED = 'REJECTED', _('Rejected')
 
@@ -354,6 +363,7 @@ class Order(models.Model):
     date_ordered = models.DateTimeField(_('date_ordered'), blank=True, null=True)
     date_downloaded = models.DateTimeField(_('date_downloaded'), blank=True, null=True)
     date_processed = models.DateTimeField(_('date_processed'), blank=True, null=True)
+    extract_result = models.FileField(upload_to='extract', null=True, blank=True)
 
     class Meta:
         db_table = 'order'
@@ -376,12 +386,14 @@ class Order(models.Model):
             return False
         self.total_without_vat = Money(0, 'CHF')
         for item in items:
-            if not item.base_fee:
+            if item.base_fee is None:
                 self._reset_prices()
                 return False
-            if item.base_fee > (self.processing_fee or Money(0, 'CHF')):
+            self.processing_fee = Money(0, 'CHF')
+            if item.base_fee > self.processing_fee:
                 self.processing_fee = item.base_fee
             self.total_without_vat += item.price
+        self.total_without_vat += self.processing_fee
         self.part_vat = self.total_without_vat * settings.VAT
         self.total_with_vat = self.total_without_vat + self.part_vat
         return True
@@ -389,6 +401,7 @@ class Order(models.Model):
     def quote_done(self):
         """Admins confirmation they have given a manual price"""
         price_is_set = self.set_price()
+        self.save()
         if price_is_set:
             send_email_to_identity(
                 _('Quote has been done'),
@@ -413,17 +426,18 @@ class Order(models.Model):
     def next_status_when_file_uploaded(self):
         """Controls status when a file is uploaded"""
         previous_accepted_status = [
-            Order.OrderStatus.READY,
+            Order.OrderStatus.IN_EXTRACT,
             Order.OrderStatus.PARTIALLY_DELIVERED
         ]
         if self.status not in previous_accepted_status:
-            raise Exception("Order has an innapropriate status for this operation")
+            raise Exception("Order has an inappropriate status for this operation")
         items = self.items.all()
         for item in items:
             if not item.extract_result:
                 self.status = Order.OrderStatus.PARTIALLY_DELIVERED
-                return
+                return self.status
         self.status = Order.OrderStatus.PROCESSED
+        return self.status
 
     @property
     def geom_srid(self):
@@ -443,6 +457,11 @@ class OrderItem(models.Model):
         CALCULATED = 'CALCULATED', _('Calculated')
         IMPORTED = 'IMPORTED', _('Imported')  # from old database
 
+    class OrderItemStatus(models.TextChoices):
+        PENDING = 'PENDING', _('Pending')
+        PROCESSED = 'PROCESSED', _('Processed')
+        ARCHIVED = 'ARCHIVED', _('Archived')
+
     order = models.ForeignKey(
         Order, models.CASCADE, related_name='items', verbose_name=_('order'), blank=True, null=True)
     product = models.ForeignKey(
@@ -453,6 +472,8 @@ class OrderItem(models.Model):
     last_download = models.DateTimeField(_('last_download'), blank=True, null=True)
     price_status = models.CharField(
         _('price_status'), max_length=20, choices=PricingStatus.choices, default=PricingStatus.PENDING)
+    status = models.CharField(
+        _('status'), max_length=20, choices=OrderItemStatus.choices, default=OrderItemStatus.PENDING)
     _price = MoneyField(
         _('price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
     _base_fee = MoneyField(
@@ -471,6 +492,7 @@ class OrderItem(models.Model):
 
     def _get_price_values(self, price_value):
         if self.price_status == OrderItem.PricingStatus.PENDING:
+            LOGGER.info("You are trying to get a pricing value but pricing status is still PENDING")
             return None
         return price_value
 
@@ -482,13 +504,37 @@ class OrderItem(models.Model):
     def base_fee(self):
         return self._get_price_values(self._base_fee)
 
-    def set_price(self, **kwargs):
+    def set_price(self, price=None, base_fee=None):
+        """
+        Sets price and updates price status
+        """
+        self._price = None
+        self._base_fee = None
+        self.price_status = OrderItem.PricingStatus.PENDING
+
+        # prices are 0 when user or invoice_contact is subscribed to the product
+        # TODO: Test invoice_contact subscribed
+        if self.product.free_when_subscribed:
+            if self.order.client.identity.subscribed or (
+                    self.order.invoice_contact is not None and self.order.invoice_contact.subscribed):
+                self._price = Money(0, 'CHF')
+                self._base_fee = Money(0, 'CHF')
+                self.price_status = OrderItem.PricingStatus.CALCULATED
+                return
+
         if self.product.pricing.pricing_type != Pricing.PricingType.MANUAL:
             self._price, self._base_fee = self.product.pricing.get_price(self.order.geom)
+            if self._price is not None:
+                self.price_status = OrderItem.PricingStatus.CALCULATED
+                return
         else:
-            self._price = kwargs.get('price')
-            self._base_fee = kwargs.get('base_fee')
-        self.price_status = OrderItem.PricingStatus.CALCULATED
+            if price is not None:
+                self._price = price
+                self._base_fee = base_fee
+                self.price_status = OrderItem.PricingStatus.CALCULATED
+                return
+        self.price_status = OrderItem.PricingStatus.PENDING
+        return
 
     def ask_price(self):
         if self.product.pricing.pricing_type == Pricing.PricingType.MANUAL:
@@ -554,6 +600,7 @@ class UserChange(AbstractIdentity):
     """
     Stores temporary data in order to proceed user profile change requests.
     """
+    client = models.ForeignKey(UserModel, models.DO_NOTHING, verbose_name=_('client'))
 
     class Meta:
         db_table = 'user_change'

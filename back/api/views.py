@@ -1,6 +1,6 @@
+from pathlib import Path
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -32,6 +32,8 @@ from .serializers import (
     PricingSerializer, ProductSerializer, ProductDigestSerializer,
     ProductFormatSerializer, RegisterSerializer, UserChangeSerializer,
     VerifyEmailSerializer)
+
+from .helpers import send_email_to_admin, send_email_to_identity
 
 from .faker import generate_fake_order
 from .filters import FullTextSearchFilter
@@ -183,8 +185,12 @@ class OrderItemViewSet(viewsets.ModelViewSet):
             instance.save()
             file_url = getattr(settings, 'DOCUMENT_BASE_URL') + getattr(
                 settings, 'FORCE_SCRIPT_NAME') + instance.extract_result.url
-            return Response({
-                'download_link' : file_url})
+            if Path(settings.MEDIA_ROOT, instance.extract_result.name).is_file():
+                return Response({
+                    'download_link' : file_url})
+            return Response(
+                {"detail": _("Zip does not exist")},
+                status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
@@ -206,6 +212,14 @@ class OrderViewSet(MultiSerializerViewSet):
     Searchable properties are:
      - title
      - description
+
+    `PUT` or `PATCH` on the items property will behave the same.
+    The route will check for each product name if is is already present in existing items list.
+    If yes, no action is taken, if no, product is added.
+    If an existing product is present in the list of items but the
+    `PUT` or `PATCH` data doesn't mention it, then the existing item is deleted.
+
+    To modify or delete an existing item, please use `/orderitem/` endpoint.
     """
     search_fields = ['title', 'description']
     filter_backends = [filters.SearchFilter]
@@ -244,8 +258,8 @@ class OrderViewSet(MultiSerializerViewSet):
         Confirms order meaning it can not be edited anymore by user.
         """
         order = self.get_object()
-        if order.status != Order.OrderStatus.DRAFT:
-            raise PermissionDenied(detail='Order status is not DRAFT')
+        if order.status not in [Order.OrderStatus.DRAFT, Order.OrderStatus.PENDING]:
+            raise PermissionDenied(detail='Order status is not DRAFT or PENDING')
         items = order.items.all()
         if not items:
             raise ValidationError(detail="This order has no item")
@@ -255,6 +269,26 @@ class OrderViewSet(MultiSerializerViewSet):
         order.confirm()
         order.save()
         return Response(status=status.HTTP_202_ACCEPTED)
+
+    @action(detail=True, methods=['get'])
+    def download_link(self, request, pk=None):
+        """
+        Returns the download link
+        """
+        instance = self.get_object()
+        if instance.extract_result:
+            for item in instance.items.all():
+                item.last_download = timezone.now()
+                item.save()
+            file_url = getattr(settings, 'DOCUMENT_BASE_URL') + getattr(
+                settings, 'FORCE_SCRIPT_NAME') + instance.extract_result.url
+            if Path(settings.MEDIA_ROOT, instance.extract_result.name).is_file():
+                return Response({
+                    'download_link' : file_url})
+            return Response(
+                {"detail": _("Full zip is not ready")},
+                status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class ExtractOrderFake(views.APIView):
@@ -283,6 +317,14 @@ class ExtractOrderView(generics.ListAPIView):
     queryset = Order.objects.filter(status=Order.OrderStatus.READY).all()
     pagination_class = None
 
+    def get(self, request, *args, **kwargs):
+        """
+        Once fetched by extract, status changes
+        """
+        data = self.list(request, *args, **kwargs)
+        self.queryset.update(status=Order.OrderStatus.IN_EXTRACT)
+        return data
+
 
 class ExtractOrderItemView(generics.UpdateAPIView):
     """
@@ -291,7 +333,7 @@ class ExtractOrderItemView(generics.UpdateAPIView):
     parser_classes = [MultiPartParser]
     serializer_class = ExtractOrderItemSerializer
     permission_classes = [ExtractGroupPermission]
-    queryset = OrderItem.objects.filter(order__status=Order.OrderStatus.READY).all()
+    queryset = OrderItem.objects.all()
     http_method_names = ['put']
 
     def put(self, request, *args, **kwargs):
@@ -372,7 +414,10 @@ class ProductViewSet(MultiSerializerViewSet):
     Searchable properties are:
      - label
     """
-    queryset = Product.objects.all()
+    querysets = {
+        'default': Product.objects.all(),
+        'list': Product.objects.filter(status=Product.ProductStatus.PUBLISHED)
+    }
     filter_backends = (FullTextSearchFilter,)
     serializers = {
         'default':  ProductSerializer,
@@ -380,6 +425,9 @@ class ProductViewSet(MultiSerializerViewSet):
     }
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     ts_field = 'ts'
+
+    def get_queryset(self):
+        return self.querysets.get(self.action, self.querysets['default'])
 
 
 class PricingViewSet(viewsets.ModelViewSet):
@@ -411,7 +459,8 @@ class UserChangeView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        emails = UserModel.objects.filter(is_staff=True).values_list('email', flat=True)
+
+        request.data['client'] = request.user.id
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -420,16 +469,24 @@ class UserChangeView(generics.CreateAPIView):
 
         context = ({
             'id': id_,
-            'username': request.user.username
+            'username': request.user.username,
+            'modified': {}
         })
+
+        base_user = Identity.objects.values().get(user_id=request.user.id)
+
+        for key in request.data:
+            if key in base_user:
+                request_value = request.data[key]
+                if request_value != base_user[key]:
+                    context['modified'][_(key)] = request_value
+
         lang = getattr(settings, 'LANGUAGE_CODE')
+        admin_text_content = render_to_string('change_user_admin_email_'+lang+'.txt', context, request=request)
         text_content = render_to_string('change_user_email_'+lang+'.txt', context, request=request)
-        send_mail(
-            _('Geoshop - User change request'),
-            text_content,
-            getattr(settings, 'DEFAULT_FROM_EMAIL'),
-            emails
-        )
+
+        send_email_to_admin(_('Geoshop - User change request'), admin_text_content)
+        send_email_to_identity(_('Geoshop - User change request'), text_content, request.user.identity)
 
         return Response({'detail': _('Your data was successfully submitted')}, status=status.HTTP_200_OK)
 

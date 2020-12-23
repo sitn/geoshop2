@@ -27,7 +27,7 @@ router.register(r'metadata', views.MetadataViewSet)
 router.register(r'order', views.OrderViewSet, basename='order')
 router.register(r'orderitem', views.OrderItemViewSet)
 router.register(r'ordertype', views.OrderTypeViewSet)
-router.register(r'product', views.ProductViewSet)
+router.register(r'product', views.ProductViewSet, basename='product')
 router.register(r'productformat', views.ProductFormatViewSet)
 router.register(r'pricing', views.PricingViewSet)
 router.register_additional_route_to_root('extract/order/', 'extract_order')
@@ -69,4 +69,4 @@ urlpatterns = [
     path('session-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('admin/', admin.site.urls, name='admin'),
     path('', include(router.urls)),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]

@@ -1,0 +1,12 @@
+Dear admins,
+
+The user {{username}} has requested some changes for his user profile. The entry number of these changes is {{ id }}.
+
+The following values have been modified:
+{% for key, value in modified.items %}
+    - {{ key }}: {{ value }}
+{% endfor %}
+
+Thanks a lot
+
+This is an automated email please do not reply.
