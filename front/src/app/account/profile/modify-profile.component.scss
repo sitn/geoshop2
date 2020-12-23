@@ -1,0 +1,18 @@
+:host {
+  height: calc(100vh - 64px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+
+  .mat-card {
+    min-width: 720px;
+    margin-top: 20px;
+    height: 90% !important;
+    position: relative;
+    overflow: auto;
+  }
+
+  ul {
+    list-style-type: none;
+  }
+}

@@ -1,8 +1,10 @@
+import json
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.gdal import GDALException
+from django.contrib.gis.geos import Polygon, GEOSException, GEOSGeometry
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
@@ -13,6 +15,7 @@ from rest_framework.exceptions import ValidationError
 
 from allauth.account.adapter import get_adapter
 
+from .helpers import zip_all_orderitems
 from .models import (
     Copyright, Contact, Document, DataFormat, Identity,
     Metadata, MetadataContact, Order, OrderItem, OrderType,
@@ -20,6 +23,36 @@ from .models import (
 
 # Get the UserModel
 UserModel = get_user_model()
+
+class WKTField(serializers.Field):
+    """
+    Geom objects are serialized to GEOMETRY((coords, coords)) notation
+    """
+    def to_representation(self, value):
+        if isinstance(value, dict) or value is None:
+            return value
+        return value.wkt or 'POLYGON EMPTY'
+
+    def to_internal_value(self, value):
+        if value == '' or value is None:
+            return value
+        if isinstance(value, GEOSGeometry):
+            # value already has the correct representation
+            return value
+        if isinstance(value, dict):
+            value = json.dumps(value)
+        try:
+            return GEOSGeometry(value)
+        except (GEOSException):
+            raise ValidationError(
+                _(
+                    'Invalid format: string or unicode input unrecognized as GeoJSON, WKT EWKT or HEXEWKB.'
+                )
+            )
+        except (ValueError, TypeError, GDALException) as error:
+            raise ValidationError(
+                _('Unable to convert to python object: {}'.format(str(error)))
+            )
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -144,7 +177,7 @@ class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):
         exclude = [
             'geom', 'date_downloaded', 'client',
             'processing_fee_currency', 'processing_fee',
-            'part_vat_currency', 'part_vat',
+            'part_vat_currency', 'part_vat', 'extract_result',
             'invoice_contact']
 
 
@@ -201,7 +234,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'date_ordered', 'date_processed',
             'processing_fee_currency', 'processing_fee',
             'total_cost_currency', 'total_cost',
-            'part_vat_currency', 'part_vat',
+            'part_vat_currency', 'part_vat', 'extract_result',
             'status']
 
     def create(self, validated_data):
@@ -227,18 +260,31 @@ class OrderSerializer(serializers.ModelSerializer):
         items_data = validated_data.pop('items', None)
         geom = validated_data.pop('geom', None)
 
-        if geom:
+        if geom is not None:
             instance.geom = Polygon(geom.coords[0], srid=settings.DEFAULT_SRID)
 
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get(
             'description', instance.description)
-
         instance.save()
-        for item_data in items_data:
-            item = OrderItem.objects.create(order=instance, **item_data)
-            item.set_price()
-            item.save()
+
+        existing_products = instance.items.all().values_list('product__label', flat=True)
+        update_products = [item['product'] for item in items_data]
+
+        # update order_items on PUT, no matter what is in items_data
+        # update order_items on PATCH if items_data is present
+        if not self.partial or (self.partial and items_data is not None):
+            for existing_item in instance.items.all():
+                if existing_item.product.label not in update_products:
+                    existing_item.delete()
+
+            for item_data in items_data:
+                if item_data['product'] not in existing_products:
+                    item = OrderItem.objects.create(order=instance, **item_data)
+                    item.set_price()
+                    item.save()
+            instance.set_price()
+            instance.save()
 
         if instance.order_type:
             if items_data or geom or validated_data['order_type']:
@@ -258,7 +304,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         read_only_fields = ['pricing', 'label', 'provider', 'group']
-        exclude = ['status', 'order', 'thumbnail_link', 'ts', 'metadata']
+        exclude = ['order', 'thumbnail_link', 'ts', 'metadata']
 
 
 class ExtractOrderItemSerializer(OrderItemSerializer):
@@ -280,8 +326,11 @@ class ExtractOrderItemSerializer(OrderItemSerializer):
             # deletes previous file in filesystem
             instance.extract_result.delete()
         instance.extract_result = validated_data.pop('extract_result')
+        instance.status = OrderItem.OrderItemStatus.PROCESSED
         instance.save()
-        instance.order.next_status_when_file_uploaded()
+        status = instance.order.next_status_when_file_uploaded()
+        if status == Order.OrderStatus.PROCESSED:
+            zip_all_orderitems(instance.order)
         instance.order.save()
         return instance
 
@@ -297,6 +346,7 @@ class ExtractOrderSerializer(serializers.ModelSerializer):
     items = ExtractOrderItemSerializer(many=True)
     client = UserIdentitySerializer()
     invoice_contact = IdentitySerializer()
+    geom = WKTField()
     geom_srid = serializers.IntegerField()
 
     class Meta:

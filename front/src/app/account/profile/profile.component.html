@@ -4,9 +4,6 @@
 </button>
 <mat-card *ngIf="user && !isEditionMode">
   <mat-card-header>
-    <div mat-card-avatar>
-      <mat-icon style="font-size: 40px;">face</mat-icon>
-    </div>
     <mat-card-title>{{user.company_name}}</mat-card-title>
     <mat-card-subtitle>{{user.first_name}} {{user.last_name}}</mat-card-subtitle>
   </mat-card-header>
@@ -29,6 +26,9 @@
       <mat-icon>phone</mat-icon>
       <span class="padding-horizontal-15">{{user.phone}}</span>
     </a>
+  </mat-card-actions>
+  <mat-card-actions>
+    <button mat-raised-button color="primary" [routerLink]="['/account/modify-profile']">Modifier mon profil</button>
   </mat-card-actions>
 </mat-card>
 

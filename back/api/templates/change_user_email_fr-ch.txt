@@ -1,9 +1,8 @@
-Chères administratrices, chers administrateurs,
+Chère utilisatrice, cher utilisateur,
 
-L'utilisateur {{username}} a fait une demande de modification(s) de profil.
+Vos demandes de modification de profil ont été envoyées aux administrateurs du Geoshop.
 
-Veuillez vérifier celle(s)-ci directement dans la BD. Le numéro (id) de la 
-requête est le {{id}}.
+Elles seront analysées et reportées dans les jours à venir. Vous serez averti par email une fois les modifications effectuées.
 
 Merci beaucoup
 

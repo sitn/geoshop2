@@ -20,25 +20,32 @@
     bottom: 8%;
   }
 
-  .contacts-container {
-    min-height: 94px;
-    margin: 10px 0;
+  .flex-row {
+    gap: 1rem;
+    align-items: flex-start;
 
-    .person-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      .flex-row {
-        flex: 1;
-      }
-
-      .line-height-36 {
-        line-height: 36px;
-      }
-
-      .m-r-5 {
-        margin-right: 5px;
+    .contacts-container {
+      min-height: 94px;
+      margin: 1rem 0;
+      flex-grow: 1;
+  
+      .person-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+  
+        .flex-row {
+          flex: 1;
+          text-align: left;
+        }
+  
+        .line-height-36 {
+          line-height: 36px;
+        }
+  
+        .m-r-5 {
+          margin-right: 5px;
+        }
       }
     }
   }

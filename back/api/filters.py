@@ -1,4 +1,5 @@
 import re
+import unidecode
 
 from django.contrib.postgres.search import SearchQuery
 from django.utils.encoding import force_str
@@ -37,6 +38,7 @@ class FullTextSearchFilter(BaseFilterBackend):
         term = request.query_params.get(self.search_param, '')
         term = term.replace('\x00', '')  # strip null characters
         term = re.sub(r'[!\'()|&]', ' ', term).strip()
+        term = unidecode.unidecode(term)
         if term:
             term = re.sub(r'\s+', ' & ', term)
             # Support prefix search on the last word. A tsquery of 'toda:*' will

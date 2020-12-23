@@ -8,8 +8,6 @@ foreach ($line in Get-Content $PSScriptRoot\..\back\.env.prepub) {
     }
 }
 
-$today = Get-Date
-$todayString = $today.ToString('yyyyMMdd-hhmm')
 $filename = ("geoshop.backup")
 $dumpFile = ("{0}\{1}"-f $PSScriptRoot, $filename)
 
@@ -24,7 +22,7 @@ If (Test-Path $dumpFile) {
     psql -U postgres -d $env:PGDATABASE -c "CREATE EXTENSION postgis;"
     pg_restore -U postgres -F c -d $env:PGDATABASE $dumpFile
 } Else {
-    Write-Host "pg_restore has not been done"
+    Write-Host "$(Get-Date -Format g) pg_restore has not been done"
 }
 
 cd $pwd

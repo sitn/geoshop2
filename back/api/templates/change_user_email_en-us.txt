@@ -1,9 +1,8 @@
-Dear admins,
+Dear Geoshop user,
 
-The user {{username}} has requested some changes for his user profile.
+Your user profile changes have been sent to the geoshop administrators.
 
-Please verify these ones directly in the DB. The entry (id) number of
-this request is {{id}}.
+These changes will be proceeded in the coming days and you will be advised by email once done.
 
 Thanks a lot
 

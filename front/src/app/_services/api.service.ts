@@ -50,36 +50,10 @@ export class ApiService {
   loadMetadata(urlAsString: string): Observable<IMetadata | null> {
     try {
       const url = new URL(urlAsString);
-      return this.http.get<IMetadata>(url.toString()).pipe(
-        map(result => {
-          result.legend_link = result.legend_link ||
-            'https://sitn.ne.ch/production/wsgi/mapserv_proxy?ogcserver=source+for+image%2Fpng&' +
-            'cache_version=3969332d9fad4e0191777fe7da1f2e64&FORMAT=image%2Fpng&TRANSPARENT=true&' +
-            'SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&LAYER=at100_affectations_primaires&SCALE=178571.07142857136';
-          result.image_link = result.image_link ||
-            'https://www.geocat.ch/geonetwork/srv/api/records/336/extents.png?mapsrs=EPSG:21781&width=500&background=settings';
-
-          for (const person of result.contact_persons) {
-            if (person && person.contact_person) {
-              person.contact_person.phone = person.contact_person.phone.replace(/ /g, '');
-            }
-          }
-          return result;
-        })
-      );
+      return this.http.get<IMetadata>(url.toString());
     } catch {
       return of(null);
     }
-  }
-
-  getCustomers(userId: string = 'https://sitn.ne.ch/geoshop2_dev/identity/3') {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
-
-    return this.http.get<IIdentity[]>(userId).pipe(
-      map(x => Array.isArray(x) ? x : [x])
-    );
   }
 
   getIdentity(url: string | undefined): Observable<IIdentity | undefined> {
@@ -139,6 +113,14 @@ export class ApiService {
     }
 
     return this.http.post(this.apiUrl + '/auth/register/', user);
+  }
+
+  change(user: IIdentity) {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    return this.http.post(this.apiUrl + '/auth/change/', user);
   }
 
   refreshToken(token: string): Observable<{ access: string; }> {

@@ -1,9 +1,8 @@
-import os
 from django.urls import reverse
-from django.conf import settings
-from django.core import management
-from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core import management, mail
 from django.contrib.auth import get_user_model
+
+from djmoney.money import Money
 from rest_framework import status
 from rest_framework.test import APITestCase
 from api.models import OrderType, DataFormat, Pricing, Product, OrderItem, Order
@@ -17,45 +16,7 @@ class OrderTests(APITestCase):
     """
 
     def setUp(self):
-        management.call_command('fixturize')
-        self.userPrivate = UserModel.objects.create_user(
-            username="private_user_order",
-            password="testPa$$word",
-        )
-        self.orderTypePrivate = OrderType.objects.create(
-            name="Privé",
-        )
-        self.format = DataFormat.objects.create(
-            name="Geobat NE complet (DXF)",
-        )
-        self.pricing = Pricing.objects.create(
-            name="Gratuit",
-            pricing_type="FREE"
-        )
-        self.product = Product.objects.bulk_create([
-            Product(
-                label="MO - Cadastre complet (Format A4-A3-A2-A1-A0)",
-                pricing=self.pricing),
-            Product(
-                label="Maquette 3D",
-                pricing=self.pricing),
-        ])
-        url = reverse('token_obtain_pair')
-        resp = self.client.post(url, {'username':'private_user_order', 'password':'testPa$$word'}, format='json')
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertTrue('access' in resp.data)
-        self.token = resp.data['access']
-
-    def get_order_item(self):
-        url = reverse('orderitem-list')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_post_order(self):
-        """
-        Tests POST of an order
-        """
-        data = {
+        self.order_data = {
             'order_type': 'Privé',
             'items': [],
             'title': 'Test 1734',
@@ -88,12 +49,56 @@ class OrderTests(APITestCase):
                 ]
             },
         }
+        management.call_command('fixturize')
+        self.userPrivate = UserModel.objects.create_user(
+            username="private_user_order",
+            password="testPa$$word",
+        )
+        self.orderTypePrivate = OrderType.objects.create(
+            name="Privé",
+        )
+        self.formats = DataFormat.objects.bulk_create([
+            DataFormat(name="Geobat NE complet (DXF)"),
+            DataFormat(name="Rhino 3DM"),
+        ])
+        self.pricing_free = Pricing.objects.create(
+            name="Gratuit",
+            pricing_type="FREE"
+        )
+        self.pricing_manual = Pricing.objects.create(
+            name="Manuel",
+            pricing_type="MANUAL"
+        )
+        self.products = Product.objects.bulk_create([
+            Product(
+                label="MO - Cadastre complet (Format A4-A3-A2-A1-A0)",
+                pricing=self.pricing_free,
+                free_when_subscribed=True),
+            Product(
+                label="Maquette 3D",
+                pricing=self.pricing_manual),
+        ])
+        url = reverse('token_obtain_pair')
+        resp = self.client.post(url, {'username':'private_user_order', 'password':'testPa$$word'}, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue('access' in resp.data)
+        self.token = resp.data['access']
+
+    def get_order_item(self):
+        url = reverse('orderitem-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_post_order_auto_price(self):
+        """
+        Tests POST of an order
+        """
         url = reverse('order-list')
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, self.order_data, format='json')
         # Forbidden if not logged in
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, self.order_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
         # Last draft view
         url = reverse('order-last-draft')
@@ -118,7 +123,7 @@ class OrderTests(APITestCase):
 
         order_item_id = response.data['items'][0]['id']
         # Confirm order without format should not work
-        url = reverse('order-confirm', kwargs={'pk':order_item_id})
+        url = reverse('order-confirm', kwargs={'pk':order_id})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.content)
 
@@ -131,13 +136,13 @@ class OrderTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
         # Confirm order with format should work
-        url = reverse('order-confirm', kwargs={'pk':order_item_id})
+        url = reverse('order-confirm', kwargs={'pk':order_id})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         # Confirm order that's already confirmed, should not work
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
-        # Edit order that's already confimed, should not work
+        # Edit order that's already confirmed, should not work
         data = {
             "items": [{
                 "product": "Maquette 3D"}]
@@ -146,30 +151,125 @@ class OrderTests(APITestCase):
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
 
-        # Extract
-        url = reverse('token_obtain_pair')
-        response = self.client.post(url, {'username':'extract', 'password':os.environ['EXTRACT_USER_PASSWORD']}, format='json')
-        extract_token = response.data['access']
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + extract_token)
-        url = reverse('extract_order')
+
+    def test_post_order_quote(self):
+        # POST an order
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(url, self.order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        order_id = response.data['id']
+        # PATCH order with a product needing quote
+        data = {
+            "items": [
+                {
+                    "product": "Maquette 3D",
+                    "data_format": "Rhino 3DM"
+                }
+            ]
+        }
+        # Check price is PENDIND and no price is given
+        url = reverse('order-detail', kwargs={'pk':order_id})
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        ordered_item = response.data['items'][0]
+        self.assertEqual(ordered_item['product'], data['items'][0]['product'], 'Check product')
+        self.assertEqual(ordered_item['price_status'], OrderItem.PricingStatus.PENDING, 'Check quote is needed')
+        self.assertIsNone(response.data['processing_fee'], 'Check quote is needed')
+        self.assertIsNone(response.data['total_without_vat'], 'Check quote is needed')
+        self.assertIsNone(response.data['part_vat'], 'Check quote is needed')
+        self.assertIsNone(response.data['total_with_vat'], 'Check quote is needed')
+
+        # Ask for a quote
+        url = reverse('order-confirm', kwargs={'pk':order_id})
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+        self.assertEqual(len(mail.outbox), 1, 'An email has been sent to admins')
+
+        # Admin sets the quote
+        quoted_order = Order.objects.get(pk=order_id)
+        quoted_orderitem = OrderItem.objects.get(pk=ordered_item['id'])
+        quoted_orderitem.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
+        quoted_orderitem.save()
+        is_quote_ok = quoted_order.quote_done()
+        self.assertTrue(is_quote_ok, 'Quote done successfully')
+
+        # Client sees the quote
+        url = reverse('order-detail', kwargs={'pk':order_id})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.data[0]['title'], 'Test 1734', 'Check that previous confirmed order is available')
-        order_item_id = response.data[0]['items'][0]['id']
-        url = reverse('extract_orderitem', kwargs={'pk':order_item_id})
-        extract_file = SimpleUploadedFile("result.zip", b"file_content", content_type="multipart/form-data")
-        response = self.client.put(url, {'extract_result': extract_file})
+        self.assertEqual(response.data['status'], Order.OrderStatus.PENDING, 'Check quote has been done')
+        self.assertEqual(response.data['processing_fee'], '150.00', 'Check price is ok')
+        self.assertEqual(response.data['total_without_vat'], '550.00', 'Check price is ok')
+        url = reverse('order-confirm', kwargs={'pk':order_id})
+        response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
 
-        # Download file by user
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        url = reverse('order-detail', kwargs={'pk':order_item_id})
-        response = self.client.get(url)
-        self.assertEqual(response.data['status'], Order.OrderStatus.PROCESSED, 'Check order status is processed')
-        url = reverse('orderitem-download-link', kwargs={'pk':order_item_id})
-        response = self.client.get(url)
-        self.assertIsNotNone(response.data['download_link'], 'Check file is visible for user')
+    def test_post_order_subscribed(self):
+        sub_user = UserModel.objects.get(username='private_user_order')
+        sub_user.identity.subscribed = True
+        sub_user.save()
 
-        # check if file has been downloaded
-        order_item = OrderItem.objects.get(pk=order_item_id)
-        self.assertIsNotNone(order_item.last_download, 'Check if theres a last_download date')
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(url, self.order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        order_id = response.data['id']
+
+        data = {
+            "items": [
+                {
+                    "product": "MO - Cadastre complet (Format A4-A3-A2-A1-A0)",
+                    "data_format": "Geobat NE complet (DXF)"
+                }
+            ]
+        }
+        # Check price is PENDIND and no price is given
+        url = reverse('order-detail', kwargs={'pk':order_id})
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(response.data['processing_fee'], '0.00', 'Check price is 0')
+        self.assertEqual(response.data['total_without_vat'], '0.00', 'Check price is 0')
+        url = reverse('order-confirm', kwargs={'pk':order_id})
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+
+
+    def test_patch_put_order_items(self):
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(url, self.order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        order_id = response.data['id']
+        # PATCH order with a product
+        data1 = {
+            "items": [
+                {
+                    "product": "Maquette 3D"
+                }
+            ]
+        }
+        url = reverse('order-detail', kwargs={'pk':order_id})
+        response = self.client.patch(url, data1, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(len(response.data['items']), 1, 'One product is present')
+        data2 = {
+            "items": [
+                {
+                    "product": "Maquette 3D"
+                },{
+                    "product": "MO - Cadastre complet (Format A4-A3-A2-A1-A0)"
+                }
+            ]
+        }
+        response = self.client.patch(url, data2, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(len(response.data['items']), 2, 'Two products are present')
+        response = self.client.patch(url, data1, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(len(response.data['items']), 1, 'One product is present')
+        response = self.client.put(url, self.order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(len(response.data['items']), 0, 'No product is present')
+
