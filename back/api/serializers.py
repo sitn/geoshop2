@@ -276,7 +276,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
         # update order_items on PUT, no matter what is in items_data
         # update order_items on PATCH if items_data is present
-        if not self.partial or (self.partial and items_data is not None or items_data != []):
+        if not self.partial or (self.partial and items_data is not None and items_data != []):
             for existing_item in instance.items.all():
                 if existing_item.product.label not in update_products:
                     existing_item.delete()
