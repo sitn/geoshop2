@@ -330,6 +330,7 @@ class Order(models.Model):
         DRAFT = 'DRAFT', _('Draft')
         PENDING = 'PENDING', _('Pending')
         READY = 'READY', _('Ready')
+        IN_EXTRACT = 'IN_EXTRACT', _('In extract')
         PARTIALLY_DELIVERED = 'PARTIALLY_DELIVERED', _('Partially delivered')
         PROCESSED = 'PROCESSED', _('Processed')
         ARCHIVED = 'ARCHIVED', _('Archived')
@@ -425,7 +426,7 @@ class Order(models.Model):
     def next_status_when_file_uploaded(self):
         """Controls status when a file is uploaded"""
         previous_accepted_status = [
-            Order.OrderStatus.READY,
+            Order.OrderStatus.IN_EXTRACT,
             Order.OrderStatus.PARTIALLY_DELIVERED
         ]
         if self.status not in previous_accepted_status:

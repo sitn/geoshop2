@@ -81,6 +81,7 @@ class OrderAdmin(admin.OSMGeoAdmin):
     map_template = 'admin/gis/osm.html'
     ordering = ['-id']
     actions = ['quote']
+    list_filter = ['status',]
 
     def response_change(self, request, obj):
         if "_quote-done" in request.POST:
