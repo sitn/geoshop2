@@ -47,7 +47,10 @@ export class ApiService {
     return this.http.get<IApiResponse<IProduct>>(url.toString());
   }
 
-  loadMetadata(urlAsString: string): Observable<IMetadata | null> {
+  loadMetadata(urlAsString?: string): Observable<IMetadata | null> {
+    if (!urlAsString) {
+      return of(null);
+    }
     try {
       const url = new URL(urlAsString);
       return this.http.get<IMetadata>(url.toString());

@@ -5,6 +5,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import Geometry from 'ol/geom/Geometry';
 import {Contact} from './IContact';
 import {PricingStatus} from './IPricing';
+import {IProduct} from './IProduct';
 
 export interface IOrderType {
   id: number;
@@ -22,27 +23,26 @@ export type OrderStatus = 'DRAFT' | 'PENDING' | 'READY' |
   'ARCHIVED' | 'REJECTED';
 
 export interface IOrderItem {
+  product: IProduct | string;
+
   id?: number;
-  price: string;
+  price?: string;
   data_format?: string;
-  product: string;
   available_formats?: string[];
-  srid: number;
-  price_status: PricingStatus;
+  srid?: number;
+  price_status?: PricingStatus;
   /** id of the order   */
   order?: number;
+  status?: OrderStatus;
 }
 
 export interface IOrderToPost {
-  id?: number;
   order_type: string;
   title: string;
   description: string;
-  total_without_vat: string;
-  total_with_vat: string;
   geom: string | undefined;
   invoice_reference?: string;
-  invoice_contact: number;
+  invoice_contact: number | null;
   items: IOrderItem[];
 }
 
@@ -67,11 +67,17 @@ export interface IOrderSummary {
   id?: number;
 }
 
+export interface IOrderDowloadLink {
+  detail: string;
+}
+
 /**
  * Result for a get on the api
  * ex: https://sitn.ne.ch/geoshop2_prepub_api/order/11710/
  */
 export interface IOrder {
+  [key: string]: any;
+
   id: number;
   order_type: string;
   items: Array<IOrderItem>;
@@ -127,7 +133,7 @@ export class Order {
   }
 
   get HasInvoiceContact() {
-    return this.invoice_contact > -1;
+    return this.invoice_contact != null && this.invoice_contact > -1;
   }
 
   get geometryAsGeoJson(): string {
@@ -135,24 +141,27 @@ export class Order {
   }
 
   get toPostAsJson(): IOrderToPost {
-    return {
-      id: this.id,
+    const order: IOrderToPost = {
       description: this.description,
       geom: this.geometryAsGeoJson,
       invoice_contact: this.invoice_contact,
       invoice_reference: this.invoice_reference,
       order_type: this.order_type,
       title: this.title,
-      total_with_vat: this.total_with_vat,
-      total_without_vat: this.total_without_vat,
       items: this.items.map(x => {
-        const item: IOrderItem = Object.assign({}, x);
-        if (!item.data_format) {
-          delete item.data_format;
+        x.product = Order.getProductLabel(x);
+        if (!x.data_format) {
+          delete x.data_format;
         }
-        return item;
+        return x;
       })
     };
+
+    if (order.invoice_contact == null || order.invoice_contact === -1) {
+      delete order.invoice_contact;
+    }
+
+    return order;
   }
 
   get toJson(): IOrder {
@@ -197,6 +206,15 @@ export class Order {
       this.id = -1;
     }
 
+    for (let i = 0; i < this.items.length; i++) {
+      const prod = this.items[i].product;
+      if (typeof prod === 'string') {
+        this.items[i].product = {
+          label: prod
+        };
+      }
+    }
+
     this.initializeGeometry(options.geom);
     this.statusAsReadableIconText = Order.initializeStatus(options);
   }
@@ -207,26 +225,52 @@ export class Order {
       text: '',
       color: ''
     };
-    if (order.status === 'PENDING') {
-      result = {
-        iconName: 'warning',
-        text: `Devis réalisé, en attente de validation de votre part</span></div>`,
-        color: 'paleorange'
-      };
-    } else if (order.status === 'DRAFT') {
-      result = {
-        text: `Brouillon`,
-        iconName: 'info',
-        color: 'paleblue'
-      };
-    } else {
-      result = {
-        text: `Traitée`,
-        iconName: 'check_outline',
-        color: '#2bae66'
-      };
+
+    switch (order.status) {
+      case 'PENDING':
+        result = {
+          iconName: 'warning',
+          text: `Devis réalisé, en attente de validation de votre part</span></div>`,
+          color: 'paleorange'
+        };
+        break;
+      case 'READY':
+        result = {
+          text: `Prête`,
+          iconName: 'check_outline',
+          color: '#2bae66'
+        };
+        break;
+      case 'PROCESSED':
+        result = {
+          text: `Calculée`,
+          iconName: 'check_outline',
+          color: '#2bae66'
+        };
+        break;
+      case 'DRAFT':
+        result = {
+          text: `Brouillon`,
+          iconName: 'info',
+          color: 'paleblue'
+        };
+        break;
+      default:
+        result = {
+          text: `Traitée`,
+          iconName: 'info',
+          color: 'palegreen'
+        };
+        break;
     }
+
     return result;
+  }
+
+  public static getProductLabel(orderItem: IOrderItem): string {
+    return typeof orderItem.product === 'string' ?
+      orderItem.product :
+      orderItem.product.label;
   }
 
   private initializeGeometry(geom: string | undefined) {

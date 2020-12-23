@@ -48,6 +48,14 @@
     }
   }
 
+  .mat-expansion-panel-header-description {
+    align-items: center;
+
+    .download-button {
+      margin-left: auto;
+    }
+  }
+
   .bottom-actions-container {
     display: flex;
     justify-content: flex-end;

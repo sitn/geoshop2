@@ -1,3 +1,6 @@
+import {IOrder, IOrderDowloadLink, IOrderItem} from '../_models/IOrder';
+import {IProduct} from '../_models/IProduct';
+
 export class GeoshopUtils {
 
   /**
@@ -19,5 +22,70 @@ export class GeoshopUtils {
       id = -1;
     }
     return id;
+  }
+
+  public static deepCopyOrder(order: IOrder): IOrder {
+    const newOrder: IOrder = {
+      id: -1,
+      total_with_vat_currency: '',
+      total_with_vat: '',
+      title: '',
+      status: 'DRAFT',
+      processing_fee_currency: '',
+      processing_fee: '',
+      part_vat_currency: '',
+      part_vat: '',
+      order_type: '',
+      invoice_reference: '',
+      invoice_contact: -1,
+      description: '',
+      date_processed: undefined,
+      date_ordered: undefined,
+      items: [],
+      total_without_vat_currency: '',
+      total_without_vat: '',
+      geom: undefined
+    };
+
+    for (const attr in order) {
+      if (attr === 'items') {
+        for (const item of order.items) {
+          let newProduct: IProduct | string;
+          if (typeof item.product === 'string') {
+            newProduct = item.product;
+          } else {
+            newProduct = Object.assign({}, item.product);
+          }
+          const newItem: IOrderItem = {
+            product: newProduct,
+            data_format: item.data_format,
+            available_formats: item.available_formats,
+            id: item.id,
+            order: item.order,
+            price: item.price,
+            price_status: item.price_status,
+            srid: item.srid,
+            status: item.status,
+          };
+          newOrder.items.push(newItem);
+        }
+      } else {
+        newOrder[attr] = order[attr];
+      }
+    }
+
+    return newOrder;
+  }
+
+  public static downloadData(url: string, filename: string) {
+    const objectUrl = window.URL.createObjectURL(url);
+    const a = document.createElement('a');
+    document.body.appendChild(a);
+    a.setAttribute('style', 'display: none');
+    a.href = objectUrl;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(objectUrl);
+    a.remove();
   }
 }

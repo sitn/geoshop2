@@ -1,11 +1,12 @@
 import {Injectable} from '@angular/core';
-import {IProduct, Product} from '../_models/IProduct';
+import {IProduct} from '../_models/IProduct';
 import {forkJoin} from 'rxjs';
-import {reloadOrder} from '../_store/cart/cart.action';
 import {Order} from '../_models/IOrder';
 import {ApiService} from './api.service';
 import {AppState} from '../_store';
 import {Store} from '@ngrx/store';
+import {GeoshopUtils} from '../_helpers/GeoshopUtils';
+import {updateOrder} from '../_store/cart/cart.action';
 
 @Injectable({
   providedIn: 'root'
@@ -28,28 +29,27 @@ export class StoreService {
 
   public addOrderToStore(order: Order) {
     if (order.items.length === 0) {
-      this.store.dispatch(reloadOrder({
-        order: order.toJson,
-        products: []
+      this.store.dispatch(updateOrder({
+        order: order.toJson
       }));
       return;
     }
 
-    const observables = order.items.map(x => this.apiService.find<IProduct>(x.product, 'product'));
+    const observables = order.items.map(x => this.apiService.find<IProduct>(Order.getProductLabel(x), 'product'));
 
     forkJoin(observables).subscribe(results => {
-      const products: Product[] = [];
       for (const result of results) {
         for (const product of result.results) {
-          if (order.items.findIndex(x => x.product === product.label) > -1 &&
-            products.findIndex(x => x.label === product.label) === -1) {
-            products.push(new Product(product));
+
+          for (const item of order.items) {
+            if (Order.getProductLabel(item) === product.label) {
+              item.product = product;
+            }
           }
         }
       }
-      this.store.dispatch(reloadOrder({
-        order: order.toJson,
-        products
+      this.store.dispatch(updateOrder({
+        order: order.toJson
       }));
     });
   }

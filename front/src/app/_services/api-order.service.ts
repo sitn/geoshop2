@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Observable, of, zip} from 'rxjs';
-import {IOrder, IOrderItem, IOrderSummary, IOrderToPost, IOrderType, Order} from '../_models/IOrder';
+import {IOrder, IOrderDowloadLink, IOrderItem, IOrderSummary, IOrderToPost, IOrderType, Order} from '../_models/IOrder';
 import {HttpClient} from '@angular/common/http';
 import {ConfigService} from './config.service';
 import {IApiResponse, IApiResponseError} from '../_models/IApi';
@@ -75,7 +75,9 @@ export class ApiOrderService {
           throw data[0];
         }
 
-        const newOrder = new Order(orderJson);
+        const order = GeoshopUtils.deepCopyOrder(orderJson);
+
+        const newOrder = new Order(order);
 
         if (data[0]) {
           const contact = new Contact(data[0] as IContact);
@@ -117,7 +119,7 @@ export class ApiOrderService {
       );
   }
 
-  updateOrder(order: Order, contact: Contact): Observable<IOrder | IApiResponseError> {
+  updateOrder(order: Order, contact: Contact | undefined): Observable<IOrder | undefined | IApiResponseError> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
@@ -127,12 +129,15 @@ export class ApiOrderService {
     return this.createOrUpdateContact(contact)
       .pipe(
         flatMap((newJsonContact) => {
-            if (newJsonContact.hasOwnProperty('error')) {
+
+            if (newJsonContact?.hasOwnProperty('error')) {
               return of(newJsonContact as IApiResponseError);
             }
 
             const orderToPost = order.toPostAsJson;
-            orderToPost.invoice_contact = GeoshopUtils.ExtractIdFromUrl((newJsonContact as IContact).url);
+            orderToPost.invoice_contact = newJsonContact ?
+              GeoshopUtils.ExtractIdFromUrl((newJsonContact as IContact).url) :
+              null;
 
             return this.http.put<IOrder | IApiResponseError>(`${url.toString()}${order.id}/`, orderToPost)
               .pipe(
@@ -143,6 +148,39 @@ export class ApiOrderService {
               );
           }
         ));
+  }
+
+  confirmOrder(orderId: number) {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    const url = new URL(`${this.apiUrl}/order/${orderId}/confirm/`);
+
+    return this.http.get<IOrder | IApiResponseError>(url.toString())
+      .pipe(
+        catchError((error: IApiResponseError) => {
+          console.error(error);
+          return of(error);
+        })
+      );
+  }
+
+  public downloadOrder(orderId: number, isOrderItem = false) {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    const orderText = isOrderItem ? 'orderitem' : 'order';
+    const url = new URL(`${this.apiUrl}/${orderText}/${orderId}/download_link/`);
+
+    return this.http.get<IOrderDowloadLink | IApiResponseError>(url.toString())
+      .pipe(
+        catchError((error: IApiResponseError) => {
+          console.error(error);
+          return of(error);
+        })
+      );
   }
 
   getContact(contactId: number | string) {
@@ -159,8 +197,8 @@ export class ApiOrderService {
     return this.http.get<IContact | IApiResponseError>(url.toString());
   }
 
-  createOrUpdateContact(contact: Contact) {
-    if (contact.HasId) {
+  createOrUpdateContact(contact: Contact | undefined): Observable<IContact | undefined | IApiResponseError> {
+    if (!contact || contact.HasId) {
       return of(contact);
     }
 

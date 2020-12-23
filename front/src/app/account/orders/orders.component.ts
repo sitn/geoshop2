@@ -1,6 +1,6 @@
 import {Component, ComponentFactoryResolver, ElementRef, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
 import {BehaviorSubject, merge, of} from 'rxjs';
-import {IOrderSummary, Order} from '../../_models/IOrder';
+import {IOrder, IOrderDowloadLink, IOrderItem, IOrderSummary, Order} from '../../_models/IOrder';
 import {debounceTime, filter, map, mergeMap, scan, skip, switchMap, tap} from 'rxjs/operators';
 import {MapService} from '../../_services/map.service';
 import Map from 'ol/Map';
@@ -17,6 +17,8 @@ import {AppState} from '../../_store';
 import {Store} from '@ngrx/store';
 import {StoreService} from '../../_services/store.service';
 import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
+import {IApiResponseError} from '../../_models/IApi';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'gs2-orders',
@@ -56,7 +58,8 @@ export class OrdersComponent implements OnInit {
               private elRef: ElementRef,
               private cfr: ComponentFactoryResolver,
               private store: Store<AppState>,
-              private storeService: StoreService
+              private storeService: StoreService,
+              private snackBar: MatSnackBar,
   ) {
   }
 
@@ -191,5 +194,36 @@ export class OrdersComponent implements OnInit {
     if (this.selectedOrder) {
       this.storeService.addOrderToStore(this.selectedOrder);
     }
+  }
+
+  downloadOrder(event: MouseEvent, id: number) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    this.apiOrderService.downloadOrder(id).subscribe(link => {
+      if (!link) {
+        this.snackBar.open(
+          'Aucun fichier disponible', 'Ok', {panelClass: 'notification-info'}
+        );
+      } else if (!(link as IOrderDowloadLink).detail.startsWith('http')) {
+        this.snackBar.open(
+          (link as IOrderDowloadLink).detail, 'Ok', {panelClass: 'notification-info'}
+        );
+      } else if ((link as IApiResponseError).error) {
+        this.snackBar.open(
+          (link as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'}
+        );
+      } else {
+        let filename = 'download.zip';
+        try {
+          const temp = (link as IOrderDowloadLink).detail.split('/');
+          filename = temp[temp.length - 1];
+        } catch {
+
+        }
+
+        GeoshopUtils.downloadData((link as IOrderDowloadLink).detail, filename);
+      }
+    });
   }
 }

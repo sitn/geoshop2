@@ -5,9 +5,9 @@ import {PHONE_REGEX} from '../../_helpers/regex';
 import {Observable, Subject} from 'rxjs';
 import {IIdentity} from '../../_models/IIdentity';
 import {debounceTime, filter, map, mergeMap, startWith, switchMap, takeUntil} from 'rxjs/operators';
-import {Product} from '../../_models/IProduct';
+import {IProduct} from '../../_models/IProduct';
 import {select, Store} from '@ngrx/store';
-import {AppState, getUser, selectOrder, selectAllProducts} from '../../_store';
+import {AppState, getUser, selectOrder, selectAllProduct} from '../../_store';
 import {MatSort} from '@angular/material/sort';
 import {MatTableDataSource} from '@angular/material/table';
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
@@ -18,6 +18,9 @@ import {StoreService} from '../../_services/store.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {IApiResponseError} from '../../_models/IApi';
 import {Contact, IContact} from '../../_models/IContact';
+import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
+import {updateOrder} from '../../_store/cart/cart.action';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'gs2-new-order',
@@ -48,7 +51,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   // order item form: table's attributes
   dataSource: MatTableDataSource<IOrderItem>;
-  products: Product[] = [];
+  products: IProduct[] = [];
   displayedColumns: string[] = ['label', 'format', 'price'];
 
   get customerCtrl() {
@@ -63,11 +66,24 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     return this.contactFormGroup?.get('addressChoice')?.value === '1';
   }
 
+  get buttonConfirmLabel() {
+    return this.currentOrder.items.every(x => x.price_status !== 'PENDING') ?
+      'Acheter maintenant' :
+      'Demander un devis';
+  }
+
+  get isOrderHasPendingItem() {
+    return this.currentOrder ?
+      this.currentOrder.items.findIndex(x => x.price_status === 'PENDING') > -1 :
+      false;
+  }
+
   constructor(private formBuilder: FormBuilder,
               private apiOrderService: ApiOrderService,
               private apiService: ApiService,
               private storeService: StoreService,
               private snackBar: MatSnackBar,
+              private router: Router,
               private store: Store<AppState>) {
 
     this.createForms();
@@ -76,8 +92,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.store.pipe(
       takeUntil(this.onDestroy$),
-      select(selectAllProducts)
-    ).subscribe((cartProducts) => {
+      select(selectAllProduct)
+    ).subscribe((cartProducts: IProduct[]) => {
       this.products = cartProducts;
     });
 
@@ -115,7 +131,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.onDestroy$.next(true);
   }
 
-  private getInvoiceContact(): Contact {
+  private getInvoiceContact() {
     const iContact: IContact = {
       first_name: '',
       last_name: '',
@@ -137,7 +153,9 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       }
     }
 
-    return new Contact(iContact);
+    return iContact.first_name && iContact.last_name && iContact.email ?
+      new Contact(iContact) :
+      undefined;
   }
 
   private getOrderType(id: string | number) {
@@ -152,6 +170,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.orderFormGroup = this.formBuilder.group({
       orderType: new FormControl(null, Validators.required),
       title: new FormControl('', Validators.required),
+      invoice_reference: new FormControl(''),
       description: new FormControl('', Validators.required),
     });
 
@@ -181,32 +200,39 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   private updateForms(order: Order) {
     this.isCustomerSelected = order.HasInvoiceContact;
 
-    this.orderFormGroup.setValue({
+    this.orderFormGroup?.setValue({
       orderType: this.getOrderType(order.order_type),
       title: order.title,
+      invoice_reference: order.invoice_reference,
       description: order.description
     });
 
-    this.contactFormGroup.setValue({
-      addressChoice: order.HasInvoiceContact ? '2' : '1',
-      customer: null,
-      first_name: order.invoiceContact?.first_name || '',
-      last_name: order.invoiceContact?.last_name || '',
-      email: order.invoiceContact?.email || '',
-      company_name: order.invoiceContact?.company_name || '',
-      phone: order.invoiceContact?.phone || '',
-      street: order.invoiceContact?.street || '',
-      street2: order.invoiceContact?.street2 || '',
-      postcode: order.invoiceContact?.postcode || '',
-      city: order.invoiceContact?.city || '',
-      country: order.invoiceContact?.country || '',
-      url: order.invoiceContact?.url || '',
-    });
+    try {
+      if (this.contactFormGroup) {
+        this.contactFormGroup.setValue({
+          addressChoice: order.HasInvoiceContact ? '2' : '1',
+          customer: null,
+          first_name: order.invoiceContact?.first_name || '',
+          last_name: order.invoiceContact?.last_name || '',
+          email: order.invoiceContact?.email || '',
+          company_name: order.invoiceContact?.company_name || '',
+          phone: order.invoiceContact?.phone || '',
+          street: order.invoiceContact?.street || '',
+          street2: order.invoiceContact?.street2 || '',
+          postcode: order.invoiceContact?.postcode || '',
+          city: order.invoiceContact?.city || '',
+          country: order.invoiceContact?.country || '',
+          url: order.invoiceContact?.url || '',
+        });
+      }
+    } catch {
+
+    }
 
     this.dataSource = new MatTableDataSource(order.items);
     order.items.forEach((item) => {
       const itemFormControl = new FormControl(item.data_format, Validators.required);
-      this.orderItemFormGroup.addControl(item.product, itemFormControl);
+      this.orderItemFormGroup?.addControl(Order.getProductLabel(item), itemFormControl);
     });
 
     this.updateDescription(this.orderFormGroup?.get('orderType')?.value);
@@ -258,6 +284,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.updateDescription(this.orderFormGroup?.get('orderType')?.value);
 
     this.orderFormGroup.get('title')?.setValue('');
+    this.orderFormGroup.get('invoice_reference')?.setValue('');
     this.orderFormGroup.get('description')?.setValue('');
 
     this.contactFormGroup.reset();
@@ -289,6 +316,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.orderFormGroup.reset({
       orderType: this.getOrderType(this.currentOrder.order_type),
       title: this.currentOrder.title,
+      invoice_reference: this.currentOrder.invoice_reference,
       description: this.currentOrder.description,
     });
     this.contactFormGroup.reset({
@@ -312,11 +340,13 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   createOrUpdateDraftOrder() {
     this.currentOrder.title = this.orderFormGroup.get('title')?.value;
+    this.currentOrder.invoice_reference = this.orderFormGroup.get('invoice_reference')?.value;
     this.currentOrder.description = this.orderFormGroup.get('description')?.value;
     this.currentOrder.order_type = this.orderFormGroup.get('orderType')?.value.name;
     const invoiceContact = this.getInvoiceContact();
 
     if (this.currentOrder.id === -1) {
+      this.currentOrder.invoiceContact = invoiceContact;
       this.apiOrderService.createOrder(this.currentOrder.toPostAsJson).subscribe(newOrder => {
         if ((newOrder as IApiResponseError).error) {
           this.snackBar.open(
@@ -339,8 +369,12 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     }
   }
 
+  getProductLabel(orderItem: IOrderItem) {
+    return Order.getProductLabel(orderItem);
+  }
+
   updateDataFormat(orderItem: IOrderItem) {
-    const dataFormat = this.orderItemFormGroup.get(orderItem.product)?.value;
+    const dataFormat = this.orderItemFormGroup.get(Order.getProductLabel(orderItem))?.value;
     const orderItemId = orderItem.id || null;
     if (orderItemId === null) {
       return;
@@ -350,11 +384,29 @@ export class NewOrderComponent implements OnInit, OnDestroy {
         this.snackBar.open(
           (newOrderItem as IApiResponseError).message, 'Ok', {panelClass: 'notification-error '}
         );
+      } else {
+        for (let i = 0; i < this.currentOrder.items.length; i++) {
+          if (Order.getProductLabel(this.currentOrder.items[i]) === Order.getProductLabel(newOrderItem as IOrderItem)) {
+            this.currentOrder.items[i] = newOrderItem as IOrderItem;
+          }
+        }
+        this.storeService.addOrderToStore(this.currentOrder);
       }
     });
   }
 
   confirm() {
-    console.log('currentOrder', this.currentOrder);
+    this.apiOrderService.confirmOrder(this.currentOrder.id).subscribe(newOrder => {
+      if (newOrder && (newOrder as IApiResponseError).error) {
+        this.snackBar.open(
+          (newOrder as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'}
+        );
+      } else {
+        if (newOrder) {
+          this.storeService.addOrderToStore(new Order(newOrder as IOrder));
+        }
+        this.router.navigate(['/account/orders']);
+      }
+    });
   }
 }

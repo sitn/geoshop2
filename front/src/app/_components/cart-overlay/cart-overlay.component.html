@@ -1,11 +1,11 @@
-<div class="flex-column items-container" *ngFor="let product of products$|async">
+<div class="flex-column items-container" *ngFor="let product of products">
   <div class="flex-row padding-horizontal-15 justify-content-space-between">
     <span class="text-ellipsis-2" [matTooltip]="product.label">{{product.label}}</span>
 
     <button mat-icon-button color="primary" (click)="openMetadata(product)">
       <mat-icon>description</mat-icon>
     </button>
-    <button mat-icon-button color="accent" (click)="removeProduct(product.url)">
+    <button mat-icon-button color="accent" (click)="removeProduct(product.label)">
       <mat-icon>delete</mat-icon>
     </button>
   </div>
@@ -17,12 +17,12 @@
   Vider le panier
 </button>
 
-<button [disabled]="(order$|async) && !(order$|async)?.geom" mat-raised-button color="primary" class="action-button"
+<button [disabled]="order && !order.geom" mat-raised-button color="primary" class="action-button"
         (click)="naviguateToNewOrder()">
   Passer la commande
 </button>
 
-<div *ngIf="(order$|async) && !(order$|async)?.geom" class="flex-row warning-container">
+<div *ngIf="order && !order?.geom" class="flex-row warning-container">
   <mat-icon>warning</mat-icon>
   <span>Vous devez sélectionner un périmètre avant de passer la commande.</span>
 </div>

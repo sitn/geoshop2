@@ -46,7 +46,7 @@ import {map} from 'rxjs/operators';
 import {IBasemap, IPageFormat} from '../_models/IConfig';
 import {AppState, selectOrder} from '../_store';
 import {Store} from '@ngrx/store';
-import {updateOrder} from '../_store/cart/cart.action';
+import {updateGeometry} from '../_store/cart/cart.action';
 import {DragAndDropEvent} from 'ol/interaction/DragAndDrop';
 import {shiftKeyOnly} from 'ol/events/condition';
 
@@ -180,7 +180,7 @@ export class MapService {
     }
     this.featureFromDrawing = null;
     this.transformInteraction.setActive(false);
-    this.store.dispatch(updateOrder({geom: ''}));
+    this.store.dispatch(updateGeometry({geom: ''}));
   }
 
   public toggleTracking() {
@@ -473,7 +473,12 @@ export class MapService {
     if (this.featureFromDrawing) {
       const area = GeoHelper.formatArea(this.featureFromDrawing.getGeometry() as Polygon);
       this.featureFromDrawing.set('area', area);
-      this.store.dispatch(updateOrder({geom: this.geoJsonFormatter.writeGeometry(this.featureFromDrawing.getGeometry())}));
+      this.store.dispatch(updateGeometry({geom: this.geoJsonFormatter.writeGeometry(this.featureFromDrawing.getGeometry())}));
+
+      const extent = this.featureFromDrawing.getGeometry().getExtent();
+      this.map.getView().fit(extent, {
+        padding: [100, 100, 100, 100]
+      });
     }
   }
 

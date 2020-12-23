@@ -17,7 +17,7 @@
       <!-- title -->
       <mat-form-field>
         <mat-label>Titre du mandat</mat-label>
-        <textarea matInput type="text" required formControlName="title"></textarea>
+        <textarea matInput required formControlName="title"></textarea>
         <mat-error *ngIf="orderFormGroup.get('title')?.hasError('required')">Requis</mat-error>
       </mat-form-field>
 
@@ -28,6 +28,12 @@
                   formControlName="description"
                   placeholder="Renseigner une courte description du mandat..."></textarea>
         <mat-error *ngIf="orderFormGroup.get('description')?.hasError('required')">Requis</mat-error>
+      </mat-form-field>
+
+      <!-- My reference -->
+      <mat-form-field>
+        <mat-label>Votre référence</mat-label>
+        <input matInput type="text" formControlName="invoice_reference"/>
       </mat-form-field>
 
       <div class="bottom-container flex-row">
@@ -94,7 +100,7 @@
                    matInput
                    [readonly]="!isNewInvoiceContact"
                    placeholder="Prénom">
-            <mat-error *ngIf="contactFormGroup.get('first_name')?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="contactFormGroup?.get('first_name')?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
           <mat-form-field color="primary">
@@ -106,15 +112,15 @@
                    matInput
                    [readonly]="!isNewInvoiceContact"
                    placeholder="Nom">
-            <mat-error *ngIf="contactFormGroup.get('last_name')?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="contactFormGroup?.get('last_name')?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
           <!-- Email -->
           <mat-form-field>
             <mat-label>Courriel mandant</mat-label>
             <input matInput required type="email" formControlName="email" [readonly]="!isNewInvoiceContact">
-            <mat-error *ngIf="contactFormGroup.get('email')?.hasError('required')">Requis</mat-error>
-            <mat-error *ngIf="contactFormGroup.get('email')?.hasError('pattern')">Format courriel uniquement
+            <mat-error *ngIf="contactFormGroup?.get('email')?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="contactFormGroup?.get('email')?.hasError('pattern')">Format courriel uniquement
             </mat-error>
           </mat-form-field>
 
@@ -132,7 +138,7 @@
           <mat-form-field>
             <mat-label>Téléphone mandant</mat-label>
             <input matInput type="tel" formControlName="phone" [readonly]="!isNewInvoiceContact">
-            <mat-error *ngIf="contactFormGroup.get('phone')?.hasError('pattern')">
+            <mat-error *ngIf="contactFormGroup?.get('phone')?.hasError('pattern')">
               <ul>Mauvais format de téléphone, accepté :
                 <li>+41225252356</li>
                 <li>+41 22 225 25 23</li>
@@ -209,10 +215,16 @@
               Description / Disponibilité
             </th>
             <td mat-cell *matCellDef="let orderItem">
-              <div class="text-ellipsis-2">{{ orderItem.product }}</div>
+              <div class="text-ellipsis-2">{{ getProductLabel(orderItem) }}</div>
             </td>
             <td mat-footer-cell *matFooterCellDef>
-              <ul class="padding-vertical-5">
+              <div *ngIf="isOrderHasPendingItem">
+                Un ou plusieurs produits commandés doivent être devisés préalablement.<br>
+                N'hésitez pas à demander gratuitement votre devis sans engagement.<br>
+                Vous pourrez ensuite définitevement valider votre commande.
+              </div>
+
+              <ul class="padding-vertical-5" *ngIf="!isOrderHasPendingItem">
                 <li class="text-primary">Frais de traitement</li>
                 <li class="text-primary mat-body-strong">Total TTC</li>
                 <li class="mat-small">Dont TVA 7.7 %</li>
@@ -225,24 +237,29 @@
             <th mat-header-cell *matHeaderCellDef>Format</th>
             <td mat-cell *matCellDef="let orderItem">
               <mat-form-field color="primary">
-                <mat-select [formControlName]="orderItem.product" required
+                <mat-select [formControlName]="getProductLabel(orderItem)" required
                             placeholder="Format" (selectionChange)="updateDataFormat(orderItem)">
                   <mat-option *ngFor="let format of orderItem.available_formats" [value]="format">
                     {{ format }}
                   </mat-option>
                 </mat-select>
-                <mat-error *ngIf="orderItemFormGroup.get(orderItem.product)?.hasError('required')">Requis</mat-error>
+                <mat-error *ngIf="orderItemFormGroup.get(getProductLabel(orderItem))?.hasError('required')">Requis
+                </mat-error>
               </mat-form-field>
             </td>
-            <td mat-footer-cell *matFooterCellDef class="text-primary"></td>
+            <td mat-footer-cell *matFooterCellDef class="text-primary">
+            </td>
           </ng-container>
 
           <!-- Price Column -->
           <ng-container matColumnDef="price">
             <th mat-header-cell *matHeaderCellDef class="sitn-th-price">Prix</th>
-            <td mat-cell *matCellDef="let orderItem" class="sitn-td-price">{{ orderItem.price | currency }}</td>
+            <td mat-cell *matCellDef="let orderItem" class="sitn-td-price">
+              <span *ngIf="orderItem.price_status !== 'PENDING'">{{ orderItem.price | currency }}</span>
+              <span *ngIf="orderItem.price_status === 'PENDING'">Sur devis</span>
+            </td>
             <td mat-footer-cell *matFooterCellDef class="sitn-tf-price">
-              <ul class="padding-vertical-5">
+              <ul class="padding-vertical-5" *ngIf="!isOrderHasPendingItem">
                 <li class="text-primary">{{ currentOrder.processing_fee | currency }}</li>
                 <li class="text-primary mat-body-strong">{{ currentOrder.total_with_vat | currency }}</li>
                 <li class="mat-small">{{ currentOrder.part_vat | currency }}</li>
@@ -252,7 +269,8 @@
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns" class="text-primary"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="text-primary"></tr>
-          <tr mat-footer-row *matFooterRowDef="displayedColumns; sticky: true" class="text-primary"></tr>
+          <tr mat-footer-row *matFooterRowDef="displayedColumns; sticky: true" class="text-primary">
+          </tr>
         </table>
       </div>
 
@@ -260,8 +278,8 @@
         <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Réinitialiser</button>
         <button color="primary" mat-button matStepperPrevious>Retour</button>
         <button color="primary" mat-raised-button type="submit"
-                [disabled]="orderItemFormGroup.pristine || orderItemFormGroup.invalid">
-          Acheter maintenant
+                [disabled]="orderItemFormGroup.invalid">
+          {{buttonConfirmLabel}}
         </button>
       </div>
     </form>

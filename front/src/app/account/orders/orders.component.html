@@ -30,6 +30,9 @@
           </mat-panel-title>
           <mat-panel-description>
             <span [class]="panel.expanded ? '' : 'text-ellipsis-2'">{{order.description}}</span>
+            <button class="download-button" mat-raised-button color="primary" *ngIf="order.status === 'PROCESSED'"
+                    (click)="downloadOrder($event, order.id)">Télécharger
+            </button>
           </mat-panel-description>
         </mat-expansion-panel-header>
 
