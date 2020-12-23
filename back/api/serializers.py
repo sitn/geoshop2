@@ -229,12 +229,12 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        exclude = ['date_downloaded']
+        exclude = ['date_downloaded', 'extract_result']
         read_only_fields = [
             'date_ordered', 'date_processed',
             'processing_fee_currency', 'processing_fee',
             'total_cost_currency', 'total_cost',
-            'part_vat_currency', 'part_vat', 'extract_result',
+            'part_vat_currency', 'part_vat',
             'status']
 
     def create(self, validated_data):
