@@ -164,21 +164,54 @@ class Command(BaseCommand):
             date_ordered=timezone.now())
         order1.save()
 
-        order2 = copy.copy(order1)
-        order2.pk = None
-
-        order3 = copy.copy(order2)
-        order4 = copy.copy(order2)
-        order4.client = mma
-        order_mka = copy.copy(order2)
-        order_mka.client = mka
-        order_download = copy.copy(order2)
-        order_download.client = mmi
-
+        order2 = Order.objects.create(
+            title='Plan de situation pour enquête',
+            description='C\'est un test',
+            order_type=order_type_prive,
+            client=rincevent,
+            geom=order_geom,
+            invoice_reference='Dossier n°545454',
+            date_ordered=timezone.now())
         order2.save()
+
+        order3 = Order.objects.create(
+            title='Plan de situation pour enquête',
+            description='C\'est un test',
+            order_type=order_type_prive,
+            client=rincevent,
+            geom=order_geom,
+            invoice_reference='Dossier n°545454',
+            date_ordered=timezone.now())
         order3.save()
+
+        order4 = Order.objects.create(
+            title='Plan de situation pour enquête',
+            description='C\'est un test',
+            order_type=order_type_prive,
+            client=mma,
+            geom=order_geom,
+            invoice_reference='Dossier n°545454',
+            date_ordered=timezone.now())
         order4.save()
+
+        order_mka = Order.objects.create(
+            title='Plan de situation pour enquête',
+            description='C\'est un test',
+            order_type=order_type_prive,
+            client=mka,
+            geom=order_geom,
+            invoice_reference='Dossier n°545454',
+            date_ordered=timezone.now())
         order_mka.save()
+
+        order_download = Order.objects.create(
+            title='Plan de situation pour enquête',
+            description='C\'est un test',
+            order_type=order_type_prive,
+            client=mmi,
+            geom=order_geom,
+            invoice_reference='Dossier n°545454',
+            date_ordered=timezone.now())
         order_download.save()
 
         # Products
