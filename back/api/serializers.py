@@ -266,10 +266,13 @@ class OrderSerializer(serializers.ModelSerializer):
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get(
             'description', instance.description)
+        instance.invoice_contact = validated_data.get(
+            'invoice_contact', instance.invoice_contact)
         instance.save()
 
         existing_products = instance.items.all().values_list('product__label', flat=True)
-        update_products = [item['product'] for item in items_data]
+        if items_data is not None:
+            update_products = [item['product'] for item in items_data]
 
         # update order_items on PUT, no matter what is in items_data
         # update order_items on PATCH if items_data is present
@@ -287,7 +290,7 @@ class OrderSerializer(serializers.ModelSerializer):
             instance.save()
 
         if instance.order_type:
-            if items_data or geom or validated_data['order_type']:
+            if items_data or geom or 'order_type' in validated_data:
                 instance.set_price()
                 instance.save()
         return instance

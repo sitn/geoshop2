@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from djmoney.money import Money
 from rest_framework import status
 from rest_framework.test import APITestCase
-from api.models import OrderType, DataFormat, Pricing, Product, OrderItem, Order
+from api.models import Contact, OrderType, DataFormat, Pricing, Product, OrderItem, Order
 
 
 UserModel = get_user_model()
@@ -78,6 +78,17 @@ class OrderTests(APITestCase):
                 label="Maquette 3D",
                 pricing=self.pricing_manual),
         ])
+        self.contact = Contact.objects.create(
+            first_name='Jean',
+            last_name='Doe',
+            email='test3@admin.com',
+            postcode=2000,
+            city='Lausanne',
+            country='Suisse',
+            company_name='Marine de Colombier',
+            phone='+41 00 787 29 16',
+            belongs_to=self.userPrivate
+        )
         url = reverse('token_obtain_pair')
         resp = self.client.post(url, {'username':'private_user_order', 'password':'testPa$$word'}, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -106,6 +117,17 @@ class OrderTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertTrue('id' in response.data)
         order_id = response.data['id']
+        contact_id = Contact.objects.filter(email='test3@admin.com').first().id
+
+        # Update
+        data = {
+            "invoice_contact": contact_id
+        }
+
+        url = reverse('order-detail', kwargs={'pk':order_id})
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(response.data['invoice_contact'], contact_id, 'Check contact is updated')
 
         # Update
         data = {
@@ -113,7 +135,6 @@ class OrderTests(APITestCase):
                 "product": "MO - Cadastre complet (Format A4-A3-A2-A1-A0)"}]
         }
 
-        url = reverse('order-detail', kwargs={'pk':order_id})
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertEqual(response.data['items'][0]['product'], data['items'][0]['product'], 'Check product')
