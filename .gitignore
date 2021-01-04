@@ -6,3 +6,5 @@ apache/app.conf
 back/files/*
 logs/*
 !logs/.gitkeep
+
+front/debug.log

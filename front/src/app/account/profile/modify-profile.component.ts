@@ -1,12 +1,13 @@
-import { Component, HostBinding, OnInit } from '@angular/core';
+import {Component, HostBinding, OnInit} from '@angular/core';
 import {FormControl, FormGroup, FormBuilder, Validators} from '@angular/forms';
 import {of} from 'rxjs';
 import {catchError} from 'rxjs/operators';
-import { PHONE_REGEX } from '../../_helpers/regex';
+import {PHONE_REGEX} from '../../_helpers/regex';
 import {ApiService} from '../../_services/api.service';
-import { IIdentity } from '../../_models/IIdentity';
+import {IIdentity} from '../../_models/IIdentity';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Router} from '@angular/router';
+import {IUser, IUserToPost} from '../../_models/IUser';
 
 @Component({
   selector: 'gs2-modify-profile',
@@ -16,15 +17,15 @@ import {Router} from '@angular/router';
 export class ModifyProfileComponent implements OnInit {
 
   @HostBinding('class') class = 'main-container';
-  
+
   formModifyUser = new FormGroup({});
-  user : IIdentity;
+  user: IUser;
 
   constructor(
     private apiService: ApiService,
     private formBuilder: FormBuilder,
     private snackBar: MatSnackBar,
-    private router: Router)  { 
+    private router: Router) {
 
     this.apiService.getProfile().subscribe(user => {
       this.user = user;
@@ -32,12 +33,13 @@ export class ModifyProfileComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+  }
 
   private createForm() {
 
     this.formModifyUser = this.formBuilder.group({
-      username: new FormControl({value: this.user.username, disabled:true}, Validators.required),
+      username: new FormControl({value: this.user.username, disabled: true}, Validators.required),
       firstName: new FormControl(this.user.first_name, Validators.required),
       lastName: new FormControl(this.user.last_name, Validators.required),
       email: new FormControl(this.user.email, Validators.compose(
@@ -55,12 +57,12 @@ export class ModifyProfileComponent implements OnInit {
   onModifyUserSubmit(): void {
 
     if (this.formModifyUser.pristine) {
-      this.snackBar.open("Vous n'avez rien modifié !", 'Ok', {panelClass: 'notification-error'});
+      this.snackBar.open('Vous n\'avez rien modifié !', 'Ok', {panelClass: 'notification-error'});
       return;
     }
 
     if (this.formModifyUser.valid) {
-      const user: IIdentity = {
+      const user: IUserToPost = {
         username: this.formModifyUser.get('username')?.value,
         first_name: this.formModifyUser.get('firstName')?.value,
         last_name: this.formModifyUser.get('lastName')?.value,
@@ -73,7 +75,7 @@ export class ModifyProfileComponent implements OnInit {
         company_name: this.formModifyUser.get('companyName')?.value,
         phone: this.formModifyUser.get('phone')?.value,
       };
-  
+
       this.apiService.change(user)
         .pipe(
           catchError(errorXhr => {
@@ -92,7 +94,7 @@ export class ModifyProfileComponent implements OnInit {
         .subscribe(async (res) => {
           if (res) {
 
-            this.snackBar.open("Vos modifications ont été soumises aux gestionnaires du Geoshop et un email de confirmation vous a été envoyé. Vos modifications seront validées par leur soin d'ici quelques jours.", 'Ok', {panelClass: 'notification-info'});
+            this.snackBar.open('Vos modifications ont été soumises aux gestionnaires du Geoshop et un email de confirmation vous a été envoyé. Vos modifications seront validées par leur soin d\'ici quelques jours.', 'Ok', {panelClass: 'notification-info'});
             await this.router.navigate(['/account/profile']);
           } else {
             this.formModifyUser.markAsDirty();

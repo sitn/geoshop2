@@ -1,4 +1,4 @@
-import {Component, ElementRef, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {ConfigService} from 'src/app/_services/config.service';
 import {MapService} from '../../_services/map.service';
 import { CustomIconService } from '../../_services/custom-icon.service';
@@ -9,7 +9,7 @@ import Geometry from 'ol/geom/Geometry';
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
 import Feature from 'ol/Feature';
 import {MatDialog} from '@angular/material/dialog';
-import {PageformatComponent} from './pageformat/pageformat.component'
+import {PageformatComponent} from './pageformat/pageformat.component';
 
 export const nameOfCategoryForGeocoder: { [prop: string]: string; } = {
   neophytes: 'Plantes invasives',
@@ -157,14 +157,14 @@ export class MapComponent implements OnInit {
 
   togglePageformat(): void {
     const dialogRef = this.dialog.open(PageformatComponent, {
-      width: '250px',
+      minWidth: 250,
+      autoFocus: true,
       data: {
         pageFormatScales: this.pageFormatScales,
         pageFormats: this.pageformats,
         selectedPageFormat: this.selectedPageFormat,
         rotationPageFormat: this.rotationPageFormat
-      },
-      hasBackdrop: false
+      }
     });
 
     dialogRef.afterClosed().subscribe(result => {

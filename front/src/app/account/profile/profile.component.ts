@@ -1,5 +1,7 @@
 import {Component, HostBinding, OnInit} from '@angular/core';
 import {ApiService} from '../../_services/api.service';
+import {IUser} from '../../_models/IUser';
+
 
 @Component({
   selector: 'gs2-profile',
@@ -10,12 +12,15 @@ export class ProfileComponent implements OnInit {
 
   @HostBinding('class') class = 'main-container';
 
-  user$ = this.apiService.getProfile();
+  user: IUser;
 
   constructor(private apiService: ApiService) {
   }
 
   ngOnInit(): void {
+    this.apiService.getProfile()
+      .subscribe(user => {
+        this.user = user;
+      });
   }
-
 }

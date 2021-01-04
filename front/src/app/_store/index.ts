@@ -2,7 +2,6 @@ import {AuthState} from './auth/auth.reducer';
 import {ActionReducer, ActionReducerMap, createFeatureSelector, createSelector, MetaReducer} from '@ngrx/store';
 import {storeFreeze} from 'ngrx-store-freeze';
 import {environment} from '../../environments/environment';
-
 import * as fromAuth from './auth/auth.reducer';
 import {CartState} from './cart/cart.reducer';
 import * as fromCart from './cart/cart.reducer';
@@ -45,21 +44,10 @@ export const getToken = createSelector(
 
 // CART store
 export const cartFeatureSelector = createFeatureSelector<fromCart.CartState>('cart');
-export const selectProductIds = createSelector(
+
+export const selectAllProduct = createSelector(
   cartFeatureSelector,
-  fromCart.selectProductIds
-);
-export const selectProductEntities = createSelector(
-  cartFeatureSelector,
-  fromCart.selectProductEntities
-);
-export const selectAllProducts = createSelector(
-  cartFeatureSelector,
-  fromCart.selectAllProducts
-);
-export const selectProductTotal = createSelector(
-  cartFeatureSelector,
-  fromCart.selectProductTotal
+  fromCart.selectAllProduct
 );
 export const selectCartTotal = createSelector(
   cartFeatureSelector,

@@ -1,11 +1,37 @@
 :host {
   height: calc(100vh - 64px);
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
 
-  .mat-card {
+  .mat-card, form, .button-edit {
     margin-top: 20px;
+  }
+
+  form {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 16px;
+
+    .section-mandatory {
+      grid-row: 1;
+      grid-column: 1;
+      min-width: 250px;
+    }
+
+    .section-optional {
+      grid-row: 1;
+      grid-column: 2;
+      min-width: 250px;
+    }
+
+    .buttons-action {
+      grid-row: 2;
+      grid-column: 1 / span 2;
+      margin-top: auto;
+      justify-content: space-between;
+    }
   }
 
   ul {

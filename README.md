@@ -109,11 +109,7 @@ cd front
 npm install
 ```
 
-Copy config.json from tmpl file and edit the settings
-
-```powershell
-cp src\assets\configs\config.json.tmpl src\assets\configs\config.json
-```
+Edit the settings, the file is /front/copy-config.ps1
 
 Typicall values for dev purposes are:
 
@@ -122,15 +118,15 @@ Typicall values for dev purposes are:
   "mediaUrl": "https://sitn.ne.ch/geoshop2_prepub_media/images",
 ```
 
-
 To start the debug of the frontend
 
 ```powershell
 npm start
 ```
 
-Then open a browser and go to [Geoshop2](http://localhost:4200)
-
+1. Will run the batch /front/copy-config.ps1
+2. Will automatically run chrome with insecure flags to allow CORS request
+3. Chrome browser will be waiting with [Geoshop2](http://localhost:4200)
 
 ## Deploy
 
