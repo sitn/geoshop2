@@ -20,7 +20,7 @@ export interface IStatusAsReadableIcon {
 
 export type OrderStatus = 'DRAFT' | 'PENDING' | 'READY' |
   'PARTIALLY_DELIVERED' | 'PROCESSED' | 'DOWNLOADED' |
-  'ARCHIVED' | 'REJECTED';
+  'ARCHIVED' | 'REJECTED' | 'CONFIRM_REQUIRED';
 
 export interface IOrderItem {
   product: IProduct | string;

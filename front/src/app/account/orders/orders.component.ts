@@ -226,4 +226,10 @@ export class OrdersComponent implements OnInit {
       }
     });
   }
+
+  confirmOrder(orderId: number) {
+    this.snackBar.open('Pas encore implémenté', 'Ok', {
+      panelClass: 'notification-warning'
+    });
+  }
 }

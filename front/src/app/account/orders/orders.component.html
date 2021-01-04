@@ -45,6 +45,7 @@
           </div>
 
           <div class="bottom-actions-container">
+            <button *ngIf="order.status === 'CONFIRM_REQUIRED'" mat-raised-button color="primary" (click)="confirmOrder(order.id)">Valider la commande</button>
             <button mat-raised-button color="primary" (click)="addToCart()">Dupliquer dans le panier</button>
           </div>
         </div>
