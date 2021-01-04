@@ -1,5 +1,5 @@
 import {Component, OnInit, ElementRef, ViewChild} from '@angular/core';
-import {IProduct, Product} from 'src/app/_models/IProduct';
+import {IProduct} from 'src/app/_models/IProduct';
 import {ApiService} from 'src/app/_services/api.service';
 import {ConfigService} from 'src/app/_services/config.service';
 import {MatDialog} from '@angular/material/dialog';
@@ -8,10 +8,13 @@ import {FormControl} from '@angular/forms';
 import {BehaviorSubject, merge, Observable} from 'rxjs';
 import {debounceTime, map, mergeMap, scan, switchMap, tap, throttleTime} from 'rxjs/operators';
 import {CdkVirtualScrollViewport} from '@angular/cdk/scrolling';
-import {AppState} from '../../_store';
+import {AppState, selectOrder} from '../../_store';
 import {Store} from '@ngrx/store';
 import * as fromCart from '../../_store/cart/cart.action';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
+import {IOrder} from '../../_models/IOrder';
+import {updateOrder} from '../../_store/cart/cart.action';
 
 @Component({
   selector: 'gs2-catalog',
@@ -24,7 +27,7 @@ export class CatalogComponent implements OnInit {
   @ViewChild(CdkVirtualScrollViewport) viewport: CdkVirtualScrollViewport;
   batch = 20;
   offset = new BehaviorSubject<number | null>(null);
-  infinite: Observable<Product[]>;
+  infinite: Observable<IProduct[]>;
   total = 0;
   stepToLoadData = 0;
   readonly catalogItemHeight = 64;
@@ -34,12 +37,16 @@ export class CatalogComponent implements OnInit {
   catalogInputControl = new FormControl('');
 
   mediaUrl = '';
+  order: IOrder;
+
   constructor(private apiService: ApiService,
               public dialog: MatDialog,
               private store: Store<AppState>,
               private elRef: ElementRef,
               private snackBar: MatSnackBar,
               private configService: ConfigService) {
+
+    this.store.select(selectOrder).subscribe(x => this.order = x);
 
     const batchMap = this.offset.pipe(
       throttleTime(500),
@@ -64,7 +71,7 @@ export class CatalogComponent implements OnInit {
                 map((response) => {
                   this.isSearchLoading = false;
                   this.total = response.count;
-                  return response.results.map(x => new Product(x));
+                  return response.results;
                 })
               );
           }
@@ -73,7 +80,7 @@ export class CatalogComponent implements OnInit {
             map(response => {
               this.isSearchLoading = false;
               this.total = response.count;
-              return response.results.map(x => new Product(x));
+              return response.results;
             })
           );
         })
@@ -91,18 +98,22 @@ export class CatalogComponent implements OnInit {
     this.batch = numberOfRowPossible + half;
   }
 
-  addToCart(product: Product) {
-    this.store.dispatch(fromCart.addProduct({product}));
+  addToCart(product: IProduct) {
+    const order = GeoshopUtils.deepCopyOrder(this.order);
+    order.items.push({
+      product
+    });
+    this.store.dispatch(updateOrder({order}));
   }
 
   getBatch(offset: number) {
     return this.apiService.getProducts(offset, this.batch)
       .pipe(
         tap(response => this.total = response.count),
-        map((response) => response.results.map(x => new Product(x))),
+        map((response) => response.results),
         map(arr => {
           return arr.reduce((acc, cur) => {
-            const id = cur.url;
+            const id = cur.label;
             return {...acc, [id]: cur};
           }, {});
         })
@@ -126,7 +137,7 @@ export class CatalogComponent implements OnInit {
     return i;
   }
 
-  openMetadata(product: Product) {
+  openMetadata(product: IProduct) {
     this.apiService.loadMetadata(product.metadata)
       .subscribe(result => {
         if (result) {

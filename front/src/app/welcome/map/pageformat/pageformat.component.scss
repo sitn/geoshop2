@@ -1,0 +1,10 @@
+:host {
+  .mat-dialog-content {
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+  }
+  .mat-dialog-actions {
+    justify-content: space-between;
+  }
+}

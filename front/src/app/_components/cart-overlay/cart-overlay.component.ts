@@ -1,8 +1,8 @@
 import {Component, HostBinding, OnDestroy, OnInit} from '@angular/core';
-import {AppState, isLoggedIn, selectAllProducts, selectOrder} from '../../_store';
+import {AppState, isLoggedIn, selectOrder} from '../../_store';
 import {Store} from '@ngrx/store';
 import * as fromCart from '../../_store/cart/cart.action';
-import {Product} from '../../_models/IProduct';
+import {IProduct} from '../../_models/IProduct';
 import {DialogMetadataComponent} from '../../welcome/catalog/dialog-metadata/dialog-metadata.component';
 import {MatDialog, MatDialogRef} from '@angular/material/dialog';
 import {ApiService} from '../../_services/api.service';
@@ -14,6 +14,8 @@ import {takeUntil} from 'rxjs/operators';
 import {Subject} from 'rxjs';
 import {StoreService} from '../../_services/store.service';
 import {MapService} from '../../_services/map.service';
+import {IOrder, Order} from '../../_models/IOrder';
+import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
 
 @Component({
   selector: 'gs2-cart-overlay',
@@ -24,8 +26,8 @@ export class CartOverlayComponent implements OnInit, OnDestroy {
 
   @HostBinding('class') class = 'overlay-container';
 
-  products$ = this.store.select(selectAllProducts);
-  order$ = this.store.select(selectOrder);
+  order: IOrder;
+  products: Array<IProduct> = [];
 
   private isUserLoggedIn = false;
   private onDestroy$ = new Subject();
@@ -40,6 +42,10 @@ export class CartOverlayComponent implements OnInit, OnDestroy {
               private storeService: StoreService
   ) {
     this.store.select(isLoggedIn).subscribe(x => this.isUserLoggedIn = x);
+    this.store.select(selectOrder).subscribe(x => {
+      this.order = x;
+      this.products = this.order.items.map(o => o.product as IProduct);
+    });
   }
 
   ngOnInit(): void {
@@ -49,11 +55,13 @@ export class CartOverlayComponent implements OnInit, OnDestroy {
     this.onDestroy$.next(true);
   }
 
-  removeProduct(url: string) {
-    this.store.dispatch(fromCart.removeProduct({id: url}));
+  removeProduct(label: string) {
+    const order = GeoshopUtils.deepCopyOrder(this.order);
+    order.items = order.items.filter(x => Order.getProductLabel(x) !== label);
+    this.store.dispatch(fromCart.updateOrder({order}));
   }
 
-  openMetadata(product: Product) {
+  openMetadata(product: IProduct) {
     if (product.metadataObject) {
       this.dialog.open(DialogMetadataComponent, {
         width: '60%',
@@ -65,7 +73,18 @@ export class CartOverlayComponent implements OnInit, OnDestroy {
       this.apiService.loadMetadata(product.metadata)
         .subscribe(result => {
           if (result) {
-            this.store.dispatch(fromCart.updateProduct({product: {id: product.url, changes: {metadataObject: result}}}));
+
+            const order = GeoshopUtils.deepCopyOrder(this.order);
+            for (const item of order.items) {
+              if (typeof item.product !== 'string') {
+                if (item.product.label === product.label) {
+                  item.product.metadataObject = result;
+                  break;
+                }
+              }
+            }
+
+            this.store.dispatch(fromCart.updateOrder({order}));
             this.dialog.open(DialogMetadataComponent, {
               width: '60%',
               height: '90%',

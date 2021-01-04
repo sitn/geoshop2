@@ -10,6 +10,7 @@ import {MatDialogModule} from '@angular/material/dialog';
 import {OrderItemViewComponent} from '../_components/order-item-view/order-item-view.component';
 import {MatTableModule} from '@angular/material/table';
 import {WidgetHostDirective} from '../_directives/widget-host.directive';
+import {SafeHtmlPipe} from '../_pipes/SafeHtmlPipe';
 
 const MODULES = [
   CommonModule,
@@ -25,7 +26,8 @@ const COMPONENTS = [
   OrderViewComponent,
   ConfirmDialogComponent,
   OrderItemViewComponent,
-  WidgetHostDirective
+  WidgetHostDirective,
+  SafeHtmlPipe
 ];
 
 @NgModule({

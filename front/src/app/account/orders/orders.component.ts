@@ -1,7 +1,7 @@
 import {Component, ComponentFactoryResolver, ElementRef, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
-import {BehaviorSubject, forkJoin, merge, of} from 'rxjs';
-import {IOrder, Order} from '../../_models/IOrder';
-import {concatMap, debounceTime, filter, map, mergeMap, scan, skip, switchMap, tap} from 'rxjs/operators';
+import {BehaviorSubject, merge, of} from 'rxjs';
+import {IOrder, IOrderDowloadLink, IOrderItem, IOrderSummary, Order} from '../../_models/IOrder';
+import {debounceTime, filter, map, mergeMap, scan, skip, switchMap, tap} from 'rxjs/operators';
 import {MapService} from '../../_services/map.service';
 import Map from 'ol/Map';
 import VectorSource from 'ol/source/Vector';
@@ -16,6 +16,9 @@ import {WidgetHostDirective} from '../../_directives/widget-host.directive';
 import {AppState} from '../../_store';
 import {Store} from '@ngrx/store';
 import {StoreService} from '../../_services/store.service';
+import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
+import {IApiResponseError} from '../../_models/IApi';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'gs2-orders',
@@ -31,7 +34,7 @@ export class OrdersComponent implements OnInit {
   batch = 10;
   realBatch = 10;
   offset = new BehaviorSubject<number | null>(0);
-  currentOrders: Order[] = [];
+  currentOrders: IOrderSummary[] = [];
   total = 0;
   stepToLoadData = 0;
   readonly itemHeight = 48;
@@ -55,7 +58,8 @@ export class OrdersComponent implements OnInit {
               private elRef: ElementRef,
               private cfr: ComponentFactoryResolver,
               private store: Store<AppState>,
-              private storeService: StoreService
+              private storeService: StoreService,
+              private snackBar: MatSnackBar,
   ) {
   }
 
@@ -80,17 +84,24 @@ export class OrdersComponent implements OnInit {
   }
 
   getBatch(offset: number) {
+    const init: { [key: string]: IOrderSummary } = {};
+
     return this.apiOrderService.getOrders(offset, this.batch)
       .pipe(
         tap(response => this.total = response.count),
         map((response) =>
-          response.results.sort((a) => a.status === 'PENDING' ? 1 : a.status === 'DONE' ? 1 : 0).map(p => p)
+          response.results.sort((a) => a.status === 'PENDING' ? 1 : a.status === 'READY' ? 1 : 0).map(p => {
+            p.statusAsReadableIconText = Order.initializeStatus(p);
+            p.id = GeoshopUtils.ExtractIdFromUrl(p.url);
+            return p;
+          })
         ),
         map(arr => {
           return arr.reduce((acc, cur) => {
             const id = cur.url;
-            return {...acc, [id]: cur};
-          }, {});
+            const res: { [key: string]: IOrderSummary } = {...acc, [id]: cur};
+            return res;
+          }, init);
         })
       );
   }
@@ -113,13 +124,17 @@ export class OrdersComponent implements OnInit {
   }
 
   private initializeComponentAction() {
+    const init: { [key: string]: IOrderSummary } = {};
+
     const batchMap = this.offset.pipe(
       filter((x) => x != null && x >= 0),
       mergeMap((n: number) => this.getBatch(n)),
       scan((acc, batch) => {
         return {...acc, ...batch};
-      }, {}),
-      map(v => Object.values(v).map((x: IOrder) => new Order(x)))
+      }, init),
+      map(v => {
+        return Object.values(v);
+      })
     );
 
     merge(
@@ -135,12 +150,14 @@ export class OrdersComponent implements OnInit {
             return of([]);
           }
 
-          return this.apiService.find<IOrder>(inputText, 'order').pipe(
-            concatMap(response => {
+          return this.apiService.find<IOrderSummary>(inputText, 'order').pipe(
+            map(response => {
               this.total = response.count;
-              return forkJoin(response.results.map(x => this.apiOrderService.getOrder(x.url))).pipe(
-                map(iOrders => iOrders.map(x => new Order(x)))
-              );
+              return response.results.map(x => {
+                x.statusAsReadableIconText = Order.initializeStatus(x);
+                x.id = GeoshopUtils.ExtractIdFromUrl(x.url);
+                return x;
+              });
             }),
           );
         })
@@ -163,11 +180,13 @@ export class OrdersComponent implements OnInit {
     });
   }
 
-  displayMiniMap(order: Order, index: number) {
-    this.apiOrderService.getOrder(order.url).subscribe((iOrder) => {
-      this.selectedOrder = new Order(iOrder);
-      this.generateOrderItemsElements(this.selectedOrder, index);
-      GeoHelper.displayMiniMap(this.selectedOrder, [this.minimap], [this.vectorSource], 0);
+  displayMiniMap(orderSummary: IOrderSummary | Order, index: number) {
+    this.apiOrderService.getOrder((orderSummary as IOrderSummary).url).subscribe((loadedOrder) => {
+      if (loadedOrder) {
+        this.selectedOrder = new Order(loadedOrder);
+        this.generateOrderItemsElements(this.selectedOrder, index);
+        GeoHelper.displayMiniMap(this.selectedOrder, [this.minimap], [this.vectorSource], 0);
+      }
     });
   }
 
@@ -175,5 +194,42 @@ export class OrdersComponent implements OnInit {
     if (this.selectedOrder) {
       this.storeService.addOrderToStore(this.selectedOrder);
     }
+  }
+
+  downloadOrder(event: MouseEvent, id: number) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    this.apiOrderService.downloadOrder(id).subscribe(link => {
+      if (!link) {
+        this.snackBar.open(
+          'Aucun fichier disponible', 'Ok', {panelClass: 'notification-info'}
+        );
+      } else if (!(link as IOrderDowloadLink).detail.startsWith('http')) {
+        this.snackBar.open(
+          (link as IOrderDowloadLink).detail, 'Ok', {panelClass: 'notification-info'}
+        );
+      } else if ((link as IApiResponseError).error) {
+        this.snackBar.open(
+          (link as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'}
+        );
+      } else {
+        let filename = 'download.zip';
+        try {
+          const temp = (link as IOrderDowloadLink).detail.split('/');
+          filename = temp[temp.length - 1];
+        } catch {
+
+        }
+
+        GeoshopUtils.downloadData((link as IOrderDowloadLink).detail, filename);
+      }
+    });
+  }
+
+  confirmOrder(orderId: number) {
+    this.snackBar.open('Pas encore implémenté', 'Ok', {
+      panelClass: 'notification-warning'
+    });
   }
 }

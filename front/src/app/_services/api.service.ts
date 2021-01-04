@@ -3,10 +3,11 @@ import {HttpClient} from '@angular/common/http';
 import {IProduct} from '../_models/IProduct';
 import {ConfigService} from './config.service';
 import {Observable, of, zip} from 'rxjs';
-import {IApiResponse} from '../_models/IApi';
+import {IApiResponse, IApiResponseError} from '../_models/IApi';
 import {ICredentials, IIdentity} from '../_models/IIdentity';
 import {map, switchMap} from 'rxjs/operators';
 import {IMetadata} from '../_models/IMetadata';
+import {IUser, IUserChangeResponse, IUserToPost} from '../_models/IUser';
 
 @Injectable({
   providedIn: 'root'
@@ -23,10 +24,11 @@ export class ApiService {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    const url = new URL(`${this.apiUrl}/${endpoint}/`);
-    url.searchParams.append('search', inputText);
+    const url = `${this.apiUrl}/${endpoint}/`;
 
-    return this.http.get<IApiResponse<T>>(url.toString());
+    return this.http.get<IApiResponse<T>>(url, {
+      params: {search: inputText}
+    });
   }
 
   getProducts(offset?: number, limit?: number): Observable<IApiResponse<IProduct>> {
@@ -45,7 +47,10 @@ export class ApiService {
     return this.http.get<IApiResponse<IProduct>>(url.toString());
   }
 
-  loadMetadata(urlAsString: string): Observable<IMetadata | null> {
+  loadMetadata(urlAsString?: string): Observable<IMetadata | null> {
+    if (!urlAsString) {
+      return of(null);
+    }
     try {
       const url = new URL(urlAsString);
       return this.http.get<IMetadata>(url.toString());
@@ -93,8 +98,16 @@ export class ApiService {
     };
 
     return token ?
-      this.http.get<IIdentity>(this.apiUrl + '/auth/current/', {headers}) :
-      this.http.get<IIdentity>(this.apiUrl + '/auth/current/');
+      this.http.get<IUser>(this.apiUrl + '/auth/current/', {headers}) :
+      this.http.get<IUser>(this.apiUrl + '/auth/current/');
+  }
+
+  change(user: IUserToPost) {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    return this.http.post<IUserChangeResponse | IApiResponseError>(this.apiUrl + '/auth/change/', user);
   }
 
   register(user: IIdentity) {
@@ -103,14 +116,6 @@ export class ApiService {
     }
 
     return this.http.post(this.apiUrl + '/auth/register/', user);
-  }
-
-  change(user: IIdentity) {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
-
-    return this.http.post(this.apiUrl + '/auth/change/', user);
   }
 
   refreshToken(token: string): Observable<{ access: string; }> {
