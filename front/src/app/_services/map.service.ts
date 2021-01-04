@@ -529,6 +529,11 @@ export class MapService {
       hitTolerance: 2,
     });
 
+    this.transformInteraction.on(['rotateend', 'translateend', 'scaleend'], (evt: any) => {
+      this.featureFromDrawing = evt.features.item(0);
+      this.setAreaToCurrentFeature();
+    });
+
     this.map.addInteraction(this.transformInteraction);
   }
 
