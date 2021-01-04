@@ -229,12 +229,12 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        exclude = ['date_downloaded']
+        exclude = ['date_downloaded', 'extract_result']
         read_only_fields = [
             'date_ordered', 'date_processed',
             'processing_fee_currency', 'processing_fee',
             'total_cost_currency', 'total_cost',
-            'part_vat_currency', 'part_vat', 'extract_result',
+            'part_vat_currency', 'part_vat',
             'status']
 
     def create(self, validated_data):
@@ -266,14 +266,17 @@ class OrderSerializer(serializers.ModelSerializer):
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get(
             'description', instance.description)
+        instance.invoice_contact = validated_data.get(
+            'invoice_contact', instance.invoice_contact)
         instance.save()
 
         existing_products = instance.items.all().values_list('product__label', flat=True)
-        update_products = [item['product'] for item in items_data]
+        if items_data is not None:
+            update_products = [item['product'] for item in items_data]
 
         # update order_items on PUT, no matter what is in items_data
         # update order_items on PATCH if items_data is present
-        if not self.partial or (self.partial and items_data is not None):
+        if not self.partial or (self.partial and items_data is not None and items_data != []):
             for existing_item in instance.items.all():
                 if existing_item.product.label not in update_products:
                     existing_item.delete()
@@ -287,7 +290,7 @@ class OrderSerializer(serializers.ModelSerializer):
             instance.save()
 
         if instance.order_type:
-            if items_data or geom or validated_data['order_type']:
+            if items_data or geom or 'order_type' in validated_data:
                 instance.set_price()
                 instance.save()
         return instance

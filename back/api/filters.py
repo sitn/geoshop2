@@ -37,7 +37,7 @@ class FullTextSearchFilter(BaseFilterBackend):
         """
         term = request.query_params.get(self.search_param, '')
         term = term.replace('\x00', '')  # strip null characters
-        term = re.sub(r'[!\'()|&]', ' ', term).strip()
+        term = re.sub(r'[!\'()|&:]', ' ', term).strip()
         term = unidecode.unidecode(term)
         if term:
             term = re.sub(r'\s+', ' & ', term)
