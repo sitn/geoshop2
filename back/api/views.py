@@ -183,11 +183,9 @@ class OrderItemViewSet(viewsets.ModelViewSet):
         if instance.extract_result:
             instance.last_download = timezone.now()
             instance.save()
-            file_url = getattr(settings, 'DOCUMENT_BASE_URL') + getattr(
-                settings, 'FORCE_SCRIPT_NAME') + instance.extract_result.url
             if Path(settings.MEDIA_ROOT, instance.extract_result.name).is_file():
                 return Response({
-                    'download_link' : file_url})
+                    'download_link' : instance.extract_result.url})
             return Response(
                 {"detail": _("Zip does not exist")},
                 status=status.HTTP_204_NO_CONTENT)
@@ -280,11 +278,9 @@ class OrderViewSet(MultiSerializerViewSet):
             for item in instance.items.all():
                 item.last_download = timezone.now()
                 item.save()
-            file_url = getattr(settings, 'DOCUMENT_BASE_URL') + getattr(
-                settings, 'FORCE_SCRIPT_NAME') + instance.extract_result.url
             if Path(settings.MEDIA_ROOT, instance.extract_result.name).is_file():
                 return Response({
-                    'download_link' : file_url})
+                    'download_link' : instance.extract_result.url})
             return Response(
                 {"detail": _("Full zip is not ready")},
                 status=status.HTTP_204_NO_CONTENT)
