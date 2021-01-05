@@ -20,10 +20,10 @@ class RandomFileName(object):
 
     def __call__(self, _, filename):
         today = timezone.now()
-        current_path = os.path.join(self.path_suffix, str(
-            today.year), str(today.month), "{}{}")
         first_part = str(uuid.uuid4())[0:9]
-        return current_path.format(first_part, filename)
+        current_path = Path(self.path_suffix, str(
+            today.year), str(today.month), "{}{}".format(first_part, filename))
+        return current_path
 
 
 def send_email_to_admin(subject, message):
