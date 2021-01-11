@@ -24,14 +24,20 @@ from .models import (
 # Get the UserModel
 UserModel = get_user_model()
 
-class WKTField(serializers.Field):
+class WKTLatLongPolygonField(serializers.Field):
     """
-    Geom objects are serialized to GEOMETRY((coords, coords)) notation
+    Polygons are serialized to POLYGON((Lat, Long)) notation
     """
     def to_representation(self, value):
         if isinstance(value, dict) or value is None:
             return value
-        return value.wkt or 'POLYGON EMPTY'
+        value.transform(4326)
+        new_geom = []
+        # transform Long/Lat to Lat/Long
+        for point in range(len(value.coords[0])):
+            new_geom.append(value.coords[0][point][::-1])
+        new_polygon = Polygon(new_geom)
+        return new_polygon.wkt or 'POLYGON EMPTY'
 
     def to_internal_value(self, value):
         if value == '' or value is None:
@@ -349,7 +355,7 @@ class ExtractOrderSerializer(serializers.ModelSerializer):
     items = ExtractOrderItemSerializer(many=True)
     client = UserIdentitySerializer()
     invoice_contact = IdentitySerializer()
-    geom = WKTField()
+    geom = WKTLatLongPolygonField()
     geom_srid = serializers.IntegerField()
 
     class Meta:
