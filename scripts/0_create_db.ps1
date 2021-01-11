@@ -19,3 +19,4 @@ $env:PGPASSWORD = $geoshop_password
 psql -U $env:PGUSER -d $env:PGDATABASE -c "CREATE SCHEMA $env:PGSCHEMA;"
 psql -U $env:PGUSER -d $env:PGDATABASE -c "CREATE SCHEMA amenagement AUTHORIZATION geoshop;"
 psql -U $env:PGUSER -d $env:PGDATABASE -c "CREATE SCHEMA agriculture AUTHORIZATION geoshop;"
+psql -U $env:PGUSER -d $env:PGDATABASE -c "CREATE SCHEMA dangersnaturels AUTHORIZATION geoshop;"

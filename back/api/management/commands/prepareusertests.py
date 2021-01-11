@@ -1,14 +1,15 @@
 import os
-import copy
+from pathlib import Path
 import datetime
 from django.utils import timezone
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
 from djmoney.money import Money
 from api.models import Contact, Order, OrderItem, OrderType, Product, DataFormat
-from api.helpers import zip_all_orderitems
+from api.helpers import _zip_them_all
 
 UserModel = get_user_model()
 
@@ -270,5 +271,15 @@ class Command(BaseCommand):
             order_item.status = OrderItem.OrderItemStatus.PROCESSED
             order_item.save()
         order_download.status = Order.OrderStatus.PROCESSED
-        zip_all_orderitems(order_download)
+
+        # Creating zip with all zips without background process unsupported by manage.py
+        zip_list_path = list(order_download.items.all().values_list('extract_result', flat=True))
+        today = timezone.now()
+        zip_path = Path(
+            'extract',
+            str(today.year), str(today.month),
+            "{}{}.zip".format('0a2ebb0a-', str(order_download.id)))
+        order_download.extract_result.name = zip_path.as_posix()
+        full_zip_path = Path(settings.MEDIA_ROOT, zip_path)
+        _zip_them_all(full_zip_path, zip_list_path)
         order_download.save()
