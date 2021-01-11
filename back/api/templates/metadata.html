@@ -1,0 +1,94 @@
+<html>
+
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <style>
+  .max-width-img img {
+    max-width: 100%;
+    height: auto;
+  }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>{{ name }}</h2>
+    <div class="max-width-img">
+      {{ image_tag }}
+    </div>
+    <div class="row">
+      <div class="col-sm">
+        <table class="table table-responsive">
+          <tbody>
+            <tr>
+              <td>
+                Description du contenu des données
+              </td>
+              <td>
+                <p>
+                  {{ description_short }}
+                </p>
+                <p>
+                  {{ description_long }}
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Échelle de la source
+              </td>
+              <td>
+                {{ scale }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Interlocuteurs
+              </td>
+              <td>
+                {% for c in contact_persons %}
+                <p class="contact">
+                  {% if c.contact_person.first_name or c.contact_person.last_name %}
+                    <strong>{{ c.contact_person.first_name }} {{ c.contact_person.last_name }}</strong><br>
+                  {% endif %}
+                  {% if c.contact_person.company_name %}
+                    {{ c.contact_person.company_name }} <br>
+                  {% endif %}
+                  <a href="mailto:{{ c.contact_person.email }}"></a>{{ c.contact_person.email }}<br>
+                  {{ c.contact_person.phone }}
+                </p>
+                {% endfor %}
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Liens
+              </td>
+              <td>
+                <ul class="list-unstyled">
+                  {% for d in documents %}
+                  <li>
+                    <a href="{{ d.link }}">{{ d.name }}</a>
+                  </li>
+                  {% endfor %}
+                  <li>
+                    <a href="{{ geocat_link }}">Lien Geocat.ch</a>
+                  </li>
+                </ul>
+              </td>
+            </tr>
+            {% if legend_link %}
+            <tr>
+              <td>Légende</td>
+              <td>{{ legend_tag }}</td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

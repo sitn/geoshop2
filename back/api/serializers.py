@@ -156,6 +156,8 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
     modified_user = serializers.StringRelatedField(read_only=True)
     documents = DocumentSerializer(many=True)
     copyright = CopyrightSerializer(many=False)
+    legend_tag = serializers.StringRelatedField()
+    image_tag = serializers.StringRelatedField()
 
     class Meta:
         model = Metadata

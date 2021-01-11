@@ -77,7 +77,8 @@ class Document(models.Model):
     link = models.URLField(
         _('link'),
         help_text=_('Please complete the above URL'),
-        default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL
+        default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL,
+        max_length=2000
     )
 
     class Meta:

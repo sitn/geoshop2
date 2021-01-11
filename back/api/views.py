@@ -11,8 +11,9 @@ from django.utils.translation import gettext_lazy as _
 
 from rest_framework import filters, generics, views, viewsets, permissions, status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.response import Response
+from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
 from rest_framework.parsers import MultiPartParser
 
 from allauth.account.views import ConfirmEmailView
@@ -129,6 +130,18 @@ class MetadataViewSet(viewsets.ModelViewSet):
     queryset = Metadata.objects.all()
     serializer_class = MetadataSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    renderer_classes = [JSONRenderer, TemplateHTMLRenderer]
+    template_name = "metadata.html"
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Overrides default retrieve Response just to put two extra headers
+        allowing this response to be integrated in other websites.
+        """
+        response = super(MetadataViewSet, self).retrieve(request, *args, **kwargs)
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Content-Security-Policy'] = 'frame-ancestors *'
+        return response
 
     def get_serializer_context(self):
         context = super(MetadataViewSet, self).get_serializer_context()
