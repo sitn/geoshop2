@@ -34,6 +34,7 @@
                 </p>
               </td>
             </tr>
+            {% if scale %}
             <tr>
               <td>
                 Échelle de la source
@@ -42,6 +43,7 @@
                 {{ scale }}
               </td>
             </tr>
+            {% endif %}
             <tr>
               <td>
                 Interlocuteurs
@@ -61,6 +63,7 @@
                 {% endfor %}
               </td>
             </tr>
+            {% if documents %}
             <tr>
               <td>
                 Liens
@@ -72,12 +75,15 @@
                     <a href="{{ d.link }}">{{ d.name }}</a>
                   </li>
                   {% endfor %}
+                  {% if geocat_link %}
                   <li>
                     <a href="{{ geocat_link }}">Lien Geocat.ch</a>
                   </li>
+                  {% endif %}
                 </ul>
               </td>
             </tr>
+            {% endif %}
             {% if legend_link %}
             <tr>
               <td>Légende</td>

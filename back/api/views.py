@@ -130,14 +130,11 @@ class MetadataViewSet(viewsets.ModelViewSet):
     queryset = Metadata.objects.all()
     serializer_class = MetadataSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    renderer_classes = [JSONRenderer, TemplateHTMLRenderer]
     template_name = "metadata.html"
+    lookup_field = 'id_name'
 
-    def retrieve(self, request, *args, **kwargs):
-        """
-        Overrides default retrieve Response just to put two extra headers
-        allowing this response to be integrated in other websites.
-        """
+    @action(detail=True, renderer_classes=[TemplateHTMLRenderer])
+    def html(self, request, *args, **kwargs):
         response = super(MetadataViewSet, self).retrieve(request, *args, **kwargs)
         response['Access-Control-Allow-Origin'] = '*'
         response['Content-Security-Policy'] = 'frame-ancestors *'

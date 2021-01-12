@@ -158,10 +158,15 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
     copyright = CopyrightSerializer(many=False)
     legend_tag = serializers.StringRelatedField()
     image_tag = serializers.StringRelatedField()
+    
 
     class Meta:
         model = Metadata
         fields = '__all__'
+        lookup_field = 'id_name'
+        extra_kwargs = {
+            'url': {'lookup_field': 'id_name'}
+        }
 
     def get_contact_persons(self, obj):
         """obj is a Metadata instance. Returns list of dicts"""
