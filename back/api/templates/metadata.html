@@ -14,9 +14,11 @@
 <body>
   <div class="container">
     <h2>{{ name }}</h2>
+    {% if image_link != 'images/default_metadata_image.png' %}
     <div class="max-width-img">
       {{ image_tag }}
     </div>
+    {% endif %}
     <div class="row">
       <div class="col-sm">
         <table class="table table-responsive">
@@ -72,12 +74,12 @@
                 <ul class="list-unstyled">
                   {% for d in documents %}
                   <li>
-                    <a href="{{ d.link }}">{{ d.name }}</a>
+                    <a href="{{ d.link }}" target="_blank" rel="noopener noreferrer">{{ d.name }}</a>
                   </li>
                   {% endfor %}
                   {% if geocat_link %}
                   <li>
-                    <a href="{{ geocat_link }}">Lien Geocat.ch</a>
+                    <a href="{{ geocat_link }}" target="_blank" rel="noopener noreferrer">Lien Geocat.ch</a>
                   </li>
                   {% endif %}
                 </ul>

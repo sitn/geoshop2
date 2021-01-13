@@ -158,7 +158,6 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
     copyright = CopyrightSerializer(many=False)
     legend_tag = serializers.StringRelatedField()
     image_tag = serializers.StringRelatedField()
-    
 
     class Meta:
         model = Metadata
@@ -473,7 +472,13 @@ class DataFormatListSerializer(ProductFormatSerializer):
         exclude = ['product']
 
 
-class ProductDigestSerializer(serializers.HyperlinkedModelSerializer):
+class ProductDigestSerializer(serializers.ModelSerializer):
+    metadata = serializers.HyperlinkedRelatedField(
+        many=False,
+        read_only=True,
+        view_name='metadata-detail',
+        lookup_field='id_name'
+    )
     class Meta:
         model = Product
         exclude = ['ts']

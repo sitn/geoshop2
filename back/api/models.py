@@ -165,10 +165,12 @@ class Metadata(models.Model):
     def legend_tag(self):
         if self.legend_link is None or self.legend_link == '':
             return mark_safe('<img src="%s%s" />' % (settings.MEDIA_URL, 'no_image.jpg'))
-        """When legend_link is 0, returns legend from mapserver"""
+        # When legend_link is 0, returns legend from mapserver
         if self.legend_link == '0':
             return mark_safe('<img src="%s%s" />' % (settings.AUTO_LEGEND_URL, self.id_name))
-        return mark_safe('<img src="/%s%s" />' % (settings.MEDIA_URL, self.legend_link))
+        if self.legend_link.startswith('http'):
+            return mark_safe('<img src="%s" />' % (self.legend_link))
+        return mark_safe('<img src="%s%s" />' % (settings.MEDIA_URL, self.legend_link))
     legend_tag.short_description = _('legend')
 
     def image_tag(self):
