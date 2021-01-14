@@ -107,7 +107,7 @@ class OrderTests(APITestCase):
         url = reverse('order-list')
         response = self.client.post(url, self.order_data, format='json')
         # Forbidden if not logged in
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED, response.content)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         response = self.client.post(url, self.order_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
