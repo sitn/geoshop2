@@ -186,4 +186,5 @@ CORS_ORIGIN_WHITELIST = [
 DEFAULT_PRODUCT_THUMBNAIL_URL = 'default_product_thumbnail.png'
 DEFAULT_METADATA_IMAGE_URL = 'default_metadata_image.png'
 AUTO_LEGEND_URL = os.environ.get('AUTO_LEGEND_URL', '')
+INTRA_LEGEND_URL = os.environ.get('INTRA_LEGEND_URL', '')
 DEFAULT_SRID = 2056

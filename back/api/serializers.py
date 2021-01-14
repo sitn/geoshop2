@@ -158,6 +158,7 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
     copyright = CopyrightSerializer(many=False)
     legend_tag = serializers.StringRelatedField()
     image_tag = serializers.StringRelatedField()
+    legend_link = serializers.SerializerMethodField()
 
     class Meta:
         model = Metadata
@@ -174,6 +175,9 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
             MetadataContactSerializer(m, context={
                 'request': self.context['request']
             }).data for m in qset]
+
+    def get_legend_link(self, obj):
+        return obj.get_legend_link()
 
 
 class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):
