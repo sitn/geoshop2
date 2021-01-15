@@ -198,7 +198,7 @@ class OrderItemViewSet(viewsets.ModelViewSet):
                     'download_link' : instance.extract_result.url})
             return Response(
                 {"detail": _("Zip does not exist")},
-                status=status.HTTP_204_NO_CONTENT)
+                status=status.HTTP_200_OK)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
@@ -293,7 +293,7 @@ class OrderViewSet(MultiSerializerViewSet):
                     'download_link' : instance.extract_result.url})
             return Response(
                 {"detail": _("Full zip is not ready")},
-                status=status.HTTP_204_NO_CONTENT)
+                status=status.HTTP_200_OK)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
