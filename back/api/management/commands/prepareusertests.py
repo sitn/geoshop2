@@ -206,14 +206,24 @@ class Command(BaseCommand):
         order_mka.save()
 
         order_download = Order.objects.create(
-            title='Plan de situation pour enquête',
+            title='Commande prête à être téléchargée',
+            description='C\'est un test',
+            order_type=order_type_prive,
+            client=mmi,
+            geom=order_geom,
+            invoice_reference='Dossier 8',
+            date_ordered=timezone.now())
+        order_download.save()
+
+        order_quoted = Order.objects.create(
+            title='Commande devisée pour test',
             description='C\'est un test',
             order_type=order_type_prive,
             client=mmi,
             geom=order_geom,
             invoice_reference='Dossier n°545454',
             date_ordered=timezone.now())
-        order_download.save()
+        order_quoted.save()
 
         # Products
         product1 = Product.objects.filter(label='MO - Cadastre complet').first()
@@ -241,11 +251,18 @@ class Command(BaseCommand):
         order_item_deprecated.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
         order_item_deprecated.price_status = OrderItem.PricingStatus.CALCULATED
         order_item_deprecated.save()
+
         order_item_download = OrderItem.objects.create(
             order=order_download, product=product2, data_format=data_format_maquette)
         order_item_download.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
         order_item_download.price_status = OrderItem.PricingStatus.CALCULATED
         order_item_download.save()
+
+        order_item_quoted = OrderItem.objects.create(
+            order=order_quoted, product=product2, data_format=data_format_maquette)
+        order_item_quoted.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
+        order_item_quoted.price_status = OrderItem.PricingStatus.CALCULATED
+        order_item_quoted.save()
 
         order2.set_price()
         order2.save()
@@ -283,3 +300,7 @@ class Command(BaseCommand):
         full_zip_path = Path(settings.MEDIA_ROOT, zip_path)
         _zip_them_all(full_zip_path, zip_list_path)
         order_download.save()
+
+        order_quoted.set_price()
+        order_quoted.confirm()
+        order_quoted.save()
