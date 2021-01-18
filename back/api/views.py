@@ -11,8 +11,9 @@ from django.utils.translation import gettext_lazy as _
 
 from rest_framework import filters, generics, views, viewsets, permissions, status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.response import Response
+from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
 from rest_framework.parsers import MultiPartParser
 
 from allauth.account.views import ConfirmEmailView
@@ -129,6 +130,15 @@ class MetadataViewSet(viewsets.ModelViewSet):
     queryset = Metadata.objects.all()
     serializer_class = MetadataSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    template_name = "metadata.html"
+    lookup_field = 'id_name'
+
+    @action(detail=True, renderer_classes=[TemplateHTMLRenderer])
+    def html(self, request, *args, **kwargs):
+        response = super(MetadataViewSet, self).retrieve(request, *args, **kwargs)
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Content-Security-Policy'] = 'frame-ancestors *'
+        return response
 
     def get_serializer_context(self):
         context = super(MetadataViewSet, self).get_serializer_context()
@@ -188,7 +198,7 @@ class OrderItemViewSet(viewsets.ModelViewSet):
                     'download_link' : instance.extract_result.url})
             return Response(
                 {"detail": _("Zip does not exist")},
-                status=status.HTTP_204_NO_CONTENT)
+                status=status.HTTP_200_OK)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
@@ -283,7 +293,7 @@ class OrderViewSet(MultiSerializerViewSet):
                     'download_link' : instance.extract_result.url})
             return Response(
                 {"detail": _("Full zip is not ready")},
-                status=status.HTTP_204_NO_CONTENT)
+                status=status.HTTP_200_OK)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 

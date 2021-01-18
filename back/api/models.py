@@ -77,7 +77,8 @@ class Document(models.Model):
     link = models.URLField(
         _('link'),
         help_text=_('Please complete the above URL'),
-        default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL
+        default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL,
+        max_length=2000
     )
 
     class Meta:
@@ -161,13 +162,22 @@ class Metadata(models.Model):
     def __str__(self):
         return self.id_name
 
-    def legend_tag(self):
+    def get_legend_link(self):
         if self.legend_link is None or self.legend_link == '':
-            return mark_safe('<img src="%s%s" />' % (settings.MEDIA_URL, 'no_image.jpg'))
-        """When legend_link is 0, returns legend from mapserver"""
+            return None
+        # When legend_link is 0, returns legend from mapserver
         if self.legend_link == '0':
-            return mark_safe('<img src="%s%s" />' % (settings.AUTO_LEGEND_URL, self.id_name))
-        return mark_safe('<img src="/%s%s" />' % (settings.MEDIA_URL, self.legend_link))
+            return settings.AUTO_LEGEND_URL + self.id_name
+        # When legend_link is intra, returns legend from intranet mapserver
+        if self.legend_link == 'intra':
+            return settings.INTRA_LEGEND_URL + self.id_name
+        if self.legend_link.startswith('http'):
+            return self.legend_link
+        return settings.MEDIA_URL + self.legend_link
+
+    def legend_tag(self):
+        if self.get_legend_link():
+            return mark_safe('<img src="%s" />' % self.get_legend_link())
     legend_tag.short_description = _('legend')
 
     def image_tag(self):

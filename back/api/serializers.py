@@ -24,14 +24,20 @@ from .models import (
 # Get the UserModel
 UserModel = get_user_model()
 
-class WKTField(serializers.Field):
+class WKTLatLongPolygonField(serializers.Field):
     """
-    Geom objects are serialized to GEOMETRY((coords, coords)) notation
+    Polygons are serialized to POLYGON((Lat, Long)) notation
     """
     def to_representation(self, value):
         if isinstance(value, dict) or value is None:
             return value
-        return value.wkt or 'POLYGON EMPTY'
+        value.transform(4326)
+        new_geom = []
+        # transform Long/Lat to Lat/Long
+        for point in range(len(value.coords[0])):
+            new_geom.append(value.coords[0][point][::-1])
+        new_polygon = Polygon(new_geom)
+        return new_polygon.wkt or 'POLYGON EMPTY'
 
     def to_internal_value(self, value):
         if value == '' or value is None:
@@ -150,10 +156,17 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
     modified_user = serializers.StringRelatedField(read_only=True)
     documents = DocumentSerializer(many=True)
     copyright = CopyrightSerializer(many=False)
+    legend_tag = serializers.StringRelatedField()
+    image_tag = serializers.StringRelatedField()
+    legend_link = serializers.SerializerMethodField()
 
     class Meta:
         model = Metadata
         fields = '__all__'
+        lookup_field = 'id_name'
+        extra_kwargs = {
+            'url': {'lookup_field': 'id_name'}
+        }
 
     def get_contact_persons(self, obj):
         """obj is a Metadata instance. Returns list of dicts"""
@@ -162,6 +175,9 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
             MetadataContactSerializer(m, context={
                 'request': self.context['request']
             }).data for m in qset]
+
+    def get_legend_link(self, obj):
+        return obj.get_legend_link()
 
 
 class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):
@@ -349,7 +365,7 @@ class ExtractOrderSerializer(serializers.ModelSerializer):
     items = ExtractOrderItemSerializer(many=True)
     client = UserIdentitySerializer()
     invoice_contact = IdentitySerializer()
-    geom = WKTField()
+    geom = WKTLatLongPolygonField()
     geom_srid = serializers.IntegerField()
 
     class Meta:
@@ -460,7 +476,13 @@ class DataFormatListSerializer(ProductFormatSerializer):
         exclude = ['product']
 
 
-class ProductDigestSerializer(serializers.HyperlinkedModelSerializer):
+class ProductDigestSerializer(serializers.ModelSerializer):
+    metadata = serializers.HyperlinkedRelatedField(
+        many=False,
+        read_only=True,
+        view_name='metadata-detail',
+        lookup_field='id_name'
+    )
     class Meta:
         model = Product
         exclude = ['ts']
