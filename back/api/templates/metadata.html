@@ -32,7 +32,9 @@
                   {{ description_short }}
                 </p>
                 <p>
-                  {{ description_long }}
+                  {% autoescape off %}
+                    {{ description_long }}
+                  {% endautoescape %}
                 </p>
               </td>
             </tr>

@@ -327,9 +327,11 @@ class ExtractOrderView(generics.ListAPIView):
         """
         Once fetched by extract, status changes
         """
-        data = self.list(request, *args, **kwargs)
+        response = self.list(request, *args, **kwargs)
+        if response.data == []:
+            return Response(status=status.HTTP_204_NO_CONTENT)
         self.queryset.update(status=Order.OrderStatus.IN_EXTRACT)
-        return data
+        return response
 
 
 class ExtractOrderItemView(generics.UpdateAPIView):
@@ -343,14 +345,12 @@ class ExtractOrderItemView(generics.UpdateAPIView):
     http_method_names = ['put']
 
     def put(self, request, *args, **kwargs):
-        """Only allows to upload a file and destroys existing one"""
+        """Allows to upload a file and destroys existing one or cancel orderitem"""
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             instance = self.get_object()
             serializer.update(instance, serializer.validated_data)
-            return Response(
-                {"detail": _("File has been uploaded.")},
-                status=status.HTTP_202_ACCEPTED)
+            return Response(status=status.HTTP_202_ACCEPTED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

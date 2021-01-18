@@ -100,9 +100,12 @@ class OrderTests(APITestCase):
         order_item_id1 = response.data[0]['items'][0]['id']
         order_item_id2 = response.data[0]['items'][1]['id']
 
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.content)
+
         url = reverse('extract_orderitem', kwargs={'pk': order_item_id1})
         extract_file = SimpleUploadedFile("result.zip", empty_zip_data, content_type="multipart/form-data")
-        response = self.client.put(url, {'extract_result': extract_file})
+        response = self.client.put(url, {'extract_result': extract_file, 'comment': 'ok'})
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         self.assertEqual(
             Order.objects.get(pk=order_id).status,
@@ -135,7 +138,8 @@ class OrderTests(APITestCase):
 
         url = reverse('order-download-link', kwargs={'pk': order_id})
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertIsNotNone(response.data['detail'], 'response has detail')
         time.sleep(0.5)
         response = self.client.get(url)
         self.assertIsNotNone(response.data['download_link'], 'Check file is visible for user')
@@ -143,3 +147,57 @@ class OrderTests(APITestCase):
         # check if second file has been downloaded
         order_item2 = OrderItem.objects.get(pk=order_item_id2)
         self.assertIsNotNone(order_item2.last_download, 'Check if there\'s a last_download date')
+
+
+    def test_cancel_order_item(self):
+        empty_zip_data = b'PK\x05\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        url = reverse('extract_order')
+        response = self.client.get(url, format='json')
+        order_item_id1 = response.data[0]['items'][0]['id']
+        order_item_id2 = response.data[0]['items'][1]['id']
+        url = reverse('extract_orderitem', kwargs={'pk': order_item_id1})
+
+        response = self.client.put(url, {'is_rejected': True, 'comment': 'Interdit de commander ces données'})
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+        self.assertEqual(
+            Order.objects.get(pk=self.order.id).status,
+            Order.OrderStatus.IN_EXTRACT,
+            "Check order status is pending"
+        )
+
+        url = reverse('extract_orderitem', kwargs={'pk': order_item_id2})
+        extract_file = SimpleUploadedFile("result3.zip", empty_zip_data, content_type="multipart/form-data")
+        response = self.client.put(url, {'extract_result': extract_file})
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+        self.assertEqual(
+            Order.objects.get(pk=self.order.id).status,
+            Order.OrderStatus.PROCESSED,
+            "Check order status is processed"
+        )
+
+
+    def test_reject_order(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        url = reverse('extract_order')
+        response = self.client.get(url, format='json')
+        order_item_id1 = response.data[0]['items'][0]['id']
+        order_item_id2 = response.data[0]['items'][1]['id']
+        url = reverse('extract_orderitem', kwargs={'pk': order_item_id1})
+
+        response = self.client.put(url, {'is_rejected': True, 'comment': 'Interdit de commander ces données'})
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+        self.assertEqual(
+            Order.objects.get(pk=self.order.id).status,
+            Order.OrderStatus.IN_EXTRACT,
+            "Check order status is pending"
+        )
+
+        url = reverse('extract_orderitem', kwargs={'pk': order_item_id2})
+        response = self.client.put(url, {'is_rejected': True, 'comment': 'Interdit de commander ces données'})
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+        self.assertEqual(
+            Order.objects.get(pk=self.order.id).status,
+            Order.OrderStatus.REJECTED,
+            "Check order status is rejected"
+        )
