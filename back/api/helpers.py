@@ -53,9 +53,10 @@ def _zip_them_all(full_zip_path, zip_list_path):
     full_zip_file = zipfile.ZipFile(full_zip_path, 'w', zipfile.ZIP_DEFLATED)
 
     for zip_path in zip_list_path:
-        zip_file = zipfile.ZipFile('{}/{}'.format(settings.MEDIA_ROOT, zip_path), 'r')
-        for unzipped_file in zip_file.namelist():
-            full_zip_file.writestr(unzipped_file, zip_file.open(unzipped_file).read())
+        if zip_path != '':
+            zip_file = zipfile.ZipFile('{}/{}'.format(settings.MEDIA_ROOT, zip_path), 'r')
+            for unzipped_file in zip_file.namelist():
+                full_zip_file.writestr(unzipped_file, zip_file.open(unzipped_file).read())
 
     full_zip_file.close()
 
