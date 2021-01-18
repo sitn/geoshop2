@@ -392,14 +392,14 @@ class Order(models.Model):
         """
         self._reset_prices()
         items = self.items.all()
-        if not items:
+        if items == []:
             return False
         self.total_without_vat = Money(0, 'CHF')
+        self.processing_fee = Money(0, 'CHF')
         for item in items:
             if item.base_fee is None:
                 self._reset_prices()
                 return False
-            self.processing_fee = Money(0, 'CHF')
             if item.base_fee > self.processing_fee:
                 self.processing_fee = item.base_fee
             self.total_without_vat += item.price
