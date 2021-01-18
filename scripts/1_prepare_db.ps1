@@ -45,7 +45,7 @@ $env:PGPASSWORD = $previous_PGPASSWORD
 $errorlogs = Get-ChildItem -Recurse -Path $env:FMEDIR\*.log | Select-String "ERROR" -List
 
 If ($errorlogs) {
-    Write-Error $errorlogs
+    Write-Error "$errorlogs"
 }
 
 cd $pwd

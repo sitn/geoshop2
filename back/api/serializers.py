@@ -1,4 +1,5 @@
 import json
+import copy
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
@@ -31,11 +32,12 @@ class WKTLatLongPolygonField(serializers.Field):
     def to_representation(self, value):
         if isinstance(value, dict) or value is None:
             return value
-        value.transform(4326)
+        new_value = copy.copy(value)
+        new_value.transform(4326)
         new_geom = []
         # transform Long/Lat to Lat/Long
-        for point in range(len(value.coords[0])):
-            new_geom.append(value.coords[0][point][::-1])
+        for point in range(len(new_value.coords[0])):
+            new_geom.append(new_value.coords[0][point][::-1])
         new_polygon = Polygon(new_geom)
         return new_polygon.wkt or 'POLYGON EMPTY'
 
@@ -330,13 +332,14 @@ class ExtractOrderItemSerializer(OrderItemSerializer):
     """
     Orderitem serializer for extract. Allows to upload file of orderitem.
     """
-    extract_result = serializers.FileField()
+    extract_result = serializers.FileField(required=False)
     product = ProductSerializer(read_only=True)
     data_format = serializers.StringRelatedField(read_only=True)
+    is_rejected = serializers.BooleanField(required=False)
 
     class Meta(OrderItemSerializer.Meta):
         exclude = ['_price_currency', '_base_fee_currency',
-                   '_price', '_base_fee', 'order']
+                   '_price', '_base_fee', 'order', 'status']
         read_only_fields = [
             'id', 'price', 'data_format', 'product', 'srid', 'last_download', 'price_status']
 
@@ -344,10 +347,15 @@ class ExtractOrderItemSerializer(OrderItemSerializer):
         if instance.extract_result:
             # deletes previous file in filesystem
             instance.extract_result.delete()
-        instance.extract_result = validated_data.pop('extract_result')
-        instance.status = OrderItem.OrderItemStatus.PROCESSED
+        instance.comment = validated_data.pop('comment', None)
+        is_rejected = validated_data.pop('is_rejected')
+        instance.extract_result = validated_data.pop('extract_result', '')
+        if is_rejected:
+            instance.status = OrderItem.OrderItemStatus.REJECTED
+        if instance.extract_result.name != '':
+            instance.status = OrderItem.OrderItemStatus.PROCESSED
         instance.save()
-        status = instance.order.next_status_when_file_uploaded()
+        status = instance.order.next_status_on_extract_input()
         if status == Order.OrderStatus.PROCESSED:
             zip_all_orderitems(instance.order)
         instance.order.save()
@@ -367,6 +375,7 @@ class ExtractOrderSerializer(serializers.ModelSerializer):
     invoice_contact = IdentitySerializer()
     geom = WKTLatLongPolygonField()
     geom_srid = serializers.IntegerField()
+    geom_area = serializers.FloatField()
 
     class Meta:
         model = Order
@@ -378,7 +387,7 @@ class ExtractOrderSerializer(serializers.ModelSerializer):
             'processing_fee_currency', 'processing_fee',
             'total_cost_currency', 'total_cost',
             'part_vat_currency', 'part_vat',
-            'status']
+            'status', 'geom_area']
 
 
 class PasswordResetSerializer(serializers.Serializer):
