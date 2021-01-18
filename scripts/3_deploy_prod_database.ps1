@@ -18,6 +18,7 @@ if ($ok -eq 'y') {
     pg_dump -U postgres -F c -b -v --schema=$env:PGSCHEMA -f $prodBackup $env:PGDATABASE
     psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$env:PGDATABASE';"
     psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$env:PGDATABASE';"
+    psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS old_$env:PGDATABASE;"
     psql -U postgres -d postgres -c "ALTER DATABASE $env:PGDATABASE RENAME TO old_$env:PGDATABASE;"
     psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = 'geoshop2_prepub';"
     psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = 'geoshop2_prepub';"
