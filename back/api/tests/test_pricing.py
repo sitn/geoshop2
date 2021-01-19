@@ -4,7 +4,6 @@ from django.contrib.gis.geos import Polygon, Point
 from djmoney.money import Money
 from rest_framework.test import APITestCase
 from api.models import Pricing, Product, PricingGeometry, Order, OrderItem
-from api.pricing import ProductPriceCalculator
 
 UserModel = get_user_model()
 
@@ -27,7 +26,8 @@ class PricingTests(APITestCase):
             Pricing(
                 name="Forfait", # 1
                 pricing_type="SINGLE",
-                unit_price=self.unit_price),
+                unit_price=self.unit_price,
+                base_fee=Money(20, 'CHF')),
             Pricing(
                 name="Par nombre d'objets", # 2
                 pricing_type="BY_OBJECT_NUMBER",
@@ -35,7 +35,8 @@ class PricingTests(APITestCase):
             Pricing(
                 name="Par surface", # 3
                 pricing_type="BY_AREA",
-                unit_price=self.unit_price),
+                unit_price=self.unit_price,
+                base_fee=Money(50, 'CHF')),
             Pricing(
                 name="Par couche géométrique", # 4
                 pricing_type="FROM_PRICING_LAYER"),
@@ -132,11 +133,6 @@ class PricingTests(APITestCase):
             title="Test pricing order",
             geom=self.order_geom
         )
-        self.order_item = OrderItem.objects.create(
-            order=self.order,
-            product=self.products[5]
-        )
-        self.order.save()
 
         for geom in self.building_pricing_geometry:
             geom.pricing = Pricing.objects.filter(
@@ -178,8 +174,13 @@ class PricingTests(APITestCase):
     def test_manual_price(self):
         manual_price = self.products[5].pricing.get_price(self.order_geom)
         self.assertIsNone(manual_price[0], 'Manual price has None price when pricing is called')
+        order_item = OrderItem.objects.create(
+            order=self.order,
+            product=self.products[5]
+        )
+        self.order.save()
         self.assertEqual(self.order.status, Order.OrderStatus.DRAFT)
-        self.assertEqual(self.order_item.price_status, OrderItem.PricingStatus.PENDING, 'princing status stays pending')
+        self.assertEqual(order_item.price_status, OrderItem.PricingStatus.PENDING, 'princing status stays pending')
 
         # Client asks for a quote bescause order item pricing status is PENDING
         self.order.confirm()
@@ -187,16 +188,16 @@ class PricingTests(APITestCase):
         self.assertEqual(len(mail.outbox), 1, 'An email has been sent to admins')
         self.assertEqual(self.order.status, Order.OrderStatus.PENDING, 'Order status is now pending')
         # An admin sets price manually, this is normally done in admin interface
-        self.order_item.set_price(
+        order_item.set_price(
             price=self.unit_price,
             base_fee=self.base_fee,
         )
-        self.order_item.save()
+        order_item.save()
         # The admin confirms he's done with the quote
         self.order.quote_done()
         self.assertEqual(len(mail.outbox), 2, 'An email has been sent to the client')
         self.assertEqual(self.order.status, Order.OrderStatus.PENDING, 'Order status is still pending')
-        self.assertEqual(self.order_item.price_status, OrderItem.PricingStatus.CALCULATED, 'Price is calculated')
+        self.assertEqual(order_item.price_status, OrderItem.PricingStatus.CALCULATED, 'Price is calculated')
         self.order.confirm()
         self.assertEqual(self.order.status, Order.OrderStatus.READY, 'Order is ready for Extract')
 
@@ -205,3 +206,20 @@ class PricingTests(APITestCase):
         self.assertIsNone(undefined_price[0])
         self.assertLogs('pricing', level='ERROR')
         self.assertEqual(len(mail.outbox), 1, 'An email has been sent to admins')
+
+    def test_base_fee(self):
+        orderitem1 = OrderItem.objects.create(
+            order=self.order,
+            product=self.products[1]
+        )
+        orderitem2 = OrderItem.objects.create(
+            order=self.order,
+            product=self.products[3]
+        )
+        self.order.save()
+        orderitem1.set_price()
+        orderitem1.save()
+        orderitem2.set_price()
+        orderitem2.save()
+        self.order.set_price()
+        self.assertEqual(self.order.processing_fee, Money(50, 'CHF'), 'Base fee is correct')
