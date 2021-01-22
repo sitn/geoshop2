@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "copy /y \"src\\assets\\configs\\config.json.tmpl\" \"%cd%\\src\\assets\\configs\\config.json\" && powershell -file copy-config.ps1 && start /b start-chrome.bat && ng serve",
+    "start": "copy /y \"src\\assets\\configs\\config.json.tmpl\" \"%cd%\\src\\assets\\configs\\config.json\" && powershell -file \"%cd%\\copy-config.ps1\" && start /b start-chrome.bat && ng serve",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
