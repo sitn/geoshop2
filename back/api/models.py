@@ -77,7 +77,8 @@ class Document(models.Model):
     link = models.URLField(
         _('link'),
         help_text=_('Please complete the above URL'),
-        default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL
+        default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL,
+        max_length=2000
     )
 
     class Meta:
@@ -161,13 +162,22 @@ class Metadata(models.Model):
     def __str__(self):
         return self.id_name
 
-    def legend_tag(self):
+    def get_legend_link(self):
         if self.legend_link is None or self.legend_link == '':
-            return mark_safe('<img src="%s%s" />' % (settings.MEDIA_URL, 'no_image.jpg'))
-        """When legend_link is 0, returns legend from mapserver"""
+            return None
+        # When legend_link is 0, returns legend from mapserver
         if self.legend_link == '0':
-            return mark_safe('<img src="%s%s" />' % (settings.AUTO_LEGEND_URL, self.id_name))
-        return mark_safe('<img src="/%s%s" />' % (settings.MEDIA_URL, self.legend_link))
+            return settings.AUTO_LEGEND_URL + self.id_name
+        # When legend_link is intra, returns legend from intranet mapserver
+        if self.legend_link == 'intra':
+            return settings.INTRA_LEGEND_URL + self.id_name
+        if self.legend_link.startswith('http'):
+            return self.legend_link
+        return settings.MEDIA_URL + self.legend_link
+
+    def legend_tag(self):
+        if self.get_legend_link():
+            return mark_safe('<img src="%s" />' % self.get_legend_link())
     legend_tag.short_description = _('legend')
 
     def image_tag(self):
@@ -382,14 +392,14 @@ class Order(models.Model):
         """
         self._reset_prices()
         items = self.items.all()
-        if not items:
+        if items == []:
             return False
         self.total_without_vat = Money(0, 'CHF')
+        self.processing_fee = Money(0, 'CHF')
         for item in items:
             if item.base_fee is None:
                 self._reset_prices()
                 return False
-            self.processing_fee = Money(0, 'CHF')
             if item.base_fee > self.processing_fee:
                 self.processing_fee = item.base_fee
             self.total_without_vat += item.price
@@ -423,25 +433,35 @@ class Order(models.Model):
         else:
             self.status = Order.OrderStatus.PENDING
 
-    def next_status_when_file_uploaded(self):
-        """Controls status when a file is uploaded"""
+    def next_status_on_extract_input(self):
+        """Controls status when extract uploads a file or cancel an order item"""
         previous_accepted_status = [
             Order.OrderStatus.IN_EXTRACT,
             Order.OrderStatus.PARTIALLY_DELIVERED
         ]
         if self.status not in previous_accepted_status:
             raise Exception("Order has an inappropriate status for this operation")
-        items = self.items.all()
-        for item in items:
-            if not item.extract_result:
+        items_statuses = set(self.items.all().values_list('status', flat=True))
+
+        if OrderItem.OrderItemStatus.PENDING in items_statuses:
+            if OrderItem.OrderItemStatus.PROCESSED in items_statuses:
                 self.status = Order.OrderStatus.PARTIALLY_DELIVERED
-                return self.status
-        self.status = Order.OrderStatus.PROCESSED
+            else:
+                self.status = Order.OrderStatus.IN_EXTRACT
+        else:
+            if OrderItem.OrderItemStatus.PROCESSED in items_statuses:
+                self.status = Order.OrderStatus.PROCESSED
+            else:
+                self.status = Order.OrderStatus.REJECTED
         return self.status
 
     @property
     def geom_srid(self):
         return self.geom.srid
+
+    @property
+    def geom_area(self):
+        return self.geom.area
 
     def __str__(self):
         return '%s - %s' % (self.id, self.title)
@@ -461,6 +481,7 @@ class OrderItem(models.Model):
         PENDING = 'PENDING', _('Pending')
         PROCESSED = 'PROCESSED', _('Processed')
         ARCHIVED = 'ARCHIVED', _('Archived')
+        REJECTED = 'REJECTED', _('Rejected')
 
     order = models.ForeignKey(
         Order, models.CASCADE, related_name='items', verbose_name=_('order'), blank=True, null=True)
@@ -479,6 +500,8 @@ class OrderItem(models.Model):
     _base_fee = MoneyField(
         _('base_fee'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
     extract_result = models.FileField(upload_to=RandomFileName('extract'), null=True, blank=True)
+    comment = models.TextField(_('comment'), null=True, blank=True)
+
 
     class Meta:
         db_table = 'order_item'

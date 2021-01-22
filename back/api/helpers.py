@@ -1,6 +1,6 @@
-import os
 import uuid
 import zipfile
+from pathlib import Path
 from multiprocessing import Process
 from django.conf import settings
 from django.core.mail import send_mail
@@ -20,10 +20,10 @@ class RandomFileName(object):
 
     def __call__(self, _, filename):
         today = timezone.now()
-        current_path = os.path.join(self.path_suffix, str(
-            today.year), str(today.month), "{}{}")
         first_part = str(uuid.uuid4())[0:9]
-        return current_path.format(first_part, filename)
+        current_path = Path(self.path_suffix, str(
+            today.year), str(today.month), "{}{}".format(first_part, filename))
+        return current_path
 
 
 def send_email_to_admin(subject, message):
@@ -53,9 +53,10 @@ def _zip_them_all(full_zip_path, zip_list_path):
     full_zip_file = zipfile.ZipFile(full_zip_path, 'w', zipfile.ZIP_DEFLATED)
 
     for zip_path in zip_list_path:
-        zip_file = zipfile.ZipFile('{}/{}'.format(settings.MEDIA_ROOT, zip_path), 'r')
-        for unzipped_file in zip_file.namelist():
-            full_zip_file.writestr(unzipped_file, zip_file.open(unzipped_file).read())
+        if zip_path != '':
+            zip_file = zipfile.ZipFile('{}/{}'.format(settings.MEDIA_ROOT, zip_path), 'r')
+            for unzipped_file in zip_file.namelist():
+                full_zip_file.writestr(unzipped_file, zip_file.open(unzipped_file).read())
 
     full_zip_file.close()
 
@@ -68,14 +69,13 @@ def zip_all_orderitems(order):
     zip_list_path = list(order.items.all().values_list('extract_result', flat=True))
 
     today = timezone.now()
-    current_path = os.path.join(
+    first_part = str(uuid.uuid4())[0:9]
+    zip_path = Path(
         'extract',
         str(today.year), str(today.month),
-        "{}{}.zip")
-    first_part = str(uuid.uuid4())[0:9]
-    zip_path = current_path.format(first_part, str(order.id))
-    order.extract_result.name = zip_path
-    full_zip_path = os.path.join(settings.MEDIA_ROOT,zip_path)
+        "{}{}.zip".format(first_part, str(order.id)))
+    order.extract_result.name = zip_path.as_posix()
+    full_zip_path = Path(settings.MEDIA_ROOT, zip_path)
 
     back_process = Process(target=_zip_them_all, args=(full_zip_path, zip_list_path))
     back_process.daemon = True

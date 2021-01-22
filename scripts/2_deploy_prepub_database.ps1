@@ -11,6 +11,9 @@ foreach ($line in Get-Content $PSScriptRoot\..\back\.env.prepub) {
 $filename = ("geoshop.backup")
 $dumpFile = ("{0}\{1}"-f $PSScriptRoot, $filename)
 
+Remove-Item -Recurse -Force "\\$env:PGHOST\geoshop_data_prepub\extract\*"
+Copy-Item -Recurse $PSScriptRoot\..\back\files\extract\* -Destination "\\$env:PGHOST\geoshop_data_prepub\extract\"
+
 # Database
 If (Test-Path $dumpFile) {
     $env:PGPASSWORD = $env:PGPOSTGRESPASSWORD
