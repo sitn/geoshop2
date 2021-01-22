@@ -74,7 +74,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   get isOrderHasPendingItem() {
     return this.currentOrder ?
-      this.currentOrder.items.findIndex(x => x.price_status === 'PENDING') > -1 :
+      !this.currentOrder.shouldDisplayConfirm :
       false;
   }
 

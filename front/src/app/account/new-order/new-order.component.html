@@ -247,8 +247,7 @@
                 </mat-error>
               </mat-form-field>
             </td>
-            <td mat-footer-cell *matFooterCellDef class="text-primary">
-            </td>
+            <td mat-footer-cell *matFooterCellDef class="text-primary"></td>
           </ng-container>
 
           <!-- Price Column -->
@@ -269,8 +268,7 @@
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns" class="text-primary"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="text-primary"></tr>
-          <tr mat-footer-row *matFooterRowDef="displayedColumns; sticky: true" class="text-primary">
-          </tr>
+          <tr mat-footer-row *matFooterRowDef="displayedColumns; sticky: true" class="text-primary"></tr>
         </table>
       </div>
 

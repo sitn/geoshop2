@@ -180,8 +180,11 @@ export class MapService {
       this.snackBarRef.dismiss();
     }
 
+    if (this.transformInteraction) {
+      this.transformInteraction.setActive(false);
+    }
+
     this.featureFromDrawing = null;
-    this.transformInteraction.setActive(false);
     this.store.dispatch(updateGeometry({geom: ''}));
   }
 

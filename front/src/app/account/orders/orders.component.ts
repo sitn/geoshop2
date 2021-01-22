@@ -1,6 +1,6 @@
-import {Component, ComponentFactoryResolver, ElementRef, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
+import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, merge, of} from 'rxjs';
-import {IOrder, IOrderDowloadLink, IOrderItem, IOrderSummary, Order} from '../../_models/IOrder';
+import {IOrderSummary, Order} from '../../_models/IOrder';
 import {debounceTime, filter, map, mergeMap, scan, skip, switchMap, tap} from 'rxjs/operators';
 import {MapService} from '../../_services/map.service';
 import Map from 'ol/Map';
@@ -11,14 +11,8 @@ import {CdkVirtualScrollViewport} from '@angular/cdk/scrolling';
 import {GeoHelper} from '../../_helpers/geoHelper';
 import {ApiOrderService} from '../../_services/api-order.service';
 import {ApiService} from '../../_services/api.service';
-import {OrderItemViewComponent} from '../../_components/order-item-view/order-item-view.component';
-import {WidgetHostDirective} from '../../_directives/widget-host.directive';
-import {AppState} from '../../_store';
-import {Store} from '@ngrx/store';
-import {StoreService} from '../../_services/store.service';
 import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
-import {IApiResponseError} from '../../_models/IApi';
-import {MatSnackBar} from '@angular/material/snack-bar';
+
 
 @Component({
   selector: 'gs2-orders',
@@ -39,13 +33,9 @@ export class OrdersComponent implements OnInit {
   stepToLoadData = 0;
   readonly itemHeight = 48;
 
-  // Order items
-  @ViewChildren(WidgetHostDirective) orderItemTemplates: QueryList<WidgetHostDirective>;
-  selectedOrder: Order;
-
   // Map
-  private minimap: Map;
-  private vectorSource: VectorSource;
+  minimap: Map;
+  vectorSource: VectorSource;
 
   // Filtering
   orderFilterControl = new FormControl('');
@@ -56,10 +46,6 @@ export class OrdersComponent implements OnInit {
               private mapService: MapService,
               private configService: ConfigService,
               private elRef: ElementRef,
-              private cfr: ComponentFactoryResolver,
-              private store: Store<AppState>,
-              private storeService: StoreService,
-              private snackBar: MatSnackBar,
   ) {
   }
 
@@ -165,76 +151,6 @@ export class OrdersComponent implements OnInit {
     ).subscribe(orders => {
       this.currentOrders = orders;
       this.isSearchLoading$.next(false);
-    });
-  }
-
-  private generateOrderItemsElements(order: Order, index: number) {
-    const componentFac = this.cfr.resolveComponentFactory(OrderItemViewComponent);
-    this.orderItemTemplates.forEach((item, i) => {
-      if (index === i && item.viewContainerRef.length === 0) {
-        const component = item.viewContainerRef.createComponent(componentFac);
-        component.instance.dataSource = order.items;
-        component.changeDetectorRef.detectChanges();
-        return;
-      }
-    });
-  }
-
-  displayMiniMap(orderSummary: IOrderSummary | Order, index: number) {
-    this.apiOrderService.getOrder((orderSummary as IOrderSummary).url).subscribe((loadedOrder) => {
-      if (loadedOrder) {
-        this.selectedOrder = new Order(loadedOrder);
-        this.generateOrderItemsElements(this.selectedOrder, index);
-        GeoHelper.displayMiniMap(this.selectedOrder, [this.minimap], [this.vectorSource], 0);
-      }
-    });
-  }
-
-  addToCart() {
-    if (this.selectedOrder) {
-      this.storeService.addOrderToStore(this.selectedOrder);
-    }
-  }
-
-  downloadOrder(event: MouseEvent, id: number) {
-    event.stopPropagation();
-    event.preventDefault();
-
-    this.apiOrderService.downloadOrder(id).subscribe(link => {
-      if (!link) {
-        this.snackBar.open(
-          'Aucun fichier disponible', 'Ok', {panelClass: 'notification-info'}
-        );
-        return;
-      }
-
-      if ((link as IApiResponseError).error) {
-        this.snackBar.open(
-          (link as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'}
-        );
-        return;
-      }
-
-      if ((link as IOrderDowloadLink).detail) {
-        this.snackBar.open(
-          // @ts-ignore
-          (link as IOrderDowloadLink).detail, 'Ok', {panelClass: 'notification-info'}
-        );
-        return;
-      }
-
-      const downloadLink = (link as IOrderDowloadLink).download_link;
-      if (downloadLink) {
-        const urlsParts = downloadLink.split('/');
-        const filename = urlsParts.pop() || urlsParts.pop();
-        GeoshopUtils.downloadData(downloadLink, filename || 'download.zip');
-      }
-    });
-  }
-
-  confirmOrder(orderId: number) {
-    this.snackBar.open('Pas encore implémenté', 'Ok', {
-      panelClass: 'notification-warning'
     });
   }
 }

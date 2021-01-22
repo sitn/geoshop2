@@ -18,9 +18,15 @@ export interface IStatusAsReadableIcon {
   color: string;
 }
 
-export type OrderStatus = 'DRAFT' | 'PENDING' | 'READY' |
-  'PARTIALLY_DELIVERED' | 'PROCESSED' | 'DOWNLOADED' |
-  'ARCHIVED' | 'REJECTED' | 'CONFIRM_REQUIRED';
+export type OrderStatus = 'DRAFT' |
+  'PENDING' |
+  'READY' |
+  'IN_EXTRACT' |
+  'PARTIALLY_DELIVERED' |
+  'PROCESSED' |
+  'ARCHIVED' |
+  'REJECTED' |
+  'CONFIRM_REQUIRED';
 
 export interface IOrderItem {
   product: IProduct | string;
@@ -122,6 +128,7 @@ export class Order {
   invoice_contact: number;
 
   statusAsReadableIconText: IStatusAsReadableIcon;
+  readonly shouldDisplayConfirm: boolean = true;
 
   private _invoiceContact: Contact | undefined;
   get invoiceContact(): Contact | undefined {
@@ -208,19 +215,21 @@ export class Order {
     }
 
     for (let i = 0; i < this.items.length; i++) {
-      const prod = this.items[i].product;
-      if (typeof prod === 'string') {
-        this.items[i].product = {
-          label: prod
+      const item = this.items[i];
+      const product = item.product;
+      if (typeof product === 'string') {
+        item.product = {
+          label: product
         };
       }
+      this.shouldDisplayConfirm = this.shouldDisplayConfirm && item.price_status === 'CALCULATED';
     }
 
     this.initializeGeometry(options.geom);
-    this.statusAsReadableIconText = Order.initializeStatus(options);
+    this.statusAsReadableIconText = Order.initializeStatus(options, this.shouldDisplayConfirm);
   }
 
-  public static initializeStatus(order: IOrderSummary | IOrder) {
+  public static initializeStatus(order: IOrderSummary | IOrder, isPendingConfirm: boolean = false) {
     let result: IStatusAsReadableIcon = {
       iconName: '',
       text: '',
@@ -228,39 +237,70 @@ export class Order {
     };
 
     switch (order.status) {
-      case 'PENDING':
-        result = {
-          iconName: 'warning',
-          text: `Devis réalisé, en attente de validation de votre part</span></div>`,
-          color: 'paleorange'
-        };
-        break;
-      case 'READY':
-        result = {
-          text: `Prête`,
-          iconName: 'check_outline',
-          color: '#2bae66'
-        };
-        break;
-      case 'PROCESSED':
-        result = {
-          text: `Calculée`,
-          iconName: 'check_outline',
-          color: '#2bae66'
-        };
-        break;
       case 'DRAFT':
         result = {
           text: `Brouillon`,
           iconName: 'info',
-          color: 'paleblue'
+          color: '#bbb'
         };
         break;
-      default:
+      case 'PENDING':
+        result = {
+          text: isPendingConfirm ?
+            'Devis réalisé, en attente de confirmation' :
+            'En attente du devis',
+          iconName: 'warning',
+          color: '#FFDFBE'
+        };
+        break;
+      case 'READY':
+        result = {
+          text: `Prête pour extraction`,
+          iconName: 'check_outline',
+          color: '#2bae66'
+        };
+        break;
+      case 'IN_EXTRACT':
+        result = {
+          text: `Extraction en cours`,
+          iconName: 'hourglass_empty',
+          color: '#86a4f0'
+        };
+        break;
+      case 'PARTIALLY_DELIVERED':
+        result = {
+          text: `Partiellement traitée`,
+          iconName: 'hourglass_bot',
+          color: '#7593f0'
+        };
+        break;
+      case 'PROCESSED':
         result = {
           text: `Traitée`,
+          iconName: 'check_outline',
+          color: '#2bae66'
+        };
+        break;
+      case 'ARCHIVED':
+        result = {
+          text: `Archivée`,
+          iconName: 'archive',
+          color: '#000000'
+        };
+        break;
+      case 'REJECTED':
+        result = {
+          text: `Annulée`,
+          iconName: 'cancel',
+          color: '#D0414E'
+        };
+        break;
+
+      default:
+        result = {
+          text: `Etat inconnu`,
           iconName: 'info',
-          color: 'palegreen'
+          color: '#E993B0'
         };
         break;
     }
