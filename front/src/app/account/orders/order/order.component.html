@@ -28,7 +28,7 @@
     </div>
 
     <div class="bottom-actions-container">
-      <button *ngIf="true"
+      <button *ngIf="selectedOrder?.status === 'PENDING' && selectedOrder?.shouldDisplayConfirm"
               mat-raised-button
               class="info-background"
               (click)="confirmOrder()">
