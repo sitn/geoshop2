@@ -145,6 +145,7 @@ export class MapService {
       this.initializeGeolocation();
       this.initializeInteraction();
       this.initializeDragInteraction();
+      this.initializeDelKey();
       this.store.select(selectOrder).subscribe(order => {
         if (!this.featureFromDrawing && order && order.geom) {
           const geometry = this.geoJsonFormatter.readGeometry(order.geom);
@@ -161,7 +162,6 @@ export class MapService {
 
   public toggleDrawing() {
     this.isDrawModeActivated = !this.isDrawModeActivated;
-    this.transformInteraction.setActive(false);
     this.modifyInteraction.setActive(this.isDrawModeActivated);
     this.drawInteraction.setActive(this.isDrawModeActivated);
   }
@@ -169,6 +169,7 @@ export class MapService {
   public eraseDrawing() {
     if (this.featureFromDrawing) {
       this.drawingSource.removeFeature(this.featureFromDrawing);
+      this.featureFromDrawing.dispose();
     }
 
     if (this.geocoderSource) {
@@ -178,6 +179,7 @@ export class MapService {
     if (this.snackBarRef) {
       this.snackBarRef.dismiss();
     }
+
     this.featureFromDrawing = null;
     this.transformInteraction.setActive(false);
     this.store.dispatch(updateGeometry({geom: ''}));
@@ -398,8 +400,11 @@ export class MapService {
     this.drawingSource.on('addfeature', (evt) => {
       this.featureFromDrawing = evt.feature;
       this.drawInteraction.setActive(false);
-      this.transformInteraction.setActive(true);
       this.setAreaToCurrentFeature();
+
+      setTimeout(() => {
+        this.transformInteraction.setActive(true);
+      }, 500);
     });
     this.drawingLayer = new VectorLayer({
       source: this.drawingSource,
@@ -438,6 +443,10 @@ export class MapService {
     this.drawInteraction.on('change:active', () => {
       const isActive = this.drawInteraction.getActive();
 
+      if (isActive) {
+        this.transformInteraction.setActive(false);
+      }
+
       if (this.featureFromDrawing && isActive && this.drawingSource.getFeatures().length > 0) {
         this.drawingSource.removeFeature(this.featureFromDrawing);
       }
@@ -457,9 +466,21 @@ export class MapService {
       }
     });
 
+    this.modifyInteraction.on('modifystart', () => {
+      this.transformInteraction.setActive(false);
+    });
     this.modifyInteraction.on('modifyend', (evt) => {
       this.featureFromDrawing = evt.features.item(0);
       this.setAreaToCurrentFeature();
+      setTimeout(() => {
+        this.transformInteraction.setActive(true);
+      }, 500);
+    });
+    this.modifyInteraction.on('change:active', () => {
+      const isActive = this.modifyInteraction.getActive();
+      if (isActive) {
+        this.transformInteraction.setActive(false);
+      }
     });
 
     this.map.addInteraction(this.modifyInteraction);
@@ -506,35 +527,36 @@ export class MapService {
     }
   }
 
+  private initializeDelKey() {
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'Delete' && this.drawingSource && this.featureFromDrawing) {
+        this.eraseDrawing();
+      }
+    });
+  }
+
   private initializeInteraction() {
     Transform.prototype.Cursors.rotate = 'url(\'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIgogICB4bWxuczpjYz0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjIgogICB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM6c29kaXBvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2RpLTAuZHRkIgogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIKICAgdmlld0JveD0iMCAwIDI0IDI0IgogICBmaWxsPSJibGFjayIKICAgd2lkdGg9IjE4cHgiCiAgIGhlaWdodD0iMThweCIKICAgdmVyc2lvbj0iMS4xIgogICBpZD0ic3ZnNiIKICAgc29kaXBvZGk6ZG9jbmFtZT0icm90YXRlX2xlZnQtYmxhY2stMThkcC5zdmciCiAgIGlua3NjYXBlOnZlcnNpb249IjAuOTIuNCAoNWRhNjg5YzMxMywgMjAxOS0wMS0xNCkiPgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTEyIj4KICAgIDxyZGY6UkRGPgogICAgICA8Y2M6V29yawogICAgICAgICByZGY6YWJvdXQ9IiI+CiAgICAgICAgPGRjOmZvcm1hdD5pbWFnZS9zdmcreG1sPC9kYzpmb3JtYXQ+CiAgICAgICAgPGRjOnR5cGUKICAgICAgICAgICByZGY6cmVzb3VyY2U9Imh0dHA6Ly9wdXJsLm9yZy9kYy9kY21pdHlwZS9TdGlsbEltYWdlIiAvPgogICAgICA8L2NjOldvcms+CiAgICA8L3JkZjpSREY+CiAgPC9tZXRhZGF0YT4KICA8ZGVmcwogICAgIGlkPSJkZWZzMTAiIC8+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxIgogICAgIG9iamVjdHRvbGVyYW5jZT0iMTAiCiAgICAgZ3JpZHRvbGVyYW5jZT0iMTAiCiAgICAgZ3VpZGV0b2xlcmFuY2U9IjEwIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxODIyIgogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9IjEwNTEiCiAgICAgaWQ9Im5hbWVkdmlldzgiCiAgICAgc2hvd2dyaWQ9ImZhbHNlIgogICAgIGlua3NjYXBlOnpvb209IjEzLjExMTExMSIKICAgICBpbmtzY2FwZTpjeD0iLTcuODE3Nzk2NyIKICAgICBpbmtzY2FwZTpjeT0iOC45OTk5OTk5IgogICAgIGlua3NjYXBlOndpbmRvdy14PSI4OSIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iLTkiCiAgICAgaW5rc2NhcGU6d2luZG93LW1heGltaXplZD0iMSIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJzdmc2IiAvPgogIDxwYXRoCiAgICAgZD0iTTAgMGgyNHYyNEgweiIKICAgICBmaWxsPSJub25lIgogICAgIGlkPSJwYXRoMiIgLz4KICA8cGF0aAogICAgIGQ9Ik03LjExIDguNTNMNS43IDcuMTFDNC44IDguMjcgNC4yNCA5LjYxIDQuMDcgMTFoMi4wMmMuMTQtLjg3LjQ5LTEuNzIgMS4wMi0yLjQ3ek02LjA5IDEzSDQuMDdjLjE3IDEuMzkuNzIgMi43MyAxLjYyIDMuODlsMS40MS0xLjQyYy0uNTItLjc1LS44Ny0xLjU5LTEuMDEtMi40N3ptMS4wMSA1LjMyYzEuMTYuOSAyLjUxIDEuNDQgMy45IDEuNjFWMTcuOWMtLjg3LS4xNS0xLjcxLS40OS0yLjQ2LTEuMDNMNy4xIDE4LjMyek0xMyA0LjA3VjFMOC40NSA1LjU1IDEzIDEwVjYuMDljMi44NC40OCA1IDIuOTQgNSA1Ljkxcy0yLjE2IDUuNDMtNSA1LjkxdjIuMDJjMy45NS0uNDkgNy0zLjg1IDctNy45M3MtMy4wNS03LjQ0LTctNy45M3oiCiAgICAgaWQ9InBhdGg0IgogICAgIHN0eWxlPSJmaWxsOiMwMDAwZmY7ZmlsbC1vcGFjaXR5OjEiIC8+Cjwvc3ZnPgo=\') 15 15, auto';
     Transform.prototype.Cursors.translate = 'url(\'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIgogICB4bWxuczpjYz0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjIgogICB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM6c29kaXBvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2RpLTAuZHRkIgogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIKICAgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMjQgMjQiCiAgIHZpZXdCb3g9IjAgMCAyNCAyNCIKICAgZmlsbD0iYmxhY2siCiAgIHdpZHRoPSIxOHB4IgogICBoZWlnaHQ9IjE4cHgiCiAgIHZlcnNpb249IjEuMSIKICAgaWQ9InN2ZzE0IgogICBzb2RpcG9kaTpkb2NuYW1lPSJ6b29tX291dF9tYXAtYmxhY2stMThkcC5zdmciCiAgIGlua3NjYXBlOnZlcnNpb249IjAuOTIuNCAoNWRhNjg5YzMxMywgMjAxOS0wMS0xNCkiPgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTIwIj4KICAgIDxyZGY6UkRGPgogICAgICA8Y2M6V29yawogICAgICAgICByZGY6YWJvdXQ9IiI+CiAgICAgICAgPGRjOmZvcm1hdD5pbWFnZS9zdmcreG1sPC9kYzpmb3JtYXQ+CiAgICAgICAgPGRjOnR5cGUKICAgICAgICAgICByZGY6cmVzb3VyY2U9Imh0dHA6Ly9wdXJsLm9yZy9kYy9kY21pdHlwZS9TdGlsbEltYWdlIiAvPgogICAgICA8L2NjOldvcms+CiAgICA8L3JkZjpSREY+CiAgPC9tZXRhZGF0YT4KICA8ZGVmcwogICAgIGlkPSJkZWZzMTgiIC8+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxIgogICAgIG9iamVjdHRvbGVyYW5jZT0iMTAiCiAgICAgZ3JpZHRvbGVyYW5jZT0iMTAiCiAgICAgZ3VpZGV0b2xlcmFuY2U9IjEwIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxODIyIgogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9IjEwNTEiCiAgICAgaWQ9Im5hbWVkdmlldzE2IgogICAgIHNob3dncmlkPSJmYWxzZSIKICAgICBpbmtzY2FwZTp6b29tPSIxMy4xMTExMTEiCiAgICAgaW5rc2NhcGU6Y3g9Ii03LjgxNzc5NjciCiAgICAgaW5rc2NhcGU6Y3k9IjguOTk5OTk5OSIKICAgICBpbmtzY2FwZTp3aW5kb3cteD0iODkiCiAgICAgaW5rc2NhcGU6d2luZG93LXk9Ii05IgogICAgIGlua3NjYXBlOndpbmRvdy1tYXhpbWl6ZWQ9IjEiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ic3ZnMTQiIC8+CiAgPGcKICAgICBpZD0iZzQiPgogICAgPHJlY3QKICAgICAgIGZpbGw9Im5vbmUiCiAgICAgICBoZWlnaHQ9IjI0IgogICAgICAgd2lkdGg9IjI0IgogICAgICAgaWQ9InJlY3QyIiAvPgogIDwvZz4KICA8ZwogICAgIGlkPSJnMTIiCiAgICAgc3R5bGU9ImZpbGw6IzAwMDBmZjtmaWxsLW9wYWNpdHk6MSI+CiAgICA8ZwogICAgICAgaWQ9ImcxMCIKICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwZmY7ZmlsbC1vcGFjaXR5OjEiPgogICAgICA8ZwogICAgICAgICBpZD0iZzgiCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwZmY7ZmlsbC1vcGFjaXR5OjEiPgogICAgICAgIDxwYXRoCiAgICAgICAgICAgZD0iTTE1LDNsMi4zLDIuM2wtMi44OSwyLjg3bDEuNDIsMS40MkwxOC43LDYuN0wyMSw5VjNIMTV6IE0zLDlsMi4zLTIuM2wyLjg3LDIuODlsMS40Mi0xLjQyTDYuNyw1LjNMOSwzSDNWOXogTTksMjEgbC0yLjMtMi4zbDIuODktMi44N2wtMS40Mi0xLjQyTDUuMywxNy4zTDMsMTV2Nkg5eiBNMjEsMTVsLTIuMywyLjNsLTIuODctMi44OWwtMS40MiwxLjQybDIuODksMi44N0wxNSwyMWg2VjE1eiIKICAgICAgICAgICBpZD0icGF0aDYiCiAgICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDBmZjtmaWxsLW9wYWNpdHk6MSIgLz4KICAgICAgPC9nPgogICAgPC9nPgogIDwvZz4KPC9zdmc+Cg==\') 10 10, auto';
-    Transform.prototype.Cursors.scale = 'url(\'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIgogICB4bWxuczpjYz0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjIgogICB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM6c29kaXBvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2RpLTAuZHRkIgogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIKICAgdmlld0JveD0iMCAwIDI0IDI0IgogICBmaWxsPSJibGFjayIKICAgd2lkdGg9IjE4cHgiCiAgIGhlaWdodD0iMThweCIKICAgdmVyc2lvbj0iMS4xIgogICBpZD0ic3ZnNiIKICAgc29kaXBvZGk6ZG9jbmFtZT0idHJhbnNmb3JtLWJsYWNrLTE4ZHAuc3ZnIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjkyLjQgKDVkYTY4OWMzMTMsIDIwMTktMDEtMTQpIj4KICA8bWV0YWRhdGEKICAgICBpZD0ibWV0YWRhdGExMiI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGRlZnMKICAgICBpZD0iZGVmczEwIiAvPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgYm9yZGVyb3BhY2l0eT0iMSIKICAgICBvYmplY3R0b2xlcmFuY2U9IjEwIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwIgogICAgIGd1aWRldG9sZXJhbmNlPSIxMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTgyMiIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSIxMDUxIgogICAgIGlkPSJuYW1lZHZpZXc4IgogICAgIHNob3dncmlkPSJmYWxzZSIKICAgICBpbmtzY2FwZTp6b29tPSIxOC41NDE5MTEiCiAgICAgaW5rc2NhcGU6Y3g9IjUuOTg2OTEyNCIKICAgICBpbmtzY2FwZTpjeT0iMTAuNDU5Njc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSI4OSIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iLTkiCiAgICAgaW5rc2NhcGU6d2luZG93LW1heGltaXplZD0iMSIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJzdmc2IiAvPgogIDxwYXRoCiAgICAgZD0iTTAgMGgyNHYyNEgweiIKICAgICBmaWxsPSJub25lIgogICAgIGlkPSJwYXRoMiIgLz4KICA8cGF0aAogICAgIGQ9Ik0yMiAxOHYtMkg4VjRoMkw3IDEgNCA0aDJ2MkgydjJoNHY4YzAgMS4xLjkgMiAyIDJoOHYyaC0ybDMgMyAzLTNoLTJ2LTJoNHpNMTAgOGg2djZoMlY4YzAtMS4xLS45LTItMi0yaC02djJ6IgogICAgIGlkPSJwYXRoNCIKICAgICBzdHlsZT0iZmlsbDojMDAwMGZmO2ZpbGwtb3BhY2l0eToxIiAvPgo8L3N2Zz4K\') 5 5, auto';
-    Transform.prototype.Cursors.scalev = Transform.prototype.Cursors.scale;
-    Transform.prototype.Cursors.scalev1 = Transform.prototype.Cursors.scale;
-    Transform.prototype.Cursors.scalev2 = Transform.prototype.Cursors.scale;
-    Transform.prototype.Cursors.scale1 = Transform.prototype.Cursors.scale;
-    Transform.prototype.Cursors.scale2 = Transform.prototype.Cursors.scale;
-    Transform.prototype.Cursors.scale3 = Transform.prototype.Cursors.scale;
-    Transform.prototype.Cursors.scaleh1 = Transform.prototype.Cursors.scale;
-    Transform.prototype.Cursors.scaleh3 = Transform.prototype.Cursors.scale;
 
     this.transformInteraction = new Transform({
       rotate: true,
-      scale: true,
       translate: true,
+      scale: false,
       translateFeature: false,
       addCondition: shiftKeyOnly,
       enableRotatedTransform: false,
       hitTolerance: 2,
     });
 
-    this.transformInteraction.on(['rotateend', 'translateend', 'scaleend'], (evt: any) => {
+    this.transformInteraction.on(['rotateend', 'translateend'], (evt: any) => {
       this.featureFromDrawing = evt.features.item(0);
       this.setAreaToCurrentFeature();
     });
 
     this.map.addInteraction(this.transformInteraction);
+
+    this.transformInteraction.setActive(false);
   }
 
   private initializeGeolocation() {

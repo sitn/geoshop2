@@ -205,24 +205,29 @@ export class OrdersComponent implements OnInit {
         this.snackBar.open(
           'Aucun fichier disponible', 'Ok', {panelClass: 'notification-info'}
         );
-      } else if (!(link as IOrderDowloadLink).detail?.startsWith('http')) {
-        this.snackBar.open(
-          (link as IOrderDowloadLink).detail, 'Ok', {panelClass: 'notification-info'}
-        );
-      } else if ((link as IApiResponseError).error) {
+        return;
+      }
+
+      if ((link as IApiResponseError).error) {
         this.snackBar.open(
           (link as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'}
         );
-      } else {
-        let filename = 'download.zip';
-        try {
-          const temp = (link as IOrderDowloadLink).download_link?.split('/');
-          filename = temp[temp.length - 1];
-        } catch {
+        return;
+      }
 
-        }
+      if ((link as IOrderDowloadLink).detail) {
+        this.snackBar.open(
+          // @ts-ignore
+          (link as IOrderDowloadLink).detail, 'Ok', {panelClass: 'notification-info'}
+        );
+        return;
+      }
 
-        GeoshopUtils.downloadData((link as IOrderDowloadLink).detail, filename);
+      const downloadLink = (link as IOrderDowloadLink).download_link;
+      if (downloadLink) {
+        const urlsParts = downloadLink.split('/');
+        const filename = urlsParts.pop() || urlsParts.pop();
+        GeoshopUtils.downloadData(downloadLink, filename || 'download.zip');
       }
     });
   }
