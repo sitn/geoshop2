@@ -68,7 +68,8 @@ export interface IOrderSummary {
 }
 
 export interface IOrderDowloadLink {
-  detail: string;
+  detail?: string;
+  download_link?: string;
 }
 
 /**

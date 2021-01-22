@@ -1,8 +1,12 @@
 ### Compile ###
-FROM node:alpine AS builder
+FROM node:12.16.2-alpine3.11 as builder
+RUN apk --no-cache --update --virtual build-dependencies add python make g++
 WORKDIR /usr/src/app
-COPY package.json package-lock.json ./
-RUN npm install
+ENV PATH=${PATH}:./node_modules/.bin
+ENV NODE_PATH=/usr/src/app/node_modules
+COPY package*.json ./
+RUN npm install --no-progress --loglevel=error --no-audit
+RUN ngcc
 COPY . .
 ARG FRONT_HREF
 RUN npm run ng build -- --prod --base-href ${FRONT_HREF}/

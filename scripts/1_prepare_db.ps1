@@ -25,6 +25,7 @@ fme $env:FMEDIR\03_order_item.fmw
 fme $env:FMEDIR\05_mo2geoshop.fmw
 
 & "$PSScriptRoot\reset_sequences.ps1"
+Remove-Item $PSScriptRoot\..\back\files\extract\* -Recurse -Force
 python manage.py fixturize
 python manage.py prepareusertests
 
@@ -34,7 +35,7 @@ $env:PGPASSWORD = $env:PGPOSTGRESPASSWORD
 If (Test-Path $dumpFile) {
     Remove-Item $dumpFile
 }
-pg_dump -U postgres -F c -b -v --schema=$env:PGSCHEMA -f $dumpFile $env:PGDATABASE
+pg_dump -U postgres -F c -b -v -f $dumpFile $env:PGDATABASE
 If (Test-Path $destFile) {
     Remove-Item $destFile
 }
@@ -44,7 +45,7 @@ $env:PGPASSWORD = $previous_PGPASSWORD
 $errorlogs = Get-ChildItem -Recurse -Path $env:FMEDIR\*.log | Select-String "ERROR" -List
 
 If ($errorlogs) {
-    Write-Error $errorlogs
+    Write-Error "$errorlogs"
 }
 
 cd $pwd

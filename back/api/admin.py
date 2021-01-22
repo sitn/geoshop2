@@ -57,10 +57,10 @@ class MetadataContactInline(admin.StackedInline):
 
 class MetadataAdmin(CustomModelAdmin):
     inlines = [MetadataContactInline]
-    raw_id_fields = ['modified_user']
+    raw_id_fields = ['modified_user', 'documents']
     search_fields = ['name', 'id_name']
     list_display = ('id_name', 'name')
-    readonly_fields = ('image_tag', 'legend_tag')
+    readonly_fields = ('image_tag', 'legend_tag', 'documents', 'copyright')
 
     def get_form(self, request, obj=None, change=False, **kwargs):
         form = super(MetadataAdmin, self).get_form(request, obj, change, **kwargs)

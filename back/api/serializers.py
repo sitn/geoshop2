@@ -1,4 +1,5 @@
 import json
+import copy
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
@@ -24,14 +25,21 @@ from .models import (
 # Get the UserModel
 UserModel = get_user_model()
 
-class WKTField(serializers.Field):
+class WKTLatLongPolygonField(serializers.Field):
     """
-    Geom objects are serialized to GEOMETRY((coords, coords)) notation
+    Polygons are serialized to POLYGON((Lat, Long)) notation
     """
     def to_representation(self, value):
         if isinstance(value, dict) or value is None:
             return value
-        return value.wkt or 'POLYGON EMPTY'
+        new_value = copy.copy(value)
+        new_value.transform(4326)
+        new_geom = []
+        # transform Long/Lat to Lat/Long
+        for point in range(len(new_value.coords[0])):
+            new_geom.append(new_value.coords[0][point][::-1])
+        new_polygon = Polygon(new_geom)
+        return new_polygon.wkt or 'POLYGON EMPTY'
 
     def to_internal_value(self, value):
         if value == '' or value is None:
@@ -150,10 +158,17 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
     modified_user = serializers.StringRelatedField(read_only=True)
     documents = DocumentSerializer(many=True)
     copyright = CopyrightSerializer(many=False)
+    legend_tag = serializers.StringRelatedField()
+    image_tag = serializers.StringRelatedField()
+    legend_link = serializers.SerializerMethodField()
 
     class Meta:
         model = Metadata
         fields = '__all__'
+        lookup_field = 'id_name'
+        extra_kwargs = {
+            'url': {'lookup_field': 'id_name'}
+        }
 
     def get_contact_persons(self, obj):
         """obj is a Metadata instance. Returns list of dicts"""
@@ -162,6 +177,9 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
             MetadataContactSerializer(m, context={
                 'request': self.context['request']
             }).data for m in qset]
+
+    def get_legend_link(self, obj):
+        return obj.get_legend_link()
 
 
 class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):
@@ -229,12 +247,12 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        exclude = ['date_downloaded']
+        exclude = ['date_downloaded', 'extract_result']
         read_only_fields = [
             'date_ordered', 'date_processed',
             'processing_fee_currency', 'processing_fee',
             'total_cost_currency', 'total_cost',
-            'part_vat_currency', 'part_vat', 'extract_result',
+            'part_vat_currency', 'part_vat',
             'status']
 
     def create(self, validated_data):
@@ -266,14 +284,17 @@ class OrderSerializer(serializers.ModelSerializer):
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get(
             'description', instance.description)
+        instance.invoice_contact = validated_data.get(
+            'invoice_contact', instance.invoice_contact)
         instance.save()
 
         existing_products = instance.items.all().values_list('product__label', flat=True)
-        update_products = [item['product'] for item in items_data]
+        if items_data is not None:
+            update_products = [item['product'] for item in items_data]
 
         # update order_items on PUT, no matter what is in items_data
         # update order_items on PATCH if items_data is present
-        if not self.partial or (self.partial and items_data is not None):
+        if not self.partial or (self.partial and items_data is not None and items_data != []):
             for existing_item in instance.items.all():
                 if existing_item.product.label not in update_products:
                     existing_item.delete()
@@ -287,7 +308,7 @@ class OrderSerializer(serializers.ModelSerializer):
             instance.save()
 
         if instance.order_type:
-            if items_data or geom or validated_data['order_type']:
+            if items_data or geom or 'order_type' in validated_data:
                 instance.set_price()
                 instance.save()
         return instance
@@ -311,13 +332,14 @@ class ExtractOrderItemSerializer(OrderItemSerializer):
     """
     Orderitem serializer for extract. Allows to upload file of orderitem.
     """
-    extract_result = serializers.FileField()
+    extract_result = serializers.FileField(required=False)
     product = ProductSerializer(read_only=True)
     data_format = serializers.StringRelatedField(read_only=True)
+    is_rejected = serializers.BooleanField(required=False)
 
     class Meta(OrderItemSerializer.Meta):
         exclude = ['_price_currency', '_base_fee_currency',
-                   '_price', '_base_fee', 'order']
+                   '_price', '_base_fee', 'order', 'status']
         read_only_fields = [
             'id', 'price', 'data_format', 'product', 'srid', 'last_download', 'price_status']
 
@@ -325,10 +347,15 @@ class ExtractOrderItemSerializer(OrderItemSerializer):
         if instance.extract_result:
             # deletes previous file in filesystem
             instance.extract_result.delete()
-        instance.extract_result = validated_data.pop('extract_result')
-        instance.status = OrderItem.OrderItemStatus.PROCESSED
+        instance.comment = validated_data.pop('comment', None)
+        is_rejected = validated_data.pop('is_rejected')
+        instance.extract_result = validated_data.pop('extract_result', '')
+        if is_rejected:
+            instance.status = OrderItem.OrderItemStatus.REJECTED
+        if instance.extract_result.name != '':
+            instance.status = OrderItem.OrderItemStatus.PROCESSED
         instance.save()
-        status = instance.order.next_status_when_file_uploaded()
+        status = instance.order.next_status_on_extract_input()
         if status == Order.OrderStatus.PROCESSED:
             zip_all_orderitems(instance.order)
         instance.order.save()
@@ -346,8 +373,9 @@ class ExtractOrderSerializer(serializers.ModelSerializer):
     items = ExtractOrderItemSerializer(many=True)
     client = UserIdentitySerializer()
     invoice_contact = IdentitySerializer()
-    geom = WKTField()
+    geom = WKTLatLongPolygonField()
     geom_srid = serializers.IntegerField()
+    geom_area = serializers.FloatField()
 
     class Meta:
         model = Order
@@ -359,7 +387,7 @@ class ExtractOrderSerializer(serializers.ModelSerializer):
             'processing_fee_currency', 'processing_fee',
             'total_cost_currency', 'total_cost',
             'part_vat_currency', 'part_vat',
-            'status']
+            'status', 'geom_area']
 
 
 class PasswordResetSerializer(serializers.Serializer):
@@ -457,7 +485,13 @@ class DataFormatListSerializer(ProductFormatSerializer):
         exclude = ['product']
 
 
-class ProductDigestSerializer(serializers.HyperlinkedModelSerializer):
+class ProductDigestSerializer(serializers.ModelSerializer):
+    metadata = serializers.HyperlinkedRelatedField(
+        many=False,
+        read_only=True,
+        view_name='metadata-detail',
+        lookup_field='id_name'
+    )
     class Meta:
         model = Product
         exclude = ['ts']

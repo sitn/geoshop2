@@ -1,14 +1,15 @@
 import os
-import copy
+from pathlib import Path
 import datetime
 from django.utils import timezone
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
 from djmoney.money import Money
 from api.models import Contact, Order, OrderItem, OrderType, Product, DataFormat
-from api.helpers import zip_all_orderitems
+from api.helpers import _zip_them_all
 
 UserModel = get_user_model()
 
@@ -164,22 +165,65 @@ class Command(BaseCommand):
             date_ordered=timezone.now())
         order1.save()
 
-        order2 = copy.copy(order1)
-        order2.pk = None
-
-        order3 = copy.copy(order2)
-        order4 = copy.copy(order2)
-        order4.client = mma
-        order_mka = copy.copy(order2)
-        order_mka.client = mka
-        order_download = copy.copy(order2)
-        order_download.client = mmi
-
+        order2 = Order.objects.create(
+            title='Plan de situation pour enquête',
+            description='C\'est un test',
+            order_type=order_type_prive,
+            client=rincevent,
+            geom=order_geom,
+            invoice_reference='Dossier n°545454',
+            date_ordered=timezone.now())
         order2.save()
+
+        order3 = Order.objects.create(
+            title='Plan de situation pour enquête',
+            description='C\'est un test',
+            order_type=order_type_prive,
+            client=rincevent,
+            geom=order_geom,
+            invoice_reference='Dossier n°545454',
+            date_ordered=timezone.now())
         order3.save()
+
+        order4 = Order.objects.create(
+            title='Plan de situation pour enquête',
+            description='C\'est un test',
+            order_type=order_type_prive,
+            client=mma,
+            geom=order_geom,
+            invoice_reference='Dossier n°545454',
+            date_ordered=timezone.now())
         order4.save()
+
+        order_mka = Order.objects.create(
+            title='Plan de situation pour enquête',
+            description='C\'est un test',
+            order_type=order_type_prive,
+            client=mka,
+            geom=order_geom,
+            invoice_reference='Dossier n°545454',
+            date_ordered=timezone.now())
         order_mka.save()
+
+        order_download = Order.objects.create(
+            title='Commande prête à être téléchargée',
+            description='C\'est un test',
+            order_type=order_type_prive,
+            client=mmi,
+            geom=order_geom,
+            invoice_reference='Dossier 8',
+            date_ordered=timezone.now())
         order_download.save()
+
+        order_quoted = Order.objects.create(
+            title='Commande devisée pour test',
+            description='C\'est un test',
+            order_type=order_type_prive,
+            client=mmi,
+            geom=order_geom,
+            invoice_reference='Dossier n°545454',
+            date_ordered=timezone.now())
+        order_quoted.save()
 
         # Products
         product1 = Product.objects.filter(label='MO - Cadastre complet').first()
@@ -207,11 +251,18 @@ class Command(BaseCommand):
         order_item_deprecated.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
         order_item_deprecated.price_status = OrderItem.PricingStatus.CALCULATED
         order_item_deprecated.save()
+
         order_item_download = OrderItem.objects.create(
             order=order_download, product=product2, data_format=data_format_maquette)
         order_item_download.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
         order_item_download.price_status = OrderItem.PricingStatus.CALCULATED
         order_item_download.save()
+
+        order_item_quoted = OrderItem.objects.create(
+            order=order_quoted, product=product2, data_format=data_format_maquette)
+        order_item_quoted.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
+        order_item_quoted.price_status = OrderItem.PricingStatus.CALCULATED
+        order_item_quoted.save()
 
         order2.set_price()
         order2.save()
@@ -237,5 +288,19 @@ class Command(BaseCommand):
             order_item.status = OrderItem.OrderItemStatus.PROCESSED
             order_item.save()
         order_download.status = Order.OrderStatus.PROCESSED
-        zip_all_orderitems(order_download)
+
+        # Creating zip with all zips without background process unsupported by manage.py
+        zip_list_path = list(order_download.items.all().values_list('extract_result', flat=True))
+        today = timezone.now()
+        zip_path = Path(
+            'extract',
+            str(today.year), str(today.month),
+            "{}{}.zip".format('0a2ebb0a-', str(order_download.id)))
+        order_download.extract_result.name = zip_path.as_posix()
+        full_zip_path = Path(settings.MEDIA_ROOT, zip_path)
+        _zip_them_all(full_zip_path, zip_list_path)
         order_download.save()
+
+        order_quoted.set_price()
+        order_quoted.confirm()
+        order_quoted.save()
