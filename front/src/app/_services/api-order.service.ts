@@ -157,11 +157,10 @@ export class ApiOrderService {
 
     const url = new URL(`${this.apiUrl}/order/${orderId}/confirm/`);
 
-    return this.http.get<IOrder | IApiResponseError>(url.toString())
+    return this.http.get<IOrder | null>(url.toString())
       .pipe(
-        catchError((error: IApiResponseError) => {
-          console.error(error);
-          return of(error);
+        catchError(() => {
+          return of(null);
         })
       );
   }

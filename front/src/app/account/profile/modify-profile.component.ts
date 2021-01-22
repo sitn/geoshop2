@@ -77,23 +77,8 @@ export class ModifyProfileComponent implements OnInit {
       };
 
       this.apiService.change(user)
-        .pipe(
-          catchError(errorXhr => {
-            let message = '';
-            for (const attr in errorXhr.error) {
-              if (Array.isArray(errorXhr.error[attr])) {
-                message += errorXhr.error[attr].join('\n');
-              } else {
-                message += errorXhr.error[attr];
-              }
-            }
-            this.snackBar.open(message, 'Ok', {panelClass: 'notification-error'});
-            return of(false);
-          })
-        )
         .subscribe(async (res) => {
           if (res) {
-
             this.snackBar.open('Vos modifications ont été soumises aux gestionnaires du Geoshop et un email de confirmation vous a été envoyé. Vos modifications seront validées par leur soin d\'ici quelques jours.', 'Ok', {panelClass: 'notification-info'});
             await this.router.navigate(['/account/profile']);
           } else {

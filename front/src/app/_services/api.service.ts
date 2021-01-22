@@ -5,7 +5,7 @@ import {ConfigService} from './config.service';
 import {Observable, of, zip} from 'rxjs';
 import {IApiResponse, IApiResponseError} from '../_models/IApi';
 import {ICredentials, IIdentity} from '../_models/IIdentity';
-import {map, switchMap} from 'rxjs/operators';
+import {catchError, map, switchMap} from 'rxjs/operators';
 import {IMetadata} from '../_models/IMetadata';
 import {IUser, IUserChangeResponse, IUserToPost} from '../_models/IUser';
 
@@ -59,14 +59,6 @@ export class ApiService {
     }
   }
 
-  getIdentity(url: string | undefined): Observable<IIdentity | undefined> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
-
-    return !url ? of(undefined) : this.http.get<IIdentity | undefined>(url);
-  }
-
   login(authenticate: ICredentials, callbackUrl: string): Observable<{ identity: Partial<IIdentity>; callbackUrl: string; }> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
@@ -107,7 +99,12 @@ export class ApiService {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    return this.http.post<IUserChangeResponse | IApiResponseError>(this.apiUrl + '/auth/change/', user);
+    return this.http.post<IUserChangeResponse | null>(this.apiUrl + '/auth/change/', user)
+      .pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
   }
 
   register(user: IIdentity) {

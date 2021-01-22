@@ -110,14 +110,8 @@ export class OrderComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.apiOrderService.confirmOrder(this.selectedOrder.id).subscribe(newOrder => {
-          if (newOrder && (newOrder as IApiResponseError).error) {
-            this.snackBar.open(
-              (newOrder as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'}
-            );
-          } else {
-            if (newOrder) {
-              this.storeService.addOrderToStore(new Order(newOrder as IOrder));
-            }
+          if (newOrder) {
+            this.storeService.addOrderToStore(new Order(newOrder as IOrder));
             this.router.navigate(['/account/orders']);
           }
         });

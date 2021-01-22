@@ -37,4 +37,9 @@
   ul {
     list-style-type: none;
   }
+
+  .main-action-container {
+    display: flex;
+    justify-content: flex-end;
+  }
 }
