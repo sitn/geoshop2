@@ -16,22 +16,6 @@ class AuthViewsTests(APITestCase):
         self.password = 'testPa$$word'
         self.email = os.environ.get('EMAIL_TEST_TO', 'test@example.com')
 
-    def test_registration(self):
-        """
-        Tests registration
-        """
-        data = {
-            'username': self.username,
-            'password1': self.password,
-            'password2': self.password,
-            'email': self.email
-        }
-        url = reverse('auth_register')
-        response = self.client.post(url, data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
-        user = UserModel.objects.get(username=self.username)
-        self.assertEqual(user.email, self.email, 'User is registered and has an email')
-
     def test_current_user(self):
         """
         Test current user view
