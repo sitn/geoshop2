@@ -21,6 +21,7 @@ import {Contact, IContact} from '../../_models/IContact';
 import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
 import {updateOrder} from '../../_store/cart/cart.action';
 import {Router} from '@angular/router';
+import * as fromCart from '../../_store/cart/cart.action';
 
 @Component({
   selector: 'gs2-new-order',
@@ -37,7 +38,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   orderFormGroup: FormGroup;
   contactFormGroup: FormGroup;
-  orderItemFormGroup: FormGroup;
+  orderItemFormGroup: FormGroup = new FormGroup({});
   invoiceContactsFormControls: { [key: string]: FormControl };
 
   isSearchLoading = false;
@@ -193,8 +194,6 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       customer: new FormControl(null),
       ...this.invoiceContactsFormControls
     });
-
-    this.orderItemFormGroup = this.formBuilder.group({});
   }
 
   private updateForms(order: Order) {
@@ -230,9 +229,22 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     }
 
     this.dataSource = new MatTableDataSource(order.items);
+
+    for (const attr in this.orderItemFormGroup.controls) {
+      if (this.orderItemFormGroup.controls[attr]) {
+        this.orderItemFormGroup.removeControl(attr);
+      }
+    }
+
     order.items.forEach((item) => {
-      const itemFormControl = new FormControl(item.data_format, Validators.required);
-      this.orderItemFormGroup?.addControl(Order.getProductLabel(item), itemFormControl);
+      const itemFormControl = new FormControl('', Validators.required);
+      const controlName = this.getOrderItemControlName(item);
+      this.orderItemFormGroup?.addControl(controlName, itemFormControl);
+
+      if (item.data_format && item.available_formats &&
+        item.available_formats.indexOf(item.data_format) > -1) {
+        itemFormControl.setValue(item.data_format);
+      }
     });
 
     this.updateDescription(this.orderFormGroup?.get('orderType')?.value);
@@ -367,17 +379,23 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     return Order.getProductLabel(orderItem);
   }
 
+  getOrderItemControlName(orderItem: IOrderItem) {
+    return `${orderItem.id}_${Order.getProductLabel(orderItem)}`;
+  }
+
   updateDataFormat(orderItem: IOrderItem) {
-    const dataFormat = this.orderItemFormGroup.get(Order.getProductLabel(orderItem))?.value;
-    const orderItemId = orderItem.id || null;
-    if (orderItemId === null) {
+    if (orderItem.id == null) {
       return;
     }
-    this.apiOrderService.updateOrderItemDataFormat(dataFormat, orderItemId).subscribe(newOrderItem => {
+
+    const controlName = this.getOrderItemControlName(orderItem);
+    const dataFormat = this.orderItemFormGroup.get(controlName)?.value;
+
+    this.apiOrderService.updateOrderItemDataFormat(dataFormat, orderItem.id).subscribe(newOrderItem => {
       if (newOrderItem) {
         for (let i = 0; i < this.currentOrder.items.length; i++) {
-          if (Order.getProductLabel(this.currentOrder.items[i]) === Order.getProductLabel(newOrderItem as IOrderItem)) {
-            this.currentOrder.items[i] = newOrderItem as IOrderItem;
+          if (Order.getProductLabel(this.currentOrder.items[i]) === Order.getProductLabel(newOrderItem)) {
+            this.currentOrder.items[i] = newOrderItem;
           }
         }
         this.storeService.addOrderToStore(this.currentOrder);
@@ -386,11 +404,13 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   }
 
   confirm() {
-    this.apiOrderService.confirmOrder(this.currentOrder.id).subscribe(newOrder => {
-      if (newOrder) {
-        this.storeService.addOrderToStore(new Order(newOrder as IOrder));
-        this.router.navigate(['/account/orders']);
-      }
-    });
+    if (this.orderItemFormGroup.valid) {
+      this.apiOrderService.confirmOrder(this.currentOrder.id).subscribe(async confirmed => {
+        if (confirmed) {
+          this.store.dispatch(fromCart.deleteOrder());
+          await this.router.navigate(['/account/orders']);
+        }
+      });
+    }
   }
 }

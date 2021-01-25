@@ -176,11 +176,10 @@ export class ApiOrderService {
 
     const url = new URL(`${this.apiUrl}/order/${orderId}/confirm/`);
 
-    return this.http.get<IOrder | null>(url.toString())
+    return this.http.get<boolean>(url.toString())
       .pipe(
-        catchError(() => {
-          return of(null);
-        })
+        map(() => true),
+        catchError(() => of(false))
       );
   }
 
