@@ -1,5 +1,6 @@
 import logging
 from django.conf import settings
+from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.search import SearchVectorField
@@ -119,6 +120,12 @@ class Identity(AbstractIdentity):
     user = models.OneToOneField(
         UserModel, on_delete=models.DO_NOTHING, verbose_name=_('user'), blank=True, null=True)
     sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
+    ide_id = models.CharField(_('ide_number'), max_length=15, null=True, blank=True, validators=[
+        RegexValidator(
+            regex='^CHE-([0-9]{3}\.){2}[0-9]{3}$',
+            message=_('IDE number is not valid'),
+        ),
+    ])
     contract_accepted = models.DateField(_('contract_accepted'), null=True, blank=True)
     is_public = models.BooleanField(_('is_public'), default=False)
     subscribed = models.BooleanField(_('subscribed'), default=False)
