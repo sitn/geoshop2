@@ -74,14 +74,20 @@ export class OrdersComponent implements OnInit {
 
     return this.apiOrderService.getOrders(offset, this.batch)
       .pipe(
-        tap(response => this.total = response.count),
-        map((response) =>
-          response.results.sort((a) => a.status === 'PENDING' ? 1 : a.status === 'READY' ? 1 : 0).map(p => {
-            p.statusAsReadableIconText = Order.initializeStatus(p);
-            p.id = GeoshopUtils.ExtractIdFromUrl(p.url);
-            return p;
-          })
-        ),
+        tap(response => this.total = response ? response.count : 0),
+        map((response) => {
+          if (response) {
+            return response.results
+              .sort((a) => a.status === 'PENDING' ? 1 : a.status === 'READY' ? 1 : 0)
+              .map(p => {
+                p.statusAsReadableIconText = Order.initializeStatus(p);
+                p.id = GeoshopUtils.ExtractIdFromUrl(p.url);
+                return p;
+              });
+          } else {
+            return [];
+          }
+        }),
         map(arr => {
           return arr.reduce((acc, cur) => {
             const id = cur.url;
@@ -138,12 +144,14 @@ export class OrdersComponent implements OnInit {
 
           return this.apiService.find<IOrderSummary>(inputText, 'order').pipe(
             map(response => {
-              this.total = response.count;
-              return response.results.map(x => {
-                x.statusAsReadableIconText = Order.initializeStatus(x);
-                x.id = GeoshopUtils.ExtractIdFromUrl(x.url);
-                return x;
-              });
+              this.total = response ? response.count : 0;
+              return response ?
+                response.results.map(x => {
+                  x.statusAsReadableIconText = Order.initializeStatus(x);
+                  x.id = GeoshopUtils.ExtractIdFromUrl(x.url);
+                  return x;
+                }) :
+                [];
             }),
           );
         })

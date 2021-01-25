@@ -44,21 +44,6 @@ export class ForgetComponent implements OnInit {
     }
 
     this.apiService.forget(this.form.value.email)
-      .pipe(
-        catchError(errorXhr => {
-          let message = '';
-          for (const attr in errorXhr.error) {
-            if (Array.isArray(errorXhr.error[attr])) {
-              message += errorXhr.error[attr].join('\n');
-            } else {
-              message += errorXhr.error[attr];
-            }
-          }
-
-          this.snackBar.open(message, 'Ok', {panelClass: 'notification-error'});
-          return of(false);
-        })
-      )
       .subscribe((result) => {
         if (!result) {
           return;

@@ -70,8 +70,8 @@ export class CatalogComponent implements OnInit {
               .pipe(
                 map((response) => {
                   this.isSearchLoading = false;
-                  this.total = response.count;
-                  return response.results;
+                  this.total = response ? response.count : 0;
+                  return response ? response.results : [];
                 })
               );
           }
@@ -79,8 +79,8 @@ export class CatalogComponent implements OnInit {
           return this.apiService.find<IProduct>(inputText, 'product').pipe(
             map(response => {
               this.isSearchLoading = false;
-              this.total = response.count;
-              return response.results;
+              this.total = response ? response.count : 0;
+              return response ? response.results : [];
             })
           );
         })
@@ -109,8 +109,8 @@ export class CatalogComponent implements OnInit {
   getBatch(offset: number) {
     return this.apiService.getProducts(offset, this.batch)
       .pipe(
-        tap(response => this.total = response.count),
-        map((response) => response.results),
+        tap(response => this.total = response ? response.count : 0),
+        map((response) => response ? response.results : []),
         map(arr => {
           return arr.reduce((acc, cur) => {
             const id = cur.label;

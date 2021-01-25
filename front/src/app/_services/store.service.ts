@@ -5,7 +5,6 @@ import {Order} from '../_models/IOrder';
 import {ApiService} from './api.service';
 import {AppState} from '../_store';
 import {Store} from '@ngrx/store';
-import {GeoshopUtils} from '../_helpers/GeoshopUtils';
 import {updateOrder} from '../_store/cart/cart.action';
 
 @Injectable({
@@ -39,11 +38,13 @@ export class StoreService {
 
     forkJoin(observables).subscribe(results => {
       for (const result of results) {
-        for (const product of result.results) {
+        if (result) {
+          for (const product of result.results) {
 
-          for (const item of order.items) {
-            if (Order.getProductLabel(item) === product.label) {
-              item.product = product;
+            for (const item of order.items) {
+              if (Order.getProductLabel(item) === product.label) {
+                item.product = product;
+              }
             }
           }
         }

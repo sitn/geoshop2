@@ -1,6 +1,6 @@
-import { DomSanitizer } from "@angular/platform-browser";
-import { MatIconRegistry } from "@angular/material/icon";
-import { Injectable } from "@angular/core";
+import { DomSanitizer } from '@angular/platform-browser';
+import { MatIconRegistry } from '@angular/material/icon';
+import { Injectable } from '@angular/core';
 
 @Injectable()
 export class CustomIconService {
@@ -10,8 +10,8 @@ export class CustomIconService {
   ) {}
   init() {
     this.matIconRegistry.addSvgIcon(
-      "format",
-      this.domSanitizer.bypassSecurityTrustResourceUrl("assets/icons/format.svg" )
+      'format',
+      this.domSanitizer.bypassSecurityTrustResourceUrl('assets/icons/format.svg' )
     );
   }
 }

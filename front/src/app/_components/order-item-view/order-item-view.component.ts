@@ -39,27 +39,22 @@ export class OrderItemViewComponent implements OnInit {
         return;
       }
 
-      if ((link as IApiResponseError).error) {
+      if (link.detail) {
         this.snackBar.open(
-          (link as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'}
+          link.detail, 'Ok', {panelClass: 'notification-info'}
         );
         return;
       }
 
-      if ((link as IOrderDowloadLink).detail) {
-        this.snackBar.open(
-          // @ts-ignore
-          (link as IOrderDowloadLink).detail, 'Ok', {panelClass: 'notification-info'}
-        );
-        return;
+      if (link.download_link) {
+        const downloadLink = link.download_link;
+        if (downloadLink) {
+          const urlsParts = downloadLink.split('/');
+          const filename = urlsParts.pop() || urlsParts.pop();
+          GeoshopUtils.downloadData(downloadLink, filename || 'download.zip');
+        }
       }
 
-      const downloadLink = (link as IOrderDowloadLink).download_link;
-      if (downloadLink) {
-        const urlsParts = downloadLink.split('/');
-        const filename = urlsParts.pop() || urlsParts.pop();
-        GeoshopUtils.downloadData(downloadLink, filename || 'download.zip');
-      }
     });
   }
 }

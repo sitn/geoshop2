@@ -146,21 +146,6 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         phone: this.phone?.value,
       };
       this.apiService.register(user)
-        .pipe(
-          catchError(errorXhr => {
-            let message = '';
-            for (const attr in errorXhr.error) {
-              if (Array.isArray(errorXhr.error[attr])) {
-                message += errorXhr.error[attr].join('\n');
-              } else {
-                message += errorXhr.error[attr];
-              }
-            }
-
-            this.snackBar.open(message, 'Ok', {panelClass: 'notification-error'});
-            return of(false);
-          })
-        )
         .subscribe(async (res) => {
           if (res) {
             await this.router.navigate(['/auth/login']);
@@ -178,8 +163,10 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   private loginMatchValidator(g: FormGroup) {
     return this.apiService.checkLoginNotTaken(g.value && g.value.length > 0 && g.value.toLowerCase())
       .pipe(
-        map(isAvailable => {
-          return isAvailable.result ? {duplicate: true} : null;
+        map(response => {
+          return response ?
+            response.result ? {duplicate: true} : null :
+            null;
         }));
   }
 

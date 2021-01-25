@@ -111,7 +111,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       }),
       map(x => {
         this.isSearchLoading = false;
-        return x.results;
+        return x ? x.results : [];
       })
     );
 
@@ -348,20 +348,14 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     if (this.currentOrder.id === -1) {
       this.currentOrder.invoiceContact = invoiceContact;
       this.apiOrderService.createOrder(this.currentOrder.toPostAsJson).subscribe(newOrder => {
-        if ((newOrder as IApiResponseError).error) {
-          this.snackBar.open(
-            (newOrder as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'});
-        } else {
-          this.storeService.addOrderToStore(new Order(newOrder as IOrder));
+        if (newOrder) {
+          this.storeService.addOrderToStore(new Order(newOrder));
           this.stepper.next();
         }
       });
     } else {
       this.apiOrderService.updateOrder(this.currentOrder, invoiceContact).subscribe(newOrder => {
-        if ((newOrder as IApiResponseError).error) {
-          this.snackBar.open(
-            (newOrder as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'});
-        } else {
+        if (newOrder) {
           this.storeService.addOrderToStore(new Order(newOrder as IOrder));
           this.stepper.next();
         }
@@ -380,11 +374,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       return;
     }
     this.apiOrderService.updateOrderItemDataFormat(dataFormat, orderItemId).subscribe(newOrderItem => {
-      if ((newOrderItem as IApiResponseError).error) {
-        this.snackBar.open(
-          (newOrderItem as IApiResponseError).message, 'Ok', {panelClass: 'notification-error '}
-        );
-      } else {
+      if (newOrderItem) {
         for (let i = 0; i < this.currentOrder.items.length; i++) {
           if (Order.getProductLabel(this.currentOrder.items[i]) === Order.getProductLabel(newOrderItem as IOrderItem)) {
             this.currentOrder.items[i] = newOrderItem as IOrderItem;
@@ -397,14 +387,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   confirm() {
     this.apiOrderService.confirmOrder(this.currentOrder.id).subscribe(newOrder => {
-      if (newOrder && (newOrder as IApiResponseError).error) {
-        this.snackBar.open(
-          (newOrder as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'}
-        );
-      } else {
-        if (newOrder) {
-          this.storeService.addOrderToStore(new Order(newOrder as IOrder));
-        }
+      if (newOrder) {
+        this.storeService.addOrderToStore(new Order(newOrder as IOrder));
         this.router.navigate(['/account/orders']);
       }
     });
