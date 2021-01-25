@@ -1,4 +1,4 @@
-import {Component, ComponentFactoryResolver, Input, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
+import {Component, ComponentFactoryResolver, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren} from '@angular/core';
 import {IOrder, IOrderDowloadLink, IOrderSummary, Order} from '../../../_models/IOrder';
 import Map from 'ol/Map';
 import VectorSource from 'ol/source/Vector';
@@ -21,6 +21,7 @@ import {ConfirmDialogComponent} from '../../../_components/confirm-dialog/confir
 })
 export class OrderComponent implements OnInit {
   @Input() order: IOrderSummary;
+  @Output() refreshOrders = new EventEmitter<number | null>();
 
   // Map
   @Input() minimap: Map;
@@ -103,9 +104,9 @@ export class OrderComponent implements OnInit {
     dialogRef.componentInstance.confirmMessage = 'Etes-vous sûr de vouloir confimrer la commande ?';
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.apiOrderService.confirmOrder(this.selectedOrder.id).subscribe(async confirmed => {
+        this.apiOrderService.confirmOrder(this.selectedOrder.id).subscribe(confirmed => {
           if (confirmed) {
-            await this.router.navigate(['/account/orders']);
+            this.refreshOrders.emit();
           }
         });
       }
@@ -134,9 +135,9 @@ export class OrderComponent implements OnInit {
     dialogRef.componentInstance.confirmMessage = `Etes-vous sûr de vouloir supprimer la commande "${this.order.title}" ?`;
     dialogRef.afterClosed().subscribe(result => {
       if (result && this.order.id) {
-        this.apiOrderService.confirmOrder(this.order.id).subscribe(async confirmed => {
+        this.apiOrderService.delete(this.order.id).subscribe(confirmed => {
           if (confirmed) {
-            await this.router.navigate(['/account/orders']);
+            this.refreshOrders.emit(this.order.id);
           }
         });
       }

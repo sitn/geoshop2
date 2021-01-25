@@ -13,7 +13,7 @@
 </div>
 
 <div class="not-found-container" *ngIf="!(isSearchLoading$|async) && currentOrders.length === 0">
-  Aucun résultat n'a été trouvé.
+  Aucune commande n'a été trouvée.
 </div>
 
 <ng-container *ngIf="currentOrders">
@@ -24,7 +24,8 @@
       <gs2-order *ngFor="let order of currentOrders;"
                  [order]="order"
                  [minimap]="minimap"
-                 [vectorSource]="vectorSource"></gs2-order>
+                 [vectorSource]="vectorSource"
+      (refreshOrders)="refreshOrders($event)"></gs2-order>
     </mat-accordion>
 
   </cdk-virtual-scroll-viewport>

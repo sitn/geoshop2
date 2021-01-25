@@ -75,7 +75,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   get isOrderHasPendingItem() {
     return this.currentOrder ?
-      !this.currentOrder.shouldDisplayConfirm :
+      !this.currentOrder.isAllOrderItemCalculated :
       false;
   }
 

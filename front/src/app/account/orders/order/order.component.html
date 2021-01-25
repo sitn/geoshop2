@@ -12,7 +12,7 @@
     <mat-panel-description>
       <span [class]="panel.expanded ? '' : 'text-ellipsis-2'">{{order?.description}}</span>
       <button class="download-button" mat-raised-button color="warn"
-              *ngIf="order?.status === 'DRAFT' || (selectedOrder && selectedOrder.shouldDisplayConfirm)"
+              *ngIf="order?.status === 'DRAFT' || (selectedOrder && selectedOrder.isQuotationCalculationFinished)"
               (click)="deleteOrder($event)">
         Supprimer
       </button>
@@ -33,7 +33,7 @@
     </div>
 
     <div class="bottom-actions-container">
-      <button *ngIf="selectedOrder?.status === 'PENDING' && selectedOrder?.shouldDisplayConfirm"
+      <button *ngIf="selectedOrder?.isQuotationCalculationFinished"
               mat-raised-button
               class="info-background"
               (click)="confirmOrder()">

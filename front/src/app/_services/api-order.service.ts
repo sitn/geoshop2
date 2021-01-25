@@ -94,13 +94,12 @@ export class ApiOrderService {
     ).pipe(
       map(data => {
         const iContact = data[0];
-
-        if (!iContact) {
-          return null;
-        }
-
         const order = GeoshopUtils.deepCopyOrder(orderJson);
         const newOrder = new Order(order);
+
+        if (!iContact) {
+          return newOrder;
+        }
 
         const contact = new Contact(iContact);
         newOrder.invoiceContact = contact;

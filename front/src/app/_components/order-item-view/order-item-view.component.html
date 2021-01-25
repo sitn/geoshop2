@@ -5,12 +5,12 @@
     <th mat-header-cell *matHeaderCellDef> Produit</th>
     <td mat-cell *matCellDef="let element"><span class="text-ellipsis-2">{{getProductLabel(element)}}</span></td>
     <td mat-footer-cell *matFooterCellDef>
-      <div *ngIf="!order.shouldDisplayConfirm">
+      <div *ngIf="!order.isAllOrderItemCalculated">
         Un ou plusieurs produits commandés doivent encore être devisés.<br>
         Une fois les produits devisés, vous pourrez valider ici la commande.
       </div>
 
-      <ul class="padding-vertical-5" *ngIf="order.shouldDisplayConfirm">
+      <ul class="padding-vertical-5" *ngIf="order.isAllOrderItemCalculated">
         <li class="text-primary">Frais de traitement</li>
         <li class="text-primary mat-body-strong">Total TTC</li>
         <li class="mat-small">Dont TVA 7.7 %</li>
@@ -34,7 +34,7 @@
       <span *ngIf="orderItem.price_status === 'PENDING'">Sur devis</span>
     </td>
     <td mat-footer-cell *matFooterCellDef class="sitn-tf-price">
-      <ul class="padding-vertical-5" *ngIf="order.shouldDisplayConfirm">
+      <ul class="padding-vertical-5" *ngIf="order.isAllOrderItemCalculated">
         <li class="text-primary">{{ order.processing_fee | currency }}</li>
         <li class="text-primary mat-body-strong">{{ order.total_with_vat | currency }}</li>
         <li class="mat-small">{{ order.part_vat | currency }}</li>

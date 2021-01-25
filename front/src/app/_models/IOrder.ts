@@ -128,7 +128,14 @@ export class Order {
   invoice_contact: number;
 
   statusAsReadableIconText: IStatusAsReadableIcon;
-  readonly shouldDisplayConfirm: boolean = true;
+  private readonly _isAllOrderItemCalculated: boolean = true;
+  get isAllOrderItemCalculated() {
+    return this._isAllOrderItemCalculated;
+  }
+
+  get isQuotationCalculationFinished() {
+    return this.status === 'PENDING' && this._isAllOrderItemCalculated;
+  }
 
   private _invoiceContact: Contact | undefined;
   get invoiceContact(): Contact | undefined {
@@ -222,11 +229,11 @@ export class Order {
           label: product
         };
       }
-      this.shouldDisplayConfirm = this.shouldDisplayConfirm && item.price_status === 'CALCULATED';
+      this._isAllOrderItemCalculated = this._isAllOrderItemCalculated && item.price_status === 'CALCULATED';
     }
 
     this.initializeGeometry(options.geom);
-    this.statusAsReadableIconText = Order.initializeStatus(options, this.shouldDisplayConfirm);
+    this.statusAsReadableIconText = Order.initializeStatus(options, this._isAllOrderItemCalculated);
   }
 
   public static initializeStatus(order: IOrderSummary | IOrder, isPendingConfirm: boolean = false) {

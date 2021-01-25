@@ -1,7 +1,7 @@
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {BehaviorSubject, merge, of} from 'rxjs';
-import {IOrderSummary, Order} from '../../_models/IOrder';
-import {debounceTime, filter, map, mergeMap, scan, skip, switchMap, tap} from 'rxjs/operators';
+import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {BehaviorSubject, merge, of, Subject, Subscription} from 'rxjs';
+import {IOrder, IOrderSummary, Order} from '../../_models/IOrder';
+import {debounceTime, filter, map, mergeMap, scan, skip, switchMap, takeUntil, tap} from 'rxjs/operators';
 import {MapService} from '../../_services/map.service';
 import Map from 'ol/Map';
 import VectorSource from 'ol/source/Vector';
@@ -12,6 +12,9 @@ import {GeoHelper} from '../../_helpers/geoHelper';
 import {ApiOrderService} from '../../_services/api-order.service';
 import {ApiService} from '../../_services/api.service';
 import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
+import {select, Store} from '@ngrx/store';
+import {selectOrder} from '../../_store';
+import {deleteOrder} from '../../_store/cart/cart.action';
 
 
 @Component({
@@ -19,9 +22,11 @@ import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
   templateUrl: './orders.component.html',
   styleUrls: ['./orders.component.scss'],
 })
-export class OrdersComponent implements OnInit {
+export class OrdersComponent implements OnInit, OnDestroy {
 
   private currentIndex = 0;
+  private onDestroy$ = new Subject<boolean>();
+  private orderInCart: Order;
 
   // Infinity scrolling
   @ViewChild(CdkVirtualScrollViewport) viewport: CdkVirtualScrollViewport;
@@ -32,6 +37,7 @@ export class OrdersComponent implements OnInit {
   total = 0;
   stepToLoadData = 0;
   readonly itemHeight = 48;
+  private subscription: Subscription;
 
   // Map
   minimap: Map;
@@ -46,6 +52,7 @@ export class OrdersComponent implements OnInit {
               private mapService: MapService,
               private configService: ConfigService,
               private elRef: ElementRef,
+              private store: Store,
   ) {
   }
 
@@ -67,6 +74,29 @@ export class OrdersComponent implements OnInit {
 
       this.initializeComponentAction();
     });
+
+    this.store.pipe(
+      takeUntil(this.onDestroy$),
+      select(selectOrder),
+      switchMap(x => this.apiOrderService.getFullOrder(x)),
+    ).subscribe(order => {
+      if (order) {
+        this.orderInCart = order;
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.onDestroy$.next(true);
+  }
+
+  refreshOrders(orderId: number | null) {
+    if (this.orderInCart && this.orderInCart.id === orderId) {
+      this.store.dispatch(deleteOrder());
+    }
+
+    this.subscription.unsubscribe();
+    this.initializeComponentAction();
   }
 
   getBatch(offset: number) {
@@ -129,7 +159,7 @@ export class OrdersComponent implements OnInit {
       })
     );
 
-    merge(
+    this.subscription = merge(
       batchMap,
       this.orderFilterControl.valueChanges.pipe(
         skip(1),
