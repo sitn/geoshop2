@@ -4,10 +4,10 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   <style>
-  .max-width-img img {
-    max-width: 100%;
-    height: auto;
-  }
+    .max-width-img img {
+      max-width: 100%;
+      height: auto;
+    }
   </style>
 </head>
 
@@ -33,7 +33,7 @@
                 </p>
                 <p>
                   {% autoescape off %}
-                    {{ description_long }}
+                  {{ description_long }}
                   {% endautoescape %}
                 </p>
               </td>
@@ -56,10 +56,10 @@
                 {% for c in contact_persons %}
                 <p class="contact">
                   {% if c.contact_person.first_name or c.contact_person.last_name %}
-                    <strong>{{ c.contact_person.first_name }} {{ c.contact_person.last_name }}</strong><br>
+                  <strong>{{ c.contact_person.first_name }} {{ c.contact_person.last_name }}</strong><br>
                   {% endif %}
                   {% if c.contact_person.company_name %}
-                    {{ c.contact_person.company_name }} <br>
+                  {{ c.contact_person.company_name }} <br>
                   {% endif %}
                   <a href="mailto:{{ c.contact_person.email }}"></a>{{ c.contact_person.email }}<br>
                   {{ c.contact_person.phone }}
@@ -91,7 +91,7 @@
             {% if legend_link %}
             <tr>
               <td>Légende</td>
-              <td>{{ legend_tag }}</td>
+              <td class="max-width-img">{{ legend_tag }}</td>
             </tr>
             {% endif %}
           </tbody>
