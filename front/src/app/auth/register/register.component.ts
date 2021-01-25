@@ -39,14 +39,12 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     phone: new FormControl('', Validators.compose([Validators.pattern(PHONE_REGEX), Validators.required])),
   });
   formAddress = new FormGroup({
+    companyName: new FormControl(''),
     street: new FormControl('', Validators.required),
-    street2: new FormControl('', Validators.required),
+    street2: new FormControl(''),
     postcode: new FormControl('', Validators.required),
     city: new FormControl('', Validators.required),
-    country: new FormControl('', Validators.required),
-  });
-  formOthers = new FormGroup({
-    companyName: new FormControl('', Validators.required),
+    country: new FormControl('Suisse', Validators.required),
   });
 
   get passwords() {
@@ -90,7 +88,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   }
 
   get companyName() {
-    return this.formOthers.get('companyName');
+    return this.formAddress.get('companyName');
   }
 
   get phone() {
@@ -107,7 +105,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
   constructor(private store: Store<AppState>, private apiService: ApiService,
               private router: Router,
-              private snackBar: MatSnackBar,
+              private snackBar: MatSnackBar
   ) {
   }
 
@@ -129,7 +127,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   }
 
   submit() {
-    if (this.formCredentials.valid && this.formContact.valid && this.formAddress.valid && this.formOthers.valid) {
+    if (this.formCredentials.valid && this.formContact.valid && this.formAddress.valid) {
       const user: IIdentity = {
         password1: this.password?.value,
         password2: this.passwordConfirm?.value,
@@ -148,12 +146,15 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       this.apiService.register(user)
         .subscribe(async (res) => {
           if (res) {
+            this.snackBar.open('Le compte est en cours de validation. Vous recevrez un courriel de confirmation sous peu.',
+              'Ok', {
+                panelClass: 'notification-success'
+              });
             await this.router.navigate(['/auth/login']);
           } else {
             this.formCredentials.markAsDirty();
             this.formContact.markAsDirty();
             this.formAddress.markAsDirty();
-            this.formOthers.markAsDirty();
           }
         });
     }

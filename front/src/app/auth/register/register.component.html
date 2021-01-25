@@ -117,7 +117,16 @@
       <mat-step [stepControl]="formAddress" label="Adresse">
         <form [formGroup]="formAddress" class="flex-column">
           <mat-form-field color="primary">
-            <input id="registerInput2" formControlName="street"
+            <input id="registerInput2" formControlName="companyName"
+                   autocapitalize="off"
+                   autofocus
+                   spellcheck="false"
+                   matInput
+                   placeholder="Raison sociale">
+          </mat-form-field>
+
+          <mat-form-field color="primary">
+            <input formControlName="street"
                    autocapitalize="off"
                    autofocus
                    spellcheck="false"
@@ -132,10 +141,8 @@
                    autocapitalize="off"
                    autofocus
                    spellcheck="false"
-                   required
                    matInput
                    placeholder="Complément d'adresse">
-            <mat-error *ngIf="street2?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
           <mat-form-field color="primary">
@@ -161,34 +168,14 @@
           </mat-form-field>
 
           <mat-form-field color="primary">
-            <input formControlName="country"
-                   autocapitalize="off"
-                   autofocus
-                   spellcheck="false"
-                   required
-                   matInput
-                   placeholder="Pays">
-            <mat-error *ngIf="country?.hasError('required')">Requis</mat-error>
-          </mat-form-field>
-        </form>
-
-        <div class="bottom-container">
-          <button color="primary" mat-button matStepperPrevious> Retour</button>
-          <button color="primary" mat-button matStepperNext> Suivant</button>
-        </div>
-      </mat-step>
-
-      <mat-step [stepControl]="formOthers" label="Société">
-        <form [formGroup]="formOthers" class="flex-column">
-          <mat-form-field color="primary">
-            <input id="registerInput3" formControlName="companyName"
-                   autocapitalize="off"
-                   autofocus
-                   spellcheck="false"
-                   required
-                   matInput
-                   placeholder="Raison sociale">
-            <mat-error *ngIf="companyName?.hasError('required')">Requis</mat-error>
+            <mat-select formControlName="country" placeholder="Pays">
+              <mat-option [value]="'Suisse'">
+                Suisse
+              </mat-option>
+              <mat-option [value]="'France'">
+                France
+              </mat-option>
+            </mat-select>
           </mat-form-field>
         </form>
 
@@ -197,7 +184,6 @@
           <button mat-button color="warn" (click)="stepper.reset()">Remettre à zéro</button>
           <button class="form-login-button" color="primary" mat-button type="submit" (click)="submit()"
                   [disabled]="
-                    formOthers.invalid || formOthers.pristine ||
                     formAddress.invalid || formAddress.pristine ||
                     formContact.invalid || formContact.pristine ||
                     formCredentials.invalid || formCredentials.pristine

@@ -24,8 +24,20 @@ export class ErrorInterceptor implements HttpInterceptor {
             this.store.dispatch(fromAuth.logout());
             this.router.navigate(['/auth/login']);
           } else {
-            const message = response.error.detail || response.message;
-            this.snackBar.open(message, 'Ok', {panelClass: 'notification-error'});
+            const messages = [];
+            for (const attr in response.error) {
+              if (response.error[attr]) {
+                if (Array.isArray(response.error[attr])) {
+                  messages.push(...response.error[attr]);
+                } else if (response.error[attr] === 'string') {
+                  messages.push(response.error[attr]);
+                }
+              }
+            }
+            if (messages.length === 0) {
+              messages.push(response.message);
+            }
+            this.snackBar.open(messages.join('\r\n'), 'Ok', {panelClass: 'notification-error'});
           }
         }
 
