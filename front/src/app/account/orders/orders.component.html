@@ -12,6 +12,10 @@
   </mat-form-field>
 </div>
 
+<div class="not-found-container" *ngIf="!(isSearchLoading$|async) && currentOrders.length === 0">
+  Aucun résultat n'a été trouvé.
+</div>
+
 <ng-container *ngIf="currentOrders">
   <cdk-virtual-scroll-viewport class="orders-container"
                                [itemSize]="itemHeight"

@@ -39,7 +39,7 @@ export class OrdersComponent implements OnInit {
 
   // Filtering
   orderFilterControl = new FormControl('');
-  isSearchLoading$ = new BehaviorSubject(false);
+  isSearchLoading$ = new BehaviorSubject(true);
 
   constructor(private apiOrderService: ApiOrderService,
               private apiService: ApiService,

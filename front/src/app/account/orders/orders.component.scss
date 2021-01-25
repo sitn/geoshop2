@@ -14,6 +14,11 @@
     }
   }
 
+  .not-found-container {
+    align-self: flex-start;
+    padding-left: 30px;
+  }
+
   .spinner-container {
     position: fixed;
     z-index: 1000;
