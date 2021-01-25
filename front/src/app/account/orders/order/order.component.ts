@@ -45,11 +45,11 @@ export class OrderComponent implements OnInit {
     event.stopPropagation();
     event.preventDefault();
 
-    if (!this.selectedOrder) {
+    if (!this.order || !this.order.id) {
       return;
     }
 
-    this.apiOrderService.downloadOrder(this.selectedOrder.id).subscribe(link => {
+    this.apiOrderService.downloadOrder(this.order.id).subscribe(link => {
       if (!link) {
         this.snackBar.open(
           'Aucun fichier disponible', 'Ok', {panelClass: 'notification-info'}
@@ -103,10 +103,9 @@ export class OrderComponent implements OnInit {
     dialogRef.componentInstance.confirmMessage = 'Etes-vous sûr de vouloir confimrer la commande ?';
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.apiOrderService.confirmOrder(this.selectedOrder.id).subscribe(newOrder => {
-          if (newOrder) {
-            this.storeService.addOrderToStore(new Order(newOrder as IOrder));
-            this.router.navigate(['/account/orders']);
+        this.apiOrderService.confirmOrder(this.selectedOrder.id).subscribe(async confirmed => {
+          if (confirmed) {
+            await this.router.navigate(['/account/orders']);
           }
         });
       }
