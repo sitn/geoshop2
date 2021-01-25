@@ -2,12 +2,12 @@
                      *ngIf="order"
                      (afterExpand)="displayMiniMap()">
   <mat-expansion-panel-header>
-    <mat-panel-title>
+    <mat-panel-title class="main-title">
       <gs2-icon-text [text]="order?.statusAsReadableIconText?.text"
                      [matIconName]="order?.statusAsReadableIconText?.iconName"
                      [fontColor]="order?.statusAsReadableIconText?.color"
                      [fontSize]="16"></gs2-icon-text>
-      <span [class]="panel.expanded ? '' : 'text-ellipsis-2'">{{order?.title}}</span>
+      <span class="title" [class]="panel.expanded ? '' : 'text-ellipsis-2'">{{order?.title}}</span>
     </mat-panel-title>
     <mat-panel-description>
       <span [class]="panel.expanded ? '' : 'text-ellipsis-2'">{{order?.description}}</span>
