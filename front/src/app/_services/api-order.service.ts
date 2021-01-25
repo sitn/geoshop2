@@ -253,16 +253,17 @@ export class ApiOrderService {
       );
   }
 
-  deleteLastDraftOrder() {
+  delete(orderId: number) {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    const url = new URL(`${this.apiUrl}/order/last_draft/`);
+    const url = new URL(`${this.apiUrl}/order/${orderId}/`);
 
-    return this.http.delete<number | null>(url.toString()).pipe(
+    return this.http.delete<boolean>(url.toString()).pipe(
+      map(() => true),
       catchError(() => {
-        return of(null);
+        return of(false);
       })
     );
   }

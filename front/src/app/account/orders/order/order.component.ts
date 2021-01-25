@@ -113,6 +113,37 @@ export class OrderComponent implements OnInit {
     });
   }
 
+  deleteOrder(event: MouseEvent) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (!this.order || !this.order.id) {
+      return;
+    }
+
+    let dialogRef: MatDialogRef<ConfirmDialogComponent> | null = this.dialog.open(ConfirmDialogComponent, {
+      disableClose: false,
+    });
+
+    if (!dialogRef) {
+      return;
+    }
+
+    dialogRef.componentInstance.noButtonTitle = 'Annuler';
+    dialogRef.componentInstance.yesButtonTitle = 'Supprimer';
+    dialogRef.componentInstance.confirmMessage = `Etes-vous sûr de vouloir supprimer la commande "${this.order.title}" ?`;
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && this.order.id) {
+        this.apiOrderService.confirmOrder(this.order.id).subscribe(async confirmed => {
+          if (confirmed) {
+            await this.router.navigate(['/account/orders']);
+          }
+        });
+      }
+      dialogRef = null;
+    });
+  }
+
   displayMiniMap() {
     if (this.selectedOrder) {
       GeoHelper.displayMiniMap(this.selectedOrder, [this.minimap], [this.vectorSource], 0);
