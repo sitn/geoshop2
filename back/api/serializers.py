@@ -73,6 +73,14 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class IdentitySerializer(serializers.ModelSerializer):
+
+    def validate(self, data):
+        if data.get('company_name', '').strip() != '':
+            if data.get('ide_id', '').strip() == '':
+                raise serializers.ValidationError(
+                    _("IDE number is mandatory for companies"))
+        return data
+
     class Meta:
         model = Identity
         exclude = ['sap_id', 'contract_accepted', 'is_public', 'user']
@@ -524,10 +532,17 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password1')
         validated_data.pop('password2')
-        identity = UserModel(**validated_data)
-        identity.set_password(password)
-        identity.save()
-        return identity
+        user = UserModel(username=validated_data.pop('username'))
+        user.set_password(password)
+        identity_data = self.initial_data.copy()
+        for key in ['password1', 'password2', 'username']:
+            identity_data.pop(key)
+        identity_serializer = IdentitySerializer(data=identity_data)
+        identity_serializer.is_valid(raise_exception=True)
+        user.save()
+        identity_serializer.instance = user.identity
+        identity_serializer.save()
+        return user
 
     class Meta:
         model = UserModel

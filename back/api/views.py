@@ -1,4 +1,6 @@
+import json
 from pathlib import Path
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -48,6 +50,7 @@ sensitive_post_parameters_m = method_decorator(
 )
 
 UserModel = get_user_model()
+LANG = getattr(settings, 'LANGUAGE_CODE')
 
 
 class CopyrightViewSet(viewsets.ModelViewSet):
@@ -453,6 +456,19 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
 
+    def post(self, request, *args, **kwargs):
+        response = super(RegisterView, self).post(request, *args, **kwargs)
+
+        admin_text_content = json.dumps(response.data)
+        
+        user = UserModel.objects.get(pk=response.data['id'])
+        text_content = render_to_string('create_user_email_' + LANG + '.txt', request=request)
+
+        send_email_to_admin(_('Geoshop - New user request'), admin_text_content)
+        send_email_to_identity(_('Geoshop - New account pending'), text_content, user.identity)
+
+        return Response({'detail': _('Your data was successfully submitted')}, status=status.HTTP_200_OK)
+
 
 class UserChangeView(generics.CreateAPIView):
     """
@@ -487,9 +503,8 @@ class UserChangeView(generics.CreateAPIView):
                 if request_value != base_user[key]:
                     context['modified'][_(key)] = request_value
 
-        lang = getattr(settings, 'LANGUAGE_CODE')
-        admin_text_content = render_to_string('change_user_admin_email_'+lang+'.txt', context, request=request)
-        text_content = render_to_string('change_user_email_'+lang+'.txt', context, request=request)
+        admin_text_content = render_to_string('change_user_admin_email_' + LANG + '.txt', context, request=request)
+        text_content = render_to_string('change_user_email_' + LANG + '.txt', context, request=request)
 
         send_email_to_admin(_('Geoshop - User change request'), admin_text_content)
         send_email_to_identity(_('Geoshop - User change request'), text_content, request.user.identity)
@@ -511,3 +526,14 @@ class VerifyEmailView(views.APIView, ConfirmEmailView):
         confirmation = self.get_object()
         confirmation.confirm(self.request)
         return Response({'detail': _('ok')}, status=status.HTTP_200_OK)
+
+
+class VerifyUsernameView(views.APIView):
+    """
+    Verifies if username is available
+    """
+    permission_classes = [permissions.AllowAny]
+    allowed_methods = ['GET']
+
+    #TODO
+    pass
