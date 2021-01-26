@@ -316,6 +316,11 @@ $info: #4177F6;
   color: white;
 }
 
+.info-background {
+  background-color: $info;
+  color: white;
+}
+
 .as-split-gutter {
   background-color: mat-color($primary) !important;
 }

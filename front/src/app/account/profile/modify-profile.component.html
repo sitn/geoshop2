@@ -7,49 +7,49 @@
       <mat-form-field color="primary">
         <mat-label>Nom d'utilisateur (ne peut être modifié)</mat-label>
         <input #firstInput formControlName="username"
-              matInput
-              placeholder="Login">
+               matInput
+               placeholder="Login">
       </mat-form-field>
       <mat-form-field color="primary">
         <input formControlName="firstName"
-                autocapitalize="off"
-                autofocus
-                spellcheck="false"
-                required
-                matInput
-                placeholder="Prénom">
-      <mat-error *ngIf="formModifyUser.get('firstName')?.hasError('required')">Requis</mat-error>
+               autocapitalize="off"
+               autofocus
+               spellcheck="false"
+               required
+               matInput
+               placeholder="Prénom">
+        <mat-error *ngIf="formModifyUser.get('firstName')?.hasError('required')">Requis</mat-error>
       </mat-form-field>
       <mat-form-field color="primary">
         <input formControlName="lastName"
-                autocapitalize="off"
-                autofocus
-                spellcheck="false"
-                required
-                matInput
-                placeholder="Nom">
+               autocapitalize="off"
+               autofocus
+               spellcheck="false"
+               required
+               matInput
+               placeholder="Nom">
         <mat-error *ngIf="formModifyUser.get('lastName')?.hasError('required')">Requis</mat-error>
       </mat-form-field>
 
       <mat-form-field color="primary">
         <input formControlName="email"
-                autocapitalize="off"
-                autofocus
-                spellcheck="false"
-                required
-                matInput
-                placeholder="Courriel">
+               autocapitalize="off"
+               autofocus
+               spellcheck="false"
+               required
+               matInput
+               placeholder="Courriel">
         <mat-error *ngIf="formModifyUser.get('email')?.hasError('required')">Requis</mat-error>
         <mat-error *ngIf="formModifyUser.get('email')?.hasError('email')">Format de courriel incorrect</mat-error>
       </mat-form-field>
       <mat-form-field color="primary">
         <input formControlName="phone"
-                autocapitalize="off"
-                autofocus
-                spellcheck="false"
-                required
-                matInput
-                placeholder="Téléphone">
+               autocapitalize="off"
+               autofocus
+               spellcheck="false"
+               required
+               matInput
+               placeholder="Téléphone">
         <mat-error *ngIf="formModifyUser.get('phone')?.hasError('required')">Requis</mat-error>
         <mat-error *ngIf="formModifyUser.get('phone')?.hasError('pattern')">
           <ul>Mauvais format de téléphone, accepté :
@@ -64,65 +64,65 @@
       </mat-form-field>
       <mat-form-field color="primary">
         <input id="registerInput2" formControlName="street"
-                autocapitalize="off"
-                autofocus
-                spellcheck="false"
-                required
-                matInput
-                placeholder="Adresse">
+               autocapitalize="off"
+               autofocus
+               spellcheck="false"
+               required
+               matInput
+               placeholder="Adresse">
         <mat-error *ngIf="formModifyUser.get('street')?.hasError('required')">Requis</mat-error>
       </mat-form-field>
       <mat-form-field color="primary">
         <input formControlName="street2"
-                autocapitalize="off"
-                autofocus
-                spellcheck="false"
-                matInput
-                placeholder="Complément d'adresse">
+               autocapitalize="off"
+               autofocus
+               spellcheck="false"
+               matInput
+               placeholder="Complément d'adresse">
       </mat-form-field>
       <mat-form-field color="primary">
         <input formControlName="postcode"
-                autocapitalize="off"
-                autofocus
-                spellcheck="false"
-                required
-                matInput
-                placeholder="Code postal">
+               autocapitalize="off"
+               autofocus
+               spellcheck="false"
+               required
+               matInput
+               placeholder="Code postal">
         <mat-error *ngIf="formModifyUser.get('postcode')?.hasError('required')">Requis</mat-error>
       </mat-form-field>
       <mat-form-field color="primary">
         <input formControlName="city"
-                autocapitalize="off"
-                autofocus
-                spellcheck="false"
-                required
-                matInput
-                placeholder="Ville">
+               autocapitalize="off"
+               autofocus
+               spellcheck="false"
+               required
+               matInput
+               placeholder="Ville">
         <mat-error *ngIf="formModifyUser.get('city')?.hasError('required')">Requis</mat-error>
       </mat-form-field>
       <mat-form-field color="primary">
         <input formControlName="country"
-                autocapitalize="off"
-                autofocus
-                spellcheck="false"
-                required
-                matInput
-                placeholder="Pays">
+               autocapitalize="off"
+               autofocus
+               spellcheck="false"
+               required
+               matInput
+               placeholder="Pays">
         <mat-error *ngIf="formModifyUser.get('country')?.hasError('required')">Requis</mat-error>
       </mat-form-field>
       <mat-form-field color="primary">
         <input id="registerInput3" formControlName="companyName"
-                autocapitalize="off"
-                autofocus
-                spellcheck="false"
-                required
-                matInput
-                placeholder="Raison sociale">
+               autocapitalize="off"
+               autofocus
+               spellcheck="false"
+               required
+               matInput
+               placeholder="Raison sociale">
         <mat-error *ngIf="formModifyUser.get('companyName')?.hasError('required')">Requis</mat-error>
       </mat-form-field>
-      <button color="primary" mat-raised-button type="submit"
-         [disabled]="formModifyUser.invalid">
-          Soumettre
+
+      <button class="action-button-container" color="primary" mat-raised-button type="submit" [disabled]="formModifyUser.invalid">
+        Soumettre
       </button>
     </form>
   </mat-card-content>

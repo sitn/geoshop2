@@ -50,21 +50,6 @@ export class ResetComponent implements OnInit, OnDestroy {
   submit() {
     if (this.passwords.valid) {
       this.apiService.resetPassword(this.password?.value, this.passwordConfirm?.value, this.uid, this.token)
-        .pipe(
-          catchError(errorXhr => {
-            let message = '';
-            for (const attr in errorXhr.error) {
-              if (Array.isArray(errorXhr.error[attr])) {
-                message += errorXhr.error[attr].join('\n');
-              } else {
-                message += errorXhr.error[attr];
-              }
-            }
-
-            this.snackBar.open(message, 'Ok', {panelClass: 'notification-error'});
-            return of(false);
-          })
-        )
         .subscribe(async (result) => {
           if (!result) {
             return;

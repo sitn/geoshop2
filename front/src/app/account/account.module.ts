@@ -26,6 +26,7 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatRadioModule} from '@angular/material/radio';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {ModifyProfileComponent} from './profile/modify-profile.component';
+import { OrderComponent } from './orders/order/order.component';
 
 const MODULES = [
   ReactiveFormsModule,
@@ -51,7 +52,7 @@ const MODULES = [
 ];
 
 @NgModule({
-  declarations: [AccountComponent, NewOrderComponent, OrdersComponent, ProfileComponent, ModifyProfileComponent],
+  declarations: [AccountComponent, NewOrderComponent, OrdersComponent, ProfileComponent, ModifyProfileComponent, OrderComponent],
   imports: [
     CommonModule,
     AccountRoutingModule,

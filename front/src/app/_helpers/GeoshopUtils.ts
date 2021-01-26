@@ -78,14 +78,16 @@ export class GeoshopUtils {
   }
 
   public static downloadData(url: string, filename: string) {
-    const objectUrl = window.URL.createObjectURL(url);
-    const a = document.createElement('a');
-    document.body.appendChild(a);
-    a.setAttribute('style', 'display: none');
-    a.href = objectUrl;
-    a.download = filename;
-    a.click();
-    window.URL.revokeObjectURL(objectUrl);
-    a.remove();
+    try {
+      const a = document.createElement('a');
+      document.body.appendChild(a);
+      a.setAttribute('style', 'display: none');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      a.remove();
+    } catch (error) {
+      console.error(error);
+    }
   }
 }

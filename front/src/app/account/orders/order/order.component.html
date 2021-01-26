@@ -1,0 +1,47 @@
+<mat-expansion-panel #panel
+                     *ngIf="order"
+                     (afterExpand)="displayMiniMap()">
+  <mat-expansion-panel-header>
+    <mat-panel-title class="main-title">
+      <gs2-icon-text [text]="order?.statusAsReadableIconText?.text"
+                     [matIconName]="order?.statusAsReadableIconText?.iconName"
+                     [fontColor]="order?.statusAsReadableIconText?.color"
+                     [fontSize]="16"></gs2-icon-text>
+      <span class="title" [class]="panel.expanded ? '' : 'text-ellipsis-2'">{{order?.title}}</span>
+    </mat-panel-title>
+    <mat-panel-description>
+      <span [class]="panel.expanded ? '' : 'text-ellipsis-2'">{{order?.description}}</span>
+      <button class="download-button" mat-raised-button color="warn"
+              *ngIf="order?.status === 'DRAFT' || (selectedOrder && selectedOrder.isQuotationCalculationFinished)"
+              (click)="deleteOrder($event)">
+        Supprimer
+      </button>
+      <button class="download-button" mat-raised-button color="primary"
+              *ngIf="order?.status === 'PROCESSED'"
+              (click)="downloadOrder($event)">
+        Télécharger
+      </button>
+    </mat-panel-description>
+  </mat-expansion-panel-header>
+
+  <div class="flex-column">
+    <div class="flex-row">
+      <!-- Order items -->
+      <ng-template class="gs2-order-item-view" gs2WidgetHost></ng-template>
+      <!-- Mini map -->
+      <div class="mini-map" [id]="'mini-map-' + order?.id"></div>
+    </div>
+
+    <div class="bottom-actions-container">
+      <button *ngIf="selectedOrder?.isQuotationCalculationFinished"
+              mat-raised-button
+              class="info-background"
+              (click)="confirmOrder()">
+        Confirmer la commande
+      </button>
+      <button *ngIf="order?.status === 'DRAFT'" mat-raised-button color="primary" (click)="pushBackToCart()">Remettre au panier</button>
+      <button *ngIf="order?.status !== 'DRAFT'" mat-raised-button color="primary" (click)="duplicateInCart()">Dupliquer dans le panier</button>
+    </div>
+  </div>
+
+</mat-expansion-panel>

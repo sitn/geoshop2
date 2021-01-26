@@ -6,7 +6,7 @@ $apiKey = "apiUrl"
 $mediaKey = "mediaUrl"
 
 $apiUrl = "https://sitn.ne.ch/geoshop2_prepub_api"
-$mediaUrl = "https://sitn.ne.ch/geoshop2_prepub_media/images"
+$mediaUrl = "https://sitn.ne.ch/geoshop2_media/"
 
 Invoke-Expression ('$snapshot.' + $apiKey + "='" + $apiUrl + "'")
 Invoke-Expression ('$snapshot.' + $mediaKey + "='" + $mediaUrl + "'")
