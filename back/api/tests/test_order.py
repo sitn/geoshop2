@@ -171,6 +171,8 @@ class OrderTests(APITestCase):
         url = reverse('order-detail', kwargs={'pk':order_id})
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
+        response = self.client.delete(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
 
 
     def test_post_order_quote(self):
@@ -295,19 +297,18 @@ class OrderTests(APITestCase):
         self.assertEqual(len(response.data['items']), 0, 'No product is present')
 
 
-#    def test_delete_order(self):
-#        url = reverse('order-list')
-#        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-#        response = self.client.post(url, self.order_data, format='json')
-#        order = Order.objects.get(pk=response['id'])
-#        oi1 = OrderItem.objects.create(order=order, product=self.products[0], data_format=self.formats[0])
-#        oi2 = OrderItem.objects.create(order=order, product=self.products[1], data_format=self.formats[1])
-#        oi1.set_price()
-#        oi1.save()
-#        oi2.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
-#        oi2.price_status = OrderItem.PricingStatus.CALCULATED
-#        oi2.save()
-#        url = reverse('order', kwargs={'pk':order.id})
-#        response = self.client.delete(url)
-#        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-#
+    def test_delete_order(self):
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(url, self.order_data, format='json')
+        order = Order.objects.get(pk=response.data['id'])
+        oi1 = OrderItem.objects.create(order=order, product=self.products[0], data_format=self.formats[0])
+        oi2 = OrderItem.objects.create(order=order, product=self.products[1], data_format=self.formats[1])
+        oi1.set_price()
+        oi1.save()
+        oi2.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
+        oi2.price_status = OrderItem.PricingStatus.CALCULATED
+        oi2.save()
+        url = reverse('order-detail', kwargs={'pk':order.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.content)
