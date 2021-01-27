@@ -1,0 +1,32 @@
+:host {
+
+  .mat-expansion-panel-header-title {
+    align-items: center;
+
+    gs2-icon-text {
+      margin-right: 16px;
+    }
+  }
+
+  .mat-expansion-panel-header-description {
+    align-items: center;
+
+    .download-button {
+      margin-left: auto;
+    }
+  }
+
+  .bottom-actions-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+
+    button {
+      margin-left: 10px;
+    }
+  }
+
+  .main-title {
+    min-width: 50%;
+  }
+}

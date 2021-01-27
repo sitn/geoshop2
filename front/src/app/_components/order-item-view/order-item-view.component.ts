@@ -12,8 +12,9 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 })
 export class OrderItemViewComponent implements OnInit {
 
-  displayedColumns: string[] = ['product', 'format', 'download'];
+  displayedColumns: string[] = ['product', 'format', 'price', 'download'];
   @Input() dataSource: IOrderItem[];
+  @Input() order: Order;
 
   constructor(private apiOrderService: ApiOrderService,
               private snackBar: MatSnackBar) {
@@ -35,25 +36,25 @@ export class OrderItemViewComponent implements OnInit {
         this.snackBar.open(
           'Aucun fichier disponible', 'Ok', {panelClass: 'notification-info'}
         );
-      } else if (!(link as IOrderDowloadLink).detail.startsWith('http')) {
-        this.snackBar.open(
-          (link as IOrderDowloadLink).detail, 'Ok', {panelClass: 'notification-info'}
-        );
-      } else if ((link as IApiResponseError).error) {
-        this.snackBar.open(
-          (link as IApiResponseError).message, 'Ok', {panelClass: 'notification-error'}
-        );
-      } else {
-        let filename = 'download.zip';
-        try {
-          const temp = (link as IOrderDowloadLink).detail.split('/');
-          filename = temp[temp.length - 1];
-        } catch {
-
-        }
-
-        GeoshopUtils.downloadData((link as IOrderDowloadLink).detail, filename);
+        return;
       }
+
+      if (link.detail) {
+        this.snackBar.open(
+          link.detail, 'Ok', {panelClass: 'notification-info'}
+        );
+        return;
+      }
+
+      if (link.download_link) {
+        const downloadLink = link.download_link;
+        if (downloadLink) {
+          const urlsParts = downloadLink.split('/');
+          const filename = urlsParts.pop() || urlsParts.pop();
+          GeoshopUtils.downloadData(downloadLink, filename || 'download.zip');
+        }
+      }
+
     });
   }
 }

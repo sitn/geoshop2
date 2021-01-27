@@ -21,23 +21,37 @@ export class ApiOrderService {
   ) {
   }
 
-  getOrder(url: string): Observable<IOrder | undefined> {
+  getOrder(url: string): Observable<IOrder | null> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    return !url ? of(undefined) : this.http.get<IOrder>(url);
+    return !url ?
+      of(null) :
+      this.http.get<IOrder>(url)
+        .pipe(
+          catchError(() => {
+            return of(null);
+          })
+        );
   }
 
-  getOrderType(url: string): Observable<IOrderType | undefined> {
+  getOrderType(url: string): Observable<IOrderType | null> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    return !url ? of(undefined) : this.http.get<IOrderType>(url);
+    return !url ?
+      of(null) :
+      this.http.get<IOrderType>(url)
+        .pipe(
+          catchError(() => {
+            return of(null);
+          })
+        );
   }
 
-  getOrderTypes(): Observable<Array<IOrderType>> {
+  getOrderTypes() {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
@@ -46,11 +60,14 @@ export class ApiOrderService {
 
     return this.http.get<IApiResponse<IOrderType>>(url.toString())
       .pipe(
-        map(x => x.results)
+        map(x => x ? x.results : []),
+        catchError(() => {
+          return of([]);
+        })
       );
   }
 
-  getOrders(offset?: number, limit?: number): Observable<IApiResponse<IOrderSummary>> {
+  getOrders(offset?: number, limit?: number): Observable<IApiResponse<IOrderSummary> | null> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
@@ -63,32 +80,31 @@ export class ApiOrderService {
       url.searchParams.append('offset', offset.toString());
     }
 
-    return this.http.get<IApiResponse<IOrderSummary>>(url.toString());
+    return this.http.get<IApiResponse<IOrderSummary> | null>(url.toString())
+      .pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
   }
 
-  getFullOrder(orderJson: IOrder): Observable<Order | undefined> {
+  getFullOrder(orderJson: IOrder): Observable<Order | null> {
     return zip(
       this.getContact(orderJson.invoice_contact),
     ).pipe(
       map(data => {
-        if (data[0] && data[0].hasOwnProperty('error')) {
-          throw data[0];
-        }
-
+        const iContact = data[0];
         const order = GeoshopUtils.deepCopyOrder(orderJson);
-
         const newOrder = new Order(order);
 
-        if (data[0]) {
-          const contact = new Contact(data[0] as IContact);
-          newOrder.invoiceContact = contact;
+        if (!iContact) {
+          return newOrder;
         }
 
+        const contact = new Contact(iContact);
+        newOrder.invoiceContact = contact;
+
         return newOrder;
-      }),
-      catchError(error => {
-        console.error(error);
-        return of(undefined);
       })
     );
   }
@@ -100,26 +116,31 @@ export class ApiOrderService {
 
     const url = new URL(`${this.apiUrl}/order/last_draft/`);
 
-    return this.http.get<IOrder>(url.toString()).pipe(map(iOrder => iOrder ? new Order(iOrder) : null));
+    return this.http.get<IOrder>(url.toString())
+      .pipe(
+        map(iOrder => iOrder ? new Order(iOrder) : null),
+        catchError(() => {
+          return of(null);
+        })
+      );
   }
 
-  createOrder(jsonOrder: IOrderToPost): Observable<IOrder | IApiResponseError> {
+  createOrder(jsonOrder: IOrderToPost): Observable<IOrder | null> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
     const url = new URL(`${this.apiUrl}/order/`);
 
-    return this.http.post<IOrder | IApiResponseError>(url.toString(), jsonOrder)
+    return this.http.post<IOrder | null>(url.toString(), jsonOrder)
       .pipe(
-        catchError((error: IApiResponseError) => {
-          console.error(error);
-          return of(error);
+        catchError(() => {
+          return of(null);
         })
       );
   }
 
-  updateOrder(order: Order, contact: Contact | undefined): Observable<IOrder | undefined | IApiResponseError> {
+  updateOrder(order: Order, contact: Contact | undefined): Observable<IOrder | null> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
@@ -130,20 +151,17 @@ export class ApiOrderService {
       .pipe(
         flatMap((newJsonContact) => {
 
-            if (newJsonContact?.hasOwnProperty('error')) {
-              return of(newJsonContact as IApiResponseError);
+            if (!newJsonContact) {
+              return of(null);
             }
 
             const orderToPost = order.toPostAsJson;
-            orderToPost.invoice_contact = newJsonContact ?
-              GeoshopUtils.ExtractIdFromUrl((newJsonContact as IContact).url) :
-              null;
+            orderToPost.invoice_contact = GeoshopUtils.ExtractIdFromUrl((newJsonContact as IContact).url);
 
-            return this.http.put<IOrder | IApiResponseError>(`${url.toString()}${order.id}/`, orderToPost)
+            return this.http.put<IOrder | null>(`${url.toString()}${order.id}/`, orderToPost)
               .pipe(
-                catchError((error: IApiResponseError) => {
-                  console.error(error);
-                  return of(error);
+                catchError(() => {
+                  return of(null);
                 })
               );
           }
@@ -157,12 +175,10 @@ export class ApiOrderService {
 
     const url = new URL(`${this.apiUrl}/order/${orderId}/confirm/`);
 
-    return this.http.get<IOrder | IApiResponseError>(url.toString())
+    return this.http.get<boolean>(url.toString())
       .pipe(
-        catchError((error: IApiResponseError) => {
-          console.error(error);
-          return of(error);
-        })
+        map(() => true),
+        catchError(() => of(false))
       );
   }
 
@@ -174,18 +190,17 @@ export class ApiOrderService {
     const orderText = isOrderItem ? 'orderitem' : 'order';
     const url = new URL(`${this.apiUrl}/${orderText}/${orderId}/download_link/`);
 
-    return this.http.get<IOrderDowloadLink | IApiResponseError>(url.toString())
+    return this.http.get<IOrderDowloadLink | null>(url.toString())
       .pipe(
-        catchError((error: IApiResponseError) => {
-          console.error(error);
-          return of(error);
+        catchError(() => {
+          return of(null);
         })
       );
   }
 
   getContact(contactId: number | string) {
     if (contactId < 0 || typeof contactId !== 'number') {
-      return of(undefined);
+      return of(null);
     }
 
     if (!this.apiUrl) {
@@ -194,11 +209,17 @@ export class ApiOrderService {
 
     const url = new URL(`${this.apiUrl}/contact/${contactId}/`);
 
-    return this.http.get<IContact | IApiResponseError>(url.toString());
+    return this.http.get<IContact | null>(url.toString())
+      .pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
   }
 
-  createOrUpdateContact(contact: Contact | undefined): Observable<IContact | undefined | IApiResponseError> {
+  createOrUpdateContact(contact: Contact | undefined): Observable<IContact | null> {
     if (!contact || contact.HasId) {
+      // @ts-ignore
       return of(contact);
     }
 
@@ -208,28 +229,40 @@ export class ApiOrderService {
 
     const url = new URL(`${this.apiUrl}/contact/`);
 
-    return this.http.post<IContact | IApiResponseError>(url.toString(), contact);
+    return this.http.post<IContact | null>(url.toString(), contact)
+      .pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
   }
 
-  updateOrderItemDataFormat(dataFormat: string, orderItemId: number): Observable<IOrderItem | IApiResponseError> {
+  updateOrderItemDataFormat(dataFormat: string, orderItemId: number): Observable<IOrderItem | null> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
+
     const url = new URL(`${this.apiUrl}/orderitem/${orderItemId}/`);
-    return this.http.patch<IOrderItem | IApiResponseError>(url.toString(), {data_format: dataFormat});
+
+    return this.http.patch<IOrderItem | null>(url.toString(), {data_format: dataFormat})
+      .pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
   }
 
-  deleteLastDraftOrder() {
+  delete(orderId: number) {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    const url = new URL(`${this.apiUrl}/order/last_draft/`);
+    const url = new URL(`${this.apiUrl}/order/${orderId}/`);
 
-    return this.http.delete<number | IApiResponseError>(url.toString()).pipe(
-      catchError(error => {
-        console.error(error);
-        return of(error);
+    return this.http.delete<boolean>(url.toString()).pipe(
+      map(() => true),
+      catchError(() => {
+        return of(false);
       })
     );
   }

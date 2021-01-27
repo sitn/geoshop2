@@ -12,13 +12,15 @@ import { ForgetComponent } from './forget/forget.component';
 import {MatIconModule} from '@angular/material/icon';
 import { ResetComponent } from './reset/reset.component';
 import {MatStepperModule} from '@angular/material/stepper';
+import {MatSelectModule} from '@angular/material/select';
 
 const MODULES = [
   MatCardModule,
   MatInputModule,
   MatButtonModule,
   MatIconModule,
-  MatStepperModule
+  MatStepperModule,
+  MatSelectModule
 ];
 
 @NgModule({

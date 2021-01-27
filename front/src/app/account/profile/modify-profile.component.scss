@@ -1,18 +1,34 @@
 :host {
-  height: calc(100vh - 64px);
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-content: center;
+  margin: 10px;
+  height: calc(100vh - 84px);
 
   .mat-card {
+    display: flex;
+    flex-direction: column;
     min-width: 720px;
-    margin-top: 20px;
-    height: 90% !important;
-    position: relative;
-    overflow: auto;
+
+    .mat-card-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
   }
 
   ul {
     list-style-type: none;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .action-button-container {
+    align-self: flex-end;
+    margin-top: auto;
   }
 }

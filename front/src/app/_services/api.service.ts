@@ -5,7 +5,7 @@ import {ConfigService} from './config.service';
 import {Observable, of, zip} from 'rxjs';
 import {IApiResponse, IApiResponseError} from '../_models/IApi';
 import {ICredentials, IIdentity} from '../_models/IIdentity';
-import {map, switchMap} from 'rxjs/operators';
+import {catchError, map, switchMap} from 'rxjs/operators';
 import {IMetadata} from '../_models/IMetadata';
 import {IUser, IUserChangeResponse, IUserToPost} from '../_models/IUser';
 
@@ -19,19 +19,23 @@ export class ApiService {
   constructor(private http: HttpClient, private configService: ConfigService) {
   }
 
-  find<T>(inputText: string, endpoint: string): Observable<IApiResponse<T>> {
+  find<T>(inputText: string, endpoint: string): Observable<IApiResponse<T> | null> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
     const url = `${this.apiUrl}/${endpoint}/`;
 
-    return this.http.get<IApiResponse<T>>(url, {
+    return this.http.get<IApiResponse<T> | null>(url, {
       params: {search: inputText}
-    });
+    }).pipe(
+      catchError(() => {
+        return of(null);
+      })
+    );
   }
 
-  getProducts(offset?: number, limit?: number): Observable<IApiResponse<IProduct>> {
+  getProducts(offset?: number, limit?: number) {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
@@ -44,7 +48,12 @@ export class ApiService {
       url.searchParams.append('offset', offset.toString());
     }
 
-    return this.http.get<IApiResponse<IProduct>>(url.toString());
+    return this.http.get<IApiResponse<IProduct>>(url.toString())
+      .pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
   }
 
   loadMetadata(urlAsString?: string): Observable<IMetadata | null> {
@@ -53,18 +62,15 @@ export class ApiService {
     }
     try {
       const url = new URL(urlAsString);
-      return this.http.get<IMetadata>(url.toString());
+      return this.http.get<IMetadata>(url.toString())
+        .pipe(
+          catchError(() => {
+            return of(null);
+          })
+        );
     } catch {
       return of(null);
     }
-  }
-
-  getIdentity(url: string | undefined): Observable<IIdentity | undefined> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
-
-    return !url ? of(undefined) : this.http.get<IIdentity | undefined>(url);
   }
 
   login(authenticate: ICredentials, callbackUrl: string): Observable<{ identity: Partial<IIdentity>; callbackUrl: string; }> {
@@ -77,7 +83,8 @@ export class ApiService {
     return this.http.post<{ access: string; refresh: string; }>(url.toString(), authenticate)
       .pipe(
         switchMap(x => {
-          return this.getProfile(x.access).pipe(map(p => Object.assign({token: x.access, tokenRefresh: x.refresh}, p)));
+          return this.getProfile(x.access)
+            .pipe(map(p => Object.assign({token: x.access, tokenRefresh: x.refresh}, p)));
         }),
         map(x => {
           return {
@@ -107,7 +114,12 @@ export class ApiService {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    return this.http.post<IUserChangeResponse | IApiResponseError>(this.apiUrl + '/auth/change/', user);
+    return this.http.post<IUserChangeResponse | null>(this.apiUrl + '/auth/change/', user)
+      .pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
   }
 
   register(user: IIdentity) {
@@ -115,7 +127,12 @@ export class ApiService {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
-    return this.http.post(this.apiUrl + '/auth/register/', user);
+    return this.http.post(this.apiUrl + '/auth/register/', user)
+      .pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
   }
 
   refreshToken(token: string): Observable<{ access: string; }> {
@@ -126,18 +143,28 @@ export class ApiService {
     return this.http.post<{ access: string; }>(this.apiUrl + `/token/refresh/`, {refresh: token});
   }
 
-  checkLoginNotTaken(login: string): Observable<{ result: boolean }> {
+  checkLoginNotTaken(login: string): Observable<{ result: boolean } | null> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
-    return this.http.post<{ result: boolean }>(this.apiUrl + `/user/existsLogin/`, {login});
+    return this.http.post<{ result: boolean }>(this.apiUrl + `/user/existsLogin/`, {login})
+      .pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
   }
 
   forget(email: string) {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
-    return this.http.post<{ result: boolean }>(this.apiUrl + '/auth/password/', {email});
+    return this.http.post<{ result: boolean }>(this.apiUrl + '/auth/password/', {email})
+      .pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
   }
 
   resetPassword(password1: string, password2: string, uid: string, token: string) {
@@ -149,6 +176,10 @@ export class ApiService {
       new_password2: password2,
       uid,
       token
-    });
+    }).pipe(
+      catchError(() => {
+        return of(null);
+      })
+    );
   }
 }
