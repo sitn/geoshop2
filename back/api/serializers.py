@@ -73,14 +73,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class IdentitySerializer(serializers.ModelSerializer):
-
-    def validate(self, data):
-        if data.get('company_name', '').strip() != '':
-            if data.get('ide_id', '').strip() == '':
-                raise serializers.ValidationError(
-                    _("IDE number is mandatory for companies"))
-        return data
-
     class Meta:
         model = Identity
         exclude = ['sap_id', 'contract_accepted', 'is_public', 'user']
