@@ -1,5 +1,6 @@
 import os
 from django.urls import reverse
+from django.core import mail
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -32,6 +33,46 @@ class UserChangeTests(APITestCase):
         self.assertTrue('access' in resp.data)
         self.token = resp.data['access']
 
+    def test_user_create_private(self):
+        url = reverse('auth_register')
+        data = {
+            'username': 'jdupond',
+            'first_name': 'Jean',
+            'last_name': 'Dupond',
+            'street': 'Tivoli 22',
+            'city': 'Neuchâtel-les-Bains',
+            'email': 'admin@gmail.com',
+            'password1': 'testPa$$word',
+            'password2': 'testPa$$word'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(len(mail.outbox), 2, 'An email has been sent to admins and to the new user')
+
+    def test_user_create_with_company(self):
+        url = reverse('auth_register')
+        data = {
+            'username': 'jdupond',
+            'first_name': 'Jean',
+            'last_name': 'Dupond',
+            'street': 'Tivoli 22',
+            'city': 'Neuchâtel-les-Bains',
+            'email': 'admin@gmail.com',
+            'company_name': 'SITN',
+            'password1': 'testPa$$word',
+            'password2': 'testPa$$word'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(
+            response.status_code, status.HTTP_400_BAD_REQUEST, 'When company name is submitted, IDE must too')
+        data['ide_id'] = 'CHE-25'
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, 'IDE number is not valid')
+        data['ide_id'] = 'CHE-999.999.999'
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(len(mail.outbox), 2, 'An email has been sent to admins and to the new user')
+
     def test_user_change(self):
         """
         Tests POST of an user change request
@@ -41,7 +82,7 @@ class UserChangeTests(APITestCase):
             'last_name': 'i_got_married',
             'street': 'honeymoon',
             'city': 'Las Vegas',
-            'this_is_fake': 'DELETE * FROM BD'
+            'this_is_fake': ')DELETE * FROM public;('
         }
         response = self.client.post(url, data, format='json')
         # Forbidden if not logged in
