@@ -1,6 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {IOrderDowloadLink, IOrderItem, Order} from '../../_models/IOrder';
-import {IApiResponseError} from '../../_models/IApi';
+import {IOrderItem, Order} from '../../_models/IOrder';
 import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
 import {ApiOrderService} from '../../_services/api-order.service';
 import {MatSnackBar} from '@angular/material/snack-bar';

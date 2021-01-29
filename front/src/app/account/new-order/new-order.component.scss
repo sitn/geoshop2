@@ -12,7 +12,14 @@
     form {
       display: flex;
       flex-direction: column;
-      height: calc(100vh - 64px - 72px - 24px);
+
+      &:not(.form-no-full-height) {
+        height: calc(100vh - 64px - 72px - 24px);
+      }
+
+      &.form-height-mini {
+        height: calc(100vh - 64px - 72px - 41px - 24px);
+      }
 
       .mat-form-field {
         margin-top: 10px;
@@ -35,6 +42,10 @@
 
   .mat-card {
     margin: 0 auto;
+  }
+
+  .autocomplete-action-button {
+    margin-left: 10px;
   }
 
   .table-container {
