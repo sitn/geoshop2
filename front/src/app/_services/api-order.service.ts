@@ -267,4 +267,19 @@ export class ApiOrderService {
       })
     );
   }
+
+  deleteContact(contactId: number) {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    const url = new URL(`${this.apiUrl}/contact/${contactId}/`);
+
+    return this.http.delete<boolean>(url.toString()).pipe(
+      map(() => true),
+      catchError(() => {
+        return of(false);
+      })
+    );
+  }
 }

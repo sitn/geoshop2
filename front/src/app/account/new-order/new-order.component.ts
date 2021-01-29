@@ -16,12 +16,12 @@ import {ApiOrderService} from '../../_services/api-order.service';
 import {MatStepper} from '@angular/material/stepper';
 import {StoreService} from '../../_services/store.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {IApiResponseError} from '../../_models/IApi';
 import {Contact, IContact} from '../../_models/IContact';
 import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
-import {updateOrder} from '../../_store/cart/cart.action';
 import {Router} from '@angular/router';
 import * as fromCart from '../../_store/cart/cart.action';
+import {MatDialog, MatDialogRef} from '@angular/material/dialog';
+import {ConfirmDialogComponent} from '../../_components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'gs2-new-order',
@@ -37,6 +37,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   @ViewChild('stepper') stepper: MatStepper;
 
   orderFormGroup: FormGroup;
+  addressChoiceForm: FormGroup;
   contactFormGroup: FormGroup;
   orderItemFormGroup: FormGroup = new FormGroup({});
   invoiceContactsFormControls: { [key: string]: FormControl };
@@ -45,6 +46,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   isCustomerSelected = false;
   isNewInvoiceContact = false;
 
+  currentSelectedContact: Contact | undefined;
   currentOrder: Order;
   currentUser$ = this.store.select(getUser);
   orderTypes: IOrderType[] = [];
@@ -64,7 +66,11 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   }
 
   get IsAddressForCurrentUser() {
-    return this.contactFormGroup?.get('addressChoice')?.value === '1';
+    return this.addressChoiceCtrl?.value === '1';
+  }
+
+  get addressChoiceCtrl() {
+    return this.addressChoiceForm.get('addressChoice');
   }
 
   get buttonConfirmLabel() {
@@ -85,7 +91,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
               private storeService: StoreService,
               private snackBar: MatSnackBar,
               private router: Router,
-              private store: Store<AppState>) {
+              private store: Store<AppState>,
+              private dialog: MatDialog) {
 
     this.createForms();
   }
@@ -189,8 +196,13 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       country: new FormControl(),
       url: new FormControl(),
     };
-    this.contactFormGroup = this.formBuilder.group({
-      addressChoice: new FormControl('2'),
+
+    this.addressChoiceForm = new FormGroup({
+      addressChoice: new FormControl('1')
+    });
+    this.addressChoiceCtrl?.valueChanges.subscribe((choice) => this.updateContactForm(choice));
+
+    this.contactFormGroup = new FormGroup({
       customer: new FormControl(null),
       ...this.invoiceContactsFormControls
     });
@@ -206,10 +218,17 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       description: order.description
     });
 
+    if (order.HasInvoiceContact) {
+      this.addressChoiceCtrl?.setValue('2');
+      this.currentSelectedContact = order.invoiceContact;
+    } else {
+      this.addressChoiceCtrl?.setValue('1');
+    }
+
+
     try {
       if (this.contactFormGroup) {
         this.contactFormGroup.setValue({
-          addressChoice: order.HasInvoiceContact ? '2' : '1',
           customer: null,
           first_name: order.invoiceContact?.first_name || '',
           last_name: order.invoiceContact?.last_name || '',
@@ -248,7 +267,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     });
 
     this.updateDescription(this.orderFormGroup?.get('orderType')?.value);
-    this.updateContactForm();
+    this.updateContactForm(this.addressChoiceCtrl?.value);
   }
 
   displayCustomer(customer: IIdentity) {
@@ -262,11 +281,22 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.isNewInvoiceContact = false;
 
     const iContact: IContact = event.option.value;
+    this.currentSelectedContact = new Contact(iContact);
     for (const key in iContact) {
       if (this.contactFormGroup.contains(key)) {
         this.contactFormGroup.get(key)?.setValue(iContact[key]);
       }
     }
+
+    this.contactFormGroup.markAsPristine();
+  }
+
+  resetCustomerSearch() {
+    this.customerCtrl?.setValue('');
+    this.isCustomerSelected = false;
+    this.isNewInvoiceContact = false;
+    this.currentSelectedContact = undefined;
+    this.contactFormGroup.reset();
   }
 
   clearCustomerForm() {
@@ -303,10 +333,9 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.isCustomerSelected = false;
   }
 
-  updateContactForm(isNewClient = false) {
+  updateContactForm(addressChoice: string) {
     // current user, disable required form controls
-
-    if (this.contactFormGroup.get('addressChoice')?.value === '1') {
+    if (addressChoice === '1') {
       for (const key in this.invoiceContactsFormControls) {
         if (this.invoiceContactsFormControls[key]) {
           this.contactFormGroup.removeControl(key);
@@ -343,7 +372,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     }
 
     this.updateDescription(this.orderFormGroup?.get('orderType')?.value);
-    this.updateContactForm();
+    this.updateContactForm(this.addressChoiceCtrl?.value);
   }
 
   orderTypeCompareWith(a: IOrderType, b: IOrderType) {
@@ -351,11 +380,45 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   }
 
   createOrUpdateDraftOrder() {
+    const invoiceContact = this.getInvoiceContact();
+
+    // means the contact was updated
+    if (!this.isNewInvoiceContact && this.contactFormGroup.valid && this.contactFormGroup.dirty && invoiceContact
+      && this.currentSelectedContact) {
+
+      let dialogRef: MatDialogRef<ConfirmDialogComponent> | null = this.dialog.open(ConfirmDialogComponent, {
+        disableClose: false,
+      });
+
+      if (!dialogRef) {
+        return;
+      }
+
+      dialogRef.componentInstance.noButtonTitle = 'Annuler';
+      dialogRef.componentInstance.yesButtonTitle = 'Continuer';
+      dialogRef.componentInstance.confirmMessage =
+        `Le contact <b style='color:#26a59a;'>${this.currentSelectedContact.first_name} ${this.currentSelectedContact.last_name}</b> a été modifié. Voulez-vous continuer ?`;
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.apiOrderService.deleteContact(invoiceContact.Id).subscribe(confirmed => {
+            if (confirmed) {
+              invoiceContact.Id = -1;
+              this._createOrUpdateDraftOrder(invoiceContact);
+            }
+          });
+        }
+        dialogRef = null;
+      });
+    } else {
+      this._createOrUpdateDraftOrder(invoiceContact);
+    }
+  }
+
+  private _createOrUpdateDraftOrder(invoiceContact: Contact | undefined) {
     this.currentOrder.title = this.orderFormGroup.get('title')?.value;
     this.currentOrder.invoice_reference = this.orderFormGroup.get('invoice_reference')?.value;
     this.currentOrder.description = this.orderFormGroup.get('description')?.value;
     this.currentOrder.order_type = this.orderFormGroup.get('orderType')?.value.name;
-    const invoiceContact = this.getInvoiceContact();
 
     if (this.currentOrder.id === -1) {
       this.currentOrder.invoiceContact = invoiceContact;
@@ -410,6 +473,46 @@ export class NewOrderComponent implements OnInit, OnDestroy {
           this.store.dispatch(fromCart.deleteOrder());
           await this.router.navigate(['/account/orders']);
         }
+      });
+    }
+  }
+
+  resetCustomerForm() {
+    if (this.currentSelectedContact) {
+      for (const attr in this.currentSelectedContact) {
+        if (this.currentSelectedContact[attr] != null && this.contactFormGroup.contains(attr)) {
+          this.contactFormGroup.get(attr)?.reset(this.currentSelectedContact[attr]);
+        }
+      }
+    }
+  }
+
+  deleteCurrentContact() {
+    const contact = this.getInvoiceContact();
+
+    if (this.isCustomerSelected && contact && contact.Id) {
+      let dialogRef: MatDialogRef<ConfirmDialogComponent> | null = this.dialog.open(ConfirmDialogComponent, {
+        disableClose: false,
+      });
+
+      if (!dialogRef) {
+        return;
+      }
+
+      dialogRef.componentInstance.noButtonTitle = 'Annuler';
+      dialogRef.componentInstance.yesButtonTitle = 'Supprimer';
+      dialogRef.componentInstance.confirmMessage =
+        `Etes-vous sûr de vouloir supprimer le contact <b style='color:#26a59a;'>${contact.first_name} ${contact.last_name}</b> ?`;
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.apiOrderService.deleteContact(contact.Id).subscribe(confirmed => {
+            if (confirmed) {
+              this.clearCustomerForm();
+              this.isCustomerSelected = false;
+            }
+          });
+        }
+        dialogRef = null;
       });
     }
   }

@@ -40,6 +40,10 @@ export class Contact {
     return this.id;
   }
 
+  public set Id(id: number) {
+    this.id = id;
+  }
+
   public get HasId() {
     return this.id && this.id > -1;
   }

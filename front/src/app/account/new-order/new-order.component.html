@@ -44,17 +44,18 @@
   </mat-step>
 
   <mat-step [stepControl]="contactFormGroup" label="Facturation / Tiers">
-    <form [formGroup]="contactFormGroup">
 
+    <form class="form-no-full-height" [formGroup]="addressChoiceForm">
       <mat-radio-group *ngIf="IsOrderTypePrivate" class="flex-column"
                        formControlName="addressChoice"
-                       (change)="updateContactForm($event.value)"
                        aria-label="Choisir une option">
         <mat-radio-button value="1">La facturation est adressé à
           l'utilisateur courant: {{(currentUser$|async)?.email}}</mat-radio-button>
         <mat-radio-button value="2">La facturation est adressé à un mandant</mat-radio-button>
       </mat-radio-group>
+    </form>
 
+    <form class="form-height-mini" [formGroup]="contactFormGroup">
       <ng-container *ngIf="(IsOrderTypePrivate && !IsAddressForCurrentUser) || !IsOrderTypePrivate">
         <div class="flex-row">
           <!-- Search -->
@@ -68,7 +69,7 @@
               <mat-spinner *ngIf="isSearchLoading" diameter="16" color="accent"
                            style="margin-right: 10px"></mat-spinner>
               <button mat-button *ngIf="customerCtrl?.value" mat-icon-button aria-label="Clear"
-                      (click)="customerCtrl?.setValue(''); isCustomerSelected = false; isNewInvoiceContact =false;">
+                      (click)="resetCustomerSearch()">
                 <mat-icon>close</mat-icon>
               </button>
             </div>
@@ -79,13 +80,34 @@
               </mat-option>
             </mat-autocomplete>
           </mat-form-field>
-          <button mat-button
+          <button class="autocomplete-action-button"
+                  mat-button
                   mat-mini-fab
                   matTooltip="Créer un nouveau client"
                   aria-label="Créer un nouveau client"
                   color="primary"
                   (click)="clearCustomerForm()">
             <mat-icon>add</mat-icon>
+          </button>
+          <button class="autocomplete-action-button"
+                  mat-button
+                  mat-mini-fab
+                  matTooltip="Annuler les changements"
+                  aria-label="Annuler les changements"
+                  color="primary"
+                  *ngIf="isCustomerSelected && contactFormGroup.dirty && contactFormGroup.touched"
+                  (click)="resetCustomerForm()">
+            <mat-icon>clear</mat-icon>
+          </button>
+          <button class="autocomplete-action-button"
+                  mat-button
+                  mat-mini-fab
+                  matTooltip="Supprimer ce client"
+                  aria-label="Supprimer ce client"
+                  color="warn"
+                  *ngIf="isCustomerSelected"
+                  (click)="deleteCurrentContact()">
+            <mat-icon>delete</mat-icon>
           </button>
         </div>
 
@@ -98,7 +120,6 @@
                    spellcheck="false"
                    required
                    matInput
-                   [readonly]="!isNewInvoiceContact"
                    placeholder="Prénom">
             <mat-error *ngIf="contactFormGroup?.get('first_name')?.hasError('required')">Requis</mat-error>
           </mat-form-field>
@@ -110,15 +131,14 @@
                    spellcheck="false"
                    required
                    matInput
-                   [readonly]="!isNewInvoiceContact"
                    placeholder="Nom">
             <mat-error *ngIf="contactFormGroup?.get('last_name')?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
           <!-- Email -->
-          <mat-form-field>
+          <mat-form-field [style.color]="contactFormGroup?.get('email')?.touched ? '#26a59a' : 'black'">
             <mat-label>Courriel mandant</mat-label>
-            <input matInput required type="email" formControlName="email" [readonly]="!isNewInvoiceContact">
+            <input matInput required type="email" formControlName="email">
             <mat-error *ngIf="contactFormGroup?.get('email')?.hasError('required')">Requis</mat-error>
             <mat-error *ngIf="contactFormGroup?.get('email')?.hasError('pattern')">Format courriel uniquement
             </mat-error>
@@ -130,14 +150,13 @@
                    autofocus
                    spellcheck="false"
                    matInput
-                   [readonly]="!isNewInvoiceContact"
                    placeholder="Société">
           </mat-form-field>
 
           <!-- Phone -->
           <mat-form-field>
             <mat-label>Téléphone mandant</mat-label>
-            <input matInput type="tel" formControlName="phone" [readonly]="!isNewInvoiceContact">
+            <input matInput type="tel" formControlName="phone">
             <mat-error *ngIf="contactFormGroup?.get('phone')?.hasError('pattern')">
               <ul>Mauvais format de téléphone, accepté :
                 <li>+41225252356</li>
@@ -150,37 +169,29 @@
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field color="primary">
-            <input formControlName="street"
-                   matInput
-                   [readonly]="!isNewInvoiceContact"
-                   placeholder="Adresse">
+          <mat-form-field>
+            <mat-label>Adresse</mat-label>
+            <input formControlName="street" matInput type="text">
           </mat-form-field>
 
-          <mat-form-field color="primary">
-            <input formControlName="street2"
-                   matInput
-                   [readonly]="!isNewInvoiceContact"
-                   placeholder="Complément d'adresse">
+          <mat-form-field>
+            <mat-label>Complément d'adresse</mat-label>
+            <input formControlName="street2" matInput type="text">
           </mat-form-field>
 
-          <mat-form-field color="primary">
-            <input formControlName="postcode"
-                   matInput
-                   type="number"
-                   [readonly]="!isNewInvoiceContact"
-                   placeholder="Code postal">
+          <mat-form-field>
+            <mat-label>Code postal</mat-label>
+            <input formControlName="postcode" matInput type="number">
           </mat-form-field>
 
-          <mat-form-field color="primary">
-            <input formControlName="city"
-                   matInput
-                   [readonly]="!isNewInvoiceContact"
-                   placeholder="Ville">
+          <mat-form-field>
+            <mat-label>Ville</mat-label>
+            <input formControlName="city" matInput>
           </mat-form-field>
 
-          <mat-form-field color="primary">
-            <mat-select formControlName="country" placeholder="Pays">
+          <mat-form-field>
+            <mat-label>Pays</mat-label>
+            <mat-select formControlName="country">
               <mat-option [value]="'Suisse'">
                 Suisse
               </mat-option>
@@ -243,7 +254,8 @@
                     {{ format }}
                   </mat-option>
                 </mat-select>
-                <mat-error *ngIf="orderItemFormGroup.get(getOrderItemControlName(orderItem))?.hasError('required')">Requis
+                <mat-error *ngIf="orderItemFormGroup.get(getOrderItemControlName(orderItem))?.hasError('required')">
+                  Requis
                 </mat-error>
               </mat-form-field>
             </td>
