@@ -231,8 +231,9 @@ export class Order {
       }
       this._isAllOrderItemCalculated = this._isAllOrderItemCalculated && item.price_status === 'CALCULATED';
     }
-    this.items.sort((a, b) => a < b ? -1 : 1);
 
+    // @ts-ignore
+    this.items.sort((a, b) => a.product.label < b.product.label ? -1 : a.product.label < b.product.label ? 1 : 0);
 
     this.initializeGeometry(options.geom);
     this.statusAsReadableIconText = Order.initializeStatus(options, this._isAllOrderItemCalculated);

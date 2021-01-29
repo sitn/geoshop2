@@ -27,6 +27,7 @@ import {MatRadioModule} from '@angular/material/radio';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {ModifyProfileComponent} from './profile/modify-profile.component';
 import { OrderComponent } from './orders/order/order.component';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 const MODULES = [
   ReactiveFormsModule,
@@ -48,7 +49,8 @@ const MODULES = [
   MatProgressSpinnerModule,
   MatCheckboxModule,
   MatRadioModule,
-  MatExpansionModule
+  MatExpansionModule,
+  MatTooltipModule
 ];
 
 @NgModule({
