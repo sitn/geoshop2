@@ -366,7 +366,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-      this.apiOrderService.updateOrder(this.currentOrder, invoiceContact).subscribe(newOrder => {
+      this.apiOrderService.updateOrder(this.currentOrder, invoiceContact, this.IsAddressForCurrentUser).subscribe(newOrder => {
         if (newOrder) {
           this.storeService.addOrderToStore(new Order(newOrder as IOrder));
           this.stepper.next();

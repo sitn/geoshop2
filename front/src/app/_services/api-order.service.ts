@@ -140,7 +140,7 @@ export class ApiOrderService {
       );
   }
 
-  updateOrder(order: Order, contact: Contact | undefined): Observable<IOrder | null> {
+  updateOrder(order: Order, contact: Contact | undefined, isAddressForCurrentUser: boolean): Observable<IOrder | null> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
@@ -150,13 +150,14 @@ export class ApiOrderService {
     return this.createOrUpdateContact(contact)
       .pipe(
         flatMap((newJsonContact) => {
-
-            if (!newJsonContact) {
-              return of(null);
-            }
-
             const orderToPost = order.toPostAsJson;
-            orderToPost.invoice_contact = GeoshopUtils.ExtractIdFromUrl((newJsonContact as IContact).url);
+
+            if (!isAddressForCurrentUser) {
+              if (!newJsonContact) {
+                return of(null);
+              }
+              orderToPost.invoice_contact = GeoshopUtils.ExtractIdFromUrl((newJsonContact as IContact).url);
+            }
 
             return this.http.put<IOrder | null>(`${url.toString()}${order.id}/`, orderToPost)
               .pipe(
