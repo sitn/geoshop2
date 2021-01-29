@@ -1,4 +1,4 @@
-import {IOrder, IOrderDowloadLink, IOrderItem} from '../_models/IOrder';
+import {IOrder, IOrderItem} from '../_models/IOrder';
 import {IProduct} from '../_models/IProduct';
 
 export class GeoshopUtils {
