@@ -11,7 +11,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
 from django.utils.translation import gettext_lazy as _
 
-from rest_framework import filters, generics, views, viewsets, permissions, status
+from rest_framework import filters, generics, views, viewsets, permissions, status, mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
@@ -61,7 +61,11 @@ class CopyrightViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CopyrightSerializer
 
 
-class ContactViewSet(viewsets.ModelViewSet):
+class ContactViewSet(mixins.CreateModelMixin,
+                     mixins.RetrieveModelMixin,
+                     mixins.DestroyModelMixin,
+                     mixins.ListModelMixin,
+                     viewsets.GenericViewSet):
     """
     API endpoint that allows Contacts to be viewed, searched or edited.
     """
