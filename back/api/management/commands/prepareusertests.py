@@ -302,5 +302,5 @@ class Command(BaseCommand):
         order_download.save()
 
         order_quoted.set_price()
-        order_quoted.confirm()
+        order_quoted.quote_done()
         order_quoted.save()
