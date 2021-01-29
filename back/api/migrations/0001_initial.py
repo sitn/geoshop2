@@ -68,6 +68,7 @@ class Migration(migrations.Migration):
                 ('company_name', models.CharField(blank=True, max_length=100, verbose_name='company_name')),
                 ('phone', models.CharField(blank=True, max_length=50, verbose_name='phone')),
                 ('sap_id', models.BigIntegerField(blank=True, null=True, verbose_name='sap_id')),
+                ('ide_id', models.CharField(blank=True, max_length=15, null=True, validators=[django.core.validators.RegexValidator(message='IDE number is not valid', regex='^CHE-([0-9]{3}\\.){2}[0-9]{3}$')], verbose_name='ide_number')),
                 ('contract_accepted', models.DateField(blank=True, null=True, verbose_name='contract_accepted')),
                 ('is_public', models.BooleanField(default=False, verbose_name='is_public')),
                 ('subscribed', models.BooleanField(default=False, verbose_name='subscribed')),

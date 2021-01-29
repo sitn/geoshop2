@@ -1,4 +1,6 @@
+import json
 from pathlib import Path
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -13,7 +15,7 @@ from rest_framework import filters, generics, views, viewsets, permissions, stat
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
-from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
+from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.parsers import MultiPartParser
 
 from allauth.account.views import ConfirmEmailView
@@ -48,15 +50,15 @@ sensitive_post_parameters_m = method_decorator(
 )
 
 UserModel = get_user_model()
+LANG = getattr(settings, 'LANGUAGE_CODE')
 
 
-class CopyrightViewSet(viewsets.ModelViewSet):
+class CopyrightViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows Copyright to be viewed or edited.
+    API endpoint that allows Copyright to be viewed.
     """
     queryset = Copyright.objects.all()
     serializer_class = CopyrightSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class ContactViewSet(viewsets.ModelViewSet):
@@ -85,25 +87,23 @@ class CurrentUserView(views.APIView):
         return Response(ser.data)
 
 
-class DocumentViewSet(viewsets.ModelViewSet):
+class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows Document to be viewed or edited.
+    API endpoint that allows Document to be viewed.
     """
     queryset = Document.objects.all()
     serializer_class = DocumentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class DataFormatViewSet(viewsets.ModelViewSet):
+class DataFormatViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows Format to be viewed or edited.
+    API endpoint that allows Format to be viewed.
     """
     queryset = DataFormat.objects.all()
     serializer_class = DataFormatSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class IdentityViewSet(viewsets.ModelViewSet):
+class IdentityViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows Identity to be viewed.
     Only retrieves the current user or "public" identities.
@@ -116,20 +116,18 @@ class IdentityViewSet(viewsets.ModelViewSet):
     search_fields = ['email']
     filter_backends = [filters.SearchFilter]
     serializer_class = MetadataIdentitySerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         user = self.request.user
         return Identity.objects.filter(Q(user_id=user.id) | Q(is_public=True))
 
 
-class MetadataViewSet(viewsets.ModelViewSet):
+class MetadataViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows Metadata to be viewed or edited.
+    API endpoint that allows Metadata to be viewed.
     """
     queryset = Metadata.objects.all()
     serializer_class = MetadataSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     template_name = "metadata.html"
     lookup_field = 'id_name'
 
@@ -146,16 +144,15 @@ class MetadataViewSet(viewsets.ModelViewSet):
         return context
 
 
-class MetadataContactViewSet(viewsets.ModelViewSet):
+class MetadataContactViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows MetadataContact to be viewed or edited.
+    API endpoint that allows MetadataContact to be viewed.
     """
     queryset = MetadataContact.objects.all()
     serializer_class = MetadataContactSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class MultiSerializerViewSet(viewsets.ModelViewSet):
+class MultiSerializerMixin():
     serializers = {
         'default': None,
     }
@@ -167,9 +164,8 @@ class MultiSerializerViewSet(viewsets.ModelViewSet):
 
 class OrderItemViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows OrderItem to be viewed or edited.
+    API endpoint that allows OrderItem to be viewed.
     """
-    queryset = OrderItem.objects.all()
     serializer_class = OrderItemSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -180,6 +176,11 @@ class OrderItemViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         order = instance.order
+        if order.status not in [Order.OrderStatus.DRAFT, Order.OrderStatus.PENDING]:
+            return Response(
+                {"detail": _("This orderitem cannot be deleted anymore.")},
+                status=status.HTTP_403_FORBIDDEN
+            )
         response = super(OrderItemViewSet, self).destroy(request, *args, **kwargs)
         order.set_price()
         return response
@@ -202,16 +203,15 @@ class OrderItemViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-class OrderTypeViewSet(viewsets.ModelViewSet):
+class OrderTypeViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows OrderType to be viewed or edited.
+    API endpoint that allows OrderType to be viewed.
     """
     queryset = OrderType.objects.all()
     serializer_class = OrderTypeSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class OrderViewSet(MultiSerializerViewSet):
+class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
     """
     API endpoint that allows Orders to be viewed or edited.
     Only orders that belong to current authenticated user are shown.
@@ -247,6 +247,16 @@ class OrderViewSet(MultiSerializerViewSet):
         if order.status == Order.OrderStatus.DRAFT:
             return super(OrderViewSet, self).update(request, pk, *args, **kwargs)
         raise PermissionDenied(detail='Order status is not DRAFT.')
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.status != Order.OrderStatus.DRAFT:
+            return Response(
+                {"detail": _("This order cannot be deleted anymore.")},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        response = super(OrderViewSet, self).destroy(request, *args, **kwargs)
+        return response
 
     @action(detail=False, methods=['get'])
     def last_draft(self, request):
@@ -403,18 +413,17 @@ class PasswordResetConfirmView(generics.GenericAPIView):
         )
 
 
-class ProductFormatViewSet(viewsets.ModelViewSet):
+class ProductFormatViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows ProductFormat to be viewed or edited.
+    API endpoint that allows ProductFormat to be viewed.
     """
     queryset = ProductFormat.objects.all()
     serializer_class = ProductFormatSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class ProductViewSet(MultiSerializerViewSet):
+class ProductViewSet(MultiSerializerMixin, viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows Product to be viewed or edited.
+    API endpoint that allows Product to be viewed.
 
     You can search a product with `?search=` param.
     Searchable properties are:
@@ -429,20 +438,18 @@ class ProductViewSet(MultiSerializerViewSet):
         'default':  ProductSerializer,
         'list':    ProductDigestSerializer,
     }
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     ts_field = 'ts'
 
     def get_queryset(self):
         return self.querysets.get(self.action, self.querysets['default'])
 
 
-class PricingViewSet(viewsets.ModelViewSet):
+class PricingViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows Pricing to be viewed or edited.
+    API endpoint that allows Pricing to be viewed.
     """
     queryset = Pricing.objects.all()
     serializer_class = PricingSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class RegisterView(generics.CreateAPIView):
@@ -452,6 +459,19 @@ class RegisterView(generics.CreateAPIView):
     queryset = UserModel.objects.all().order_by('-date_joined')
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        response = super(RegisterView, self).post(request, *args, **kwargs)
+
+        admin_text_content = json.dumps(response.data)
+        
+        user = UserModel.objects.get(pk=response.data['id'])
+        text_content = render_to_string('create_user_email_' + LANG + '.txt', request=request)
+
+        send_email_to_admin(_('Geoshop - New user request'), admin_text_content)
+        send_email_to_identity(_('Geoshop - New account pending'), text_content, user.identity)
+
+        return Response({'detail': _('Your data was successfully submitted')}, status=status.HTTP_200_OK)
 
 
 class UserChangeView(generics.CreateAPIView):
@@ -487,9 +507,8 @@ class UserChangeView(generics.CreateAPIView):
                 if request_value != base_user[key]:
                     context['modified'][_(key)] = request_value
 
-        lang = getattr(settings, 'LANGUAGE_CODE')
-        admin_text_content = render_to_string('change_user_admin_email_'+lang+'.txt', context, request=request)
-        text_content = render_to_string('change_user_email_'+lang+'.txt', context, request=request)
+        admin_text_content = render_to_string('change_user_admin_email_' + LANG + '.txt', context, request=request)
+        text_content = render_to_string('change_user_email_' + LANG + '.txt', context, request=request)
 
         send_email_to_admin(_('Geoshop - User change request'), admin_text_content)
         send_email_to_identity(_('Geoshop - User change request'), text_content, request.user.identity)
@@ -511,3 +530,14 @@ class VerifyEmailView(views.APIView, ConfirmEmailView):
         confirmation = self.get_object()
         confirmation.confirm(self.request)
         return Response({'detail': _('ok')}, status=status.HTTP_200_OK)
+
+
+class VerifyUsernameView(views.APIView):
+    """
+    Verifies if username is available
+    """
+    permission_classes = [permissions.AllowAny]
+    allowed_methods = ['GET']
+
+    #TODO
+    pass
