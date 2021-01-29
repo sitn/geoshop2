@@ -466,10 +466,11 @@ class RegisterView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         response = super(RegisterView, self).post(request, *args, **kwargs)
+        user = UserModel.objects.get(pk=response.data['id'])
+        user.is_active = False
+        user.save()
 
         admin_text_content = json.dumps(response.data)
-        
-        user = UserModel.objects.get(pk=response.data['id'])
         text_content = render_to_string('create_user_email_' + LANG + '.txt', request=request)
 
         send_email_to_admin(_('Geoshop - New user request'), admin_text_content)
