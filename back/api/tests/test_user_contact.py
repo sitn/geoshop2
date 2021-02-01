@@ -60,7 +60,7 @@ class UserContacts(APITestCase):
             response.data['results'][0]['first_name'], self.contact['first_name'], 'Check contact first name')
 
     def test_delete_contact(self):
-        url = reverse('contact-list')
+        url = '{}?search=Marc'.format(reverse('contact-list'))
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
@@ -69,7 +69,7 @@ class UserContacts(APITestCase):
         response = self.client.delete(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.content)
 
-        url = reverse('contact-list')
+        url = '{}?search=Marc'.format(reverse('contact-list'))
         response = self.client.get(url, format='json')
         self.assertListEqual(
             response.data['results'], [], 'There are no visible contacts')
