@@ -1,11 +1,9 @@
-import json
 from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
@@ -36,7 +34,7 @@ from .serializers import (
     ProductFormatSerializer, RegisterSerializer, UserChangeSerializer,
     VerifyEmailSerializer)
 
-from .helpers import send_email_to_admin, send_email_to_identity
+from .helpers import send_geoshop_email
 
 from .faker import generate_fake_order
 from .filters import FullTextSearchFilter
@@ -50,7 +48,6 @@ sensitive_post_parameters_m = method_decorator(
 )
 
 UserModel = get_user_model()
-LANG = getattr(settings, 'LANGUAGE_CODE')
 
 
 class CopyrightViewSet(viewsets.ReadOnlyModelViewSet):
@@ -68,6 +65,7 @@ class ContactViewSet(mixins.CreateModelMixin,
                      viewsets.GenericViewSet):
     """
     API endpoint that allows Contacts to be viewed, searched or edited.
+    Only will retrieve is_active=True on search
     """
     search_fields = ['first_name', 'last_name', 'company_name']
     filter_backends = [filters.SearchFilter]
@@ -76,8 +74,14 @@ class ContactViewSet(mixins.CreateModelMixin,
 
     def get_queryset(self):
         user = self.request.user
+        keywords = self.request.query_params.get('search')
+        if keywords:
+            return Contact.objects.filter(Q(belongs_to=user.id) & Q(is_active=True))
         return Contact.objects.filter(belongs_to=user.id)
 
+    def perform_destroy(self, instance):
+        instance.is_active = False
+        instance.save()
 
 class CurrentUserView(views.APIView):
     """
@@ -365,8 +369,7 @@ class ExtractOrderItemView(generics.UpdateAPIView):
             instance = self.get_object()
             serializer.update(instance, serializer.validated_data)
             return Response(status=status.HTTP_202_ACCEPTED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Copy from dj-rest-auth
@@ -469,12 +472,21 @@ class RegisterView(generics.CreateAPIView):
         user = UserModel.objects.get(pk=response.data['id'])
         user.is_active = False
         user.save()
-
-        admin_text_content = json.dumps(response.data)
-        text_content = render_to_string('create_user_email_' + LANG + '.txt', request=request)
-
-        send_email_to_admin(_('Geoshop - New user request'), admin_text_content)
-        send_email_to_identity(_('Geoshop - New account pending'), text_content, user.identity)
+        send_geoshop_email(
+            _('Geoshop - New user request'),
+            template_name='email_admin',
+            template_data={
+                'messages': [_('A new user account needs to be validated:')],
+                'admin_url': 'admin:auth_user_change',
+                'admin_url_params': user.id,
+            }
+        )
+        send_geoshop_email(
+            _('Geoshop - New account pending'),
+            recipient=user.identity,
+            template_name='email_welcome_user',
+            template_data=UserIdentitySerializer(user).data
+        )
 
         return Response({'detail': _('Your data was successfully submitted')}, status=status.HTTP_200_OK)
 
@@ -495,28 +507,33 @@ class UserChangeView(generics.CreateAPIView):
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        obj = serializer.save()
-        id_ = obj.id
+        serializer.save()
+        base_user = UserModel.objects.get(pk=request.user.id)
 
-        context = ({
-            'id': id_,
-            'username': request.user.username,
-            'modified': {}
-        })
+        changes = {}
 
-        base_user = Identity.objects.values().get(user_id=request.user.id)
+        for key in serializer.data:
+            if hasattr(base_user.identity, key):
+                request_value = serializer.data[key]
+                if request_value != getattr(base_user.identity, key):
+                    changes[_(key)] = request_value
 
-        for key in request.data:
-            if key in base_user:
-                request_value = request.data[key]
-                if request_value != base_user[key]:
-                    context['modified'][_(key)] = request_value
-
-        admin_text_content = render_to_string('change_user_admin_email_' + LANG + '.txt', context, request=request)
-        text_content = render_to_string('change_user_email_' + LANG + '.txt', context, request=request)
-
-        send_email_to_admin(_('Geoshop - User change request'), admin_text_content)
-        send_email_to_identity(_('Geoshop - User change request'), text_content, request.user.identity)
+        send_geoshop_email(
+            _('Geoshop - User change request'),
+            template_name='email_admin',
+            template_data={
+                'messages': [_(
+                    'The user {} has requested some changes for his user profile.'
+                    ).format(base_user.username)],
+                'details': changes
+            }
+        )
+        send_geoshop_email(
+            _('Geoshop - Your changes request'),
+            recipient=base_user.identity,
+            template_name='email_user_change',
+            template_data=UserIdentitySerializer(base_user).data
+        )
 
         return Response({'detail': _('Your data was successfully submitted')}, status=status.HTTP_200_OK)
 

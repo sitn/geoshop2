@@ -7,9 +7,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.gis import admin
 from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
-from django.utils.translation import ngettext
 
-
+from .helpers import send_geoshop_email
 from .models import (
     Contact,
     Copyright,
@@ -118,6 +117,9 @@ class PricingAdmin(CustomModelAdmin):
 
 class UserAdmin(BaseUserAdmin):
     """Overrides BaseUserAdmin"""
+    search_fields = ['username', 'identity__first_name', 'identity__last_name', 'identity__email']
+    list_display = ['username', 'identity_first_name', 'identity_last_name', 'identity_email']
+    inlines = [IdentityInline]
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         (_('Permissions'), {
@@ -126,8 +128,37 @@ class UserAdmin(BaseUserAdmin):
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
 
-    inlines = [IdentityInline]
+    def identity_first_name(self, user):
+        return user.identity.first_name
 
+    def identity_last_name(self, user):
+        return user.identity.last_name
+
+    def identity_email(self, user):
+        return user.identity.email
+
+    def response_change(self, request, obj):
+        if "_register-done" in request.POST:
+            obj.save()
+            if obj.is_active:
+                send_geoshop_email(
+                    _('Registration confirmation'),
+                    recipient=obj.identity,
+                    template_name='email_user_confirm',
+                    template_data={
+                        'messages': [_('Your account has been registered successfully.')]
+                    }
+                )
+                self.message_user(
+                    request,
+                    _("User is registered and an email has been sent to client"))
+            else:
+                self.message_user(
+                    request,
+                    _("User is not active yet! Client will not be notified!"), messages.ERROR)
+            redirect_url = request.path
+            return HttpResponseRedirect(redirect_url)
+        return super().response_change(request, obj)
 
 admin.site.unregister(UserModel)
 admin.site.register(UserModel, UserAdmin)

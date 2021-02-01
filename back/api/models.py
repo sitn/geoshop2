@@ -12,12 +12,18 @@ from djmoney.money import Money
 from djmoney.models.fields import MoneyField
 
 from .pricing import ProductPriceCalculator
-from .helpers import RandomFileName, send_email_to_admin, send_email_to_identity
+from .helpers import RandomFileName, send_geoshop_email
 
 LOGGER = logging.getLogger(__name__)
 # Get the UserModel
 UserModel = get_user_model()
 
+# Get a better name for Users based on their identities
+def get_name(self):
+    if self.identity:
+        return '{} ({} {})'.format(self.identity.email, self.identity.first_name, self.identity.last_name)
+    return '{}'.format(self.username)
+UserModel.add_to_class("__str__", get_name)
 
 class AbstractIdentity(models.Model):
     """
@@ -53,6 +59,7 @@ class Contact(AbstractIdentity):
         UserModel, on_delete=models.DO_NOTHING, verbose_name=_('belongs_to'))
     sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
     subscribed = models.BooleanField(_('subscribed'), default=False)
+    is_active = models.BooleanField(_('subscribed'), default=True)
 
     class Meta:
         db_table = 'contact'
@@ -420,10 +427,15 @@ class Order(models.Model):
         price_is_set = self.set_price()
         self.save()
         if price_is_set:
-            send_email_to_identity(
-                _('Quote has been done'),
-                _('Your quote request has been done'),
-                self.client.identity
+            send_geoshop_email(
+                _('Geoshop - Quote has been done'),
+                recipient=self.client.identity,
+                template_name='email_quote_done',
+                template_data={
+                    'order_id': self.id,
+                    'first_name': self.client.identity.first_name,
+                    'last_name': self.client.identity.last_name
+                }
             )
         return price_is_set
 
@@ -568,9 +580,17 @@ class OrderItem(models.Model):
 
     def ask_price(self):
         if self.product.pricing.pricing_type == Pricing.PricingType.MANUAL:
-            send_email_to_admin(
-                _('Quote requested'),
-                reverse("admin:api_order_change", args=[self.order.id]),
+            send_geoshop_email(
+                _('Geoshop - Quote requested'),
+                template_name='email_admin',
+                template_data={
+                    'messages': [_('A new quote has been requested:')],
+                    'details': {
+                        _('order'): self.order.id,
+                        _('product'): self.product.label,
+                        _('link'): reverse("admin:api_order_change", args=[self.order.id])
+                    }
+                }
             )
 
 

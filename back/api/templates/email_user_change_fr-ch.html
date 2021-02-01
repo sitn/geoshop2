@@ -1,0 +1,13 @@
+{% extends "email_base_template.html" %}
+{% block content %}
+        <p>Vos demandes de modification de profil ont été envoyées aux administrateurs du Geoshop.</p>
+        <p>
+          Elles seront analysées et reportées dans les jours à venir.
+          Vous serez averti par email une fois les modifications effectuées
+        </p>
+{% endblock %}
+{% block footer %}
+        <p>
+          Cet email est adressé à {{ first_name }} {{ last_name }}.
+        </p>
+{% endblock %}
