@@ -1,0 +1,27 @@
+{% extends "email_base_template.html" %}
+{% load i18n %}
+{% block greetings %}
+<p>{% trans "Dear administrator," %}</p>
+{% endblock %}
+{% block content %}
+    {% for line in messages %}
+        <p>{{ line }}</p>
+    {% endfor %}
+  {% if details %}
+  <ul>
+    {% for key, values in details.items %}
+      <li>{{ key }}: {{ values }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% if admin_url %}
+  <p>
+    {% url admin_url admin_url_params %}
+  </p>
+  {% endif %}
+{% endblock %}
+{% block footer %}
+        <p>
+        Cet email vous a été envoyé car vous êtes administrateur du Geoshop.
+        </p>
+{% endblock %}

@@ -25,7 +25,7 @@ fme $env:FMEDIR\03_order_item.fmw
 fme $env:FMEDIR\05_mo2geoshop.fmw
 
 & "$PSScriptRoot\reset_sequences.ps1"
-Remove-Item $PSScriptRoot\..\back\files\extract\* -Recurse -Force
+Get-ChildItem -Path $PSScriptRoot\..\back\files\extract\* -Recurse | Remove-Item -Force -Recurse
 python manage.py fixturize
 python manage.py prepareusertests
 

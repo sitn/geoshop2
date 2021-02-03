@@ -4,9 +4,11 @@ from pathlib import Path
 from multiprocessing import Process
 from django.conf import settings
 from django.core.mail import send_mail
+from django.template.loader import get_template, render_to_string
 from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 
+LANG = settings.LANGUAGE_CODE
 
 @deconstructible
 class RandomFileName(object):
@@ -26,22 +28,29 @@ class RandomFileName(object):
         return current_path
 
 
-def send_email_to_admin(subject, message):
-    send_mail(
-        subject,
-        message,
-        settings.DEFAULT_FROM_EMAIL,
-        [settings.ADMIN_EMAIL_LIST],
-        fail_silently=False,
+def _render_email_templates(template_name, template_data):
+    html_template_name = '{}_{}.html'.format(template_name, LANG)
+    return (
+        render_to_string(html_template_name, template_data),
+        get_template(html_template_name).render(template_data),
     )
 
 
-def send_email_to_identity(subject, message, identity):
+def send_geoshop_email(subject, message='', recipient=None, template_name=None, template_data=None):
+    if template_name:
+        if template_data is None:
+            template_data = {'messages': [message]}
+        (message, html_message) = _render_email_templates(template_name, template_data)
+    if recipient is None:
+        recipient_list = [settings.ADMIN_EMAIL_LIST]
+    else:
+        recipient_list = [recipient.email]
     send_mail(
         subject,
         message,
         settings.DEFAULT_FROM_EMAIL,
-        [identity.email],
+        recipient_list,
+        html_message=html_message,
         fail_silently=False,
     )
 

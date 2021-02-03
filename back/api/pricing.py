@@ -5,7 +5,7 @@ from djmoney.models.fields import MoneyField
 from djmoney.money import Money
 from django.utils.translation import gettext_lazy as _
 
-from .helpers import send_email_to_admin
+from .helpers import send_geoshop_email
 
 LOGGER = logging.getLogger(__name__)
 
@@ -30,9 +30,12 @@ class ProductPriceCalculator():
     def _get_undefined_price(cls, **kwargs):
         pricing_instance = kwargs.get('pricing_instance')
         LOGGER.info('%s PRICING IS NOT DEFINED', pricing_instance.pricing_type)
-        send_email_to_admin(
-            _('PRICING NOT DEFINED'),
-            _('{} is not defined in pricing module.').format(pricing_instance.pricing_type)
+        send_geoshop_email(
+            _('Geoshop - Error, pricing is not defined'),
+            template_name='email_admin',
+            template_data={
+                'messages': [_('{} is not defined in pricing module.').format(pricing_instance.pricing_type)]
+            }
         )
         return cls._get_manual_price(**kwargs)
 

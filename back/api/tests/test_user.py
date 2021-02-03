@@ -59,13 +59,10 @@ class UserChangeTests(APITestCase):
             'city': 'Neuchâtel-les-Bains',
             'email': 'admin@gmail.com',
             'company_name': 'SITN',
+            'ide_id': 'CHE-25',
             'password1': 'testPa$$word',
             'password2': 'testPa$$word'
         }
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(
-            response.status_code, status.HTTP_400_BAD_REQUEST, 'When company name is submitted, IDE must too')
-        data['ide_id'] = 'CHE-25'
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, 'IDE number is not valid')
         data['ide_id'] = 'CHE-999.999.999'
