@@ -9,7 +9,7 @@ import {Router} from '@angular/router';
 import {of} from 'rxjs';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {StepperSelectionEvent} from '@angular/cdk/stepper';
-import {PHONE_REGEX} from '../../_helpers/regex';
+import {PHONE_REGEX, IDE_REGEX} from '../../_helpers/regex';
 
 @Component({
   selector: 'gs2-register',
@@ -20,6 +20,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
   @HostBinding('class') class = 'main-container';
   @ViewChild('firstInput') firstInput: ElementRef;
+  startDate: Date;
 
   formCredentials = new FormGroup({
     passwords: new FormGroup({
@@ -36,15 +37,18 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     firstName: new FormControl('', Validators.required),
     lastName: new FormControl('', Validators.required),
     email: new FormControl('', Validators.compose([Validators.required, Validators.email])),
-    phone: new FormControl('', Validators.compose([Validators.pattern(PHONE_REGEX), Validators.required])),
+    phone: new FormControl('', Validators.compose([Validators.pattern(PHONE_REGEX)])),
   });
+  ideValidators = [Validators.pattern(IDE_REGEX)];
   formAddress = new FormGroup({
     companyName: new FormControl(''),
+    ideId: new FormControl('', this.ideValidators),
     street: new FormControl('', Validators.required),
     street2: new FormControl(''),
     postcode: new FormControl('', Validators.required),
     city: new FormControl('', Validators.required),
     country: new FormControl('Suisse', Validators.required),
+    birthDay: new FormControl(''),
   });
 
   get passwords() {
@@ -91,8 +95,16 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     return this.formAddress.get('companyName');
   }
 
+  get ideId() {
+    return this.formAddress.get('ideId');
+  }
+
   get phone() {
     return this.formContact.get('phone');
+  }
+
+  get birthDay() {
+    return this.formAddress.get('birthDay');
   }
 
   get password() {
@@ -116,6 +128,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.startDate = new Date();
+    this.startDate.setFullYear( this.startDate.getFullYear() - 35 );
   }
 
   ngAfterViewInit(): void {
@@ -124,6 +138,14 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         this.firstInput.nativeElement.focus();
       }, 50);
     }
+    this.formAddress.get('company_name')?.valueChanges
+    .subscribe(value => {
+      if (value) {
+        this.ideId?.setValidators(this.ideValidators.concat(Validators.required));
+      } else {
+        this.ideId?.setValidators(this.ideValidators);
+      }
+    });
   }
 
   submit() {
@@ -141,7 +163,9 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         city: this.city?.value,
         country: this.country?.value,
         company_name: this.companyName?.value,
+        ide_id: this.ideId?.value,
         phone: this.phone?.value,
+        birthday: this.birthDay?.value?.toISOString().slice(0,10),
       };
       this.apiService.register(user)
         .subscribe(async (res) => {
