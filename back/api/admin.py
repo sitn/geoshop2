@@ -108,7 +108,8 @@ class ProductAdmin(CustomModelAdmin):
 
 
 class AbstractIdentityAdmin(CustomModelAdmin):
-    search_fields = ['first_name', 'last_name', 'company_name']
+    list_display = ['last_name', 'first_name', 'company_name', 'email']
+    search_fields = ['first_name', 'last_name', 'company_name', 'email']
 
 
 class PricingAdmin(CustomModelAdmin):
