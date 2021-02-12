@@ -24,6 +24,8 @@ export interface IIdentity {
   country?: string;
   phone?: string;
   sap_id?: number;
+  ide_id?: number;
+  birthday?: string;
   contract_accepted?: boolean;
   token?: string;
   tokenRefresh?: string;

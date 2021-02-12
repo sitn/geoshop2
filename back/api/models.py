@@ -129,13 +129,14 @@ class Identity(AbstractIdentity):
     sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
     ide_id = models.CharField(_('ide_number'), max_length=15, null=True, blank=True, validators=[
         RegexValidator(
-            regex='^CHE-([0-9]{3}\.){2}[0-9]{3}$',
+            regex=r'^CHE-([0-9]{3}\.){2}[0-9]{3}$',
             message=_('IDE number is not valid'),
         ),
     ])
     contract_accepted = models.DateField(_('contract_accepted'), null=True, blank=True)
     is_public = models.BooleanField(_('is_public'), default=False)
     subscribed = models.BooleanField(_('subscribed'), default=False)
+    birthday = models.DateField(_('birthday'), blank=True)
 
     class Meta:
         db_table = 'identity'
@@ -651,6 +652,12 @@ class UserChange(AbstractIdentity):
     Stores temporary data in order to proceed user profile change requests.
     """
     client = models.ForeignKey(UserModel, models.DO_NOTHING, verbose_name=_('client'))
+    ide_id = models.CharField(_('ide_number'), max_length=15, null=True, blank=True, validators=[
+        RegexValidator(
+            regex=r'^CHE-([0-9]{3}\.){2}[0-9]{3}$',
+            message=_('IDE number is not valid'),
+        ),
+    ])
 
     class Meta:
         db_table = 'user_change'

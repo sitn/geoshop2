@@ -51,6 +51,7 @@ export class ModifyProfileComponent implements OnInit {
       city: new FormControl(this.user.city, Validators.required),
       country: new FormControl(this.user.country, Validators.required),
       companyName: new FormControl(this.user.company_name, Validators.required),
+      ideId: new FormControl(this.user.ide_id, Validators.required),
     });
   }
 
@@ -73,6 +74,7 @@ export class ModifyProfileComponent implements OnInit {
         city: this.formModifyUser.get('city')?.value,
         country: this.formModifyUser.get('country')?.value,
         company_name: this.formModifyUser.get('companyName')?.value,
+        ide_id: this.formModifyUser.get('ideId')?.value,
         phone: this.formModifyUser.get('phone')?.value,
       };
 

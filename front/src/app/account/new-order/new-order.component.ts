@@ -1,7 +1,7 @@
 import {Component, HostBinding, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {ApiService} from '../../_services/api.service';
-import {PHONE_REGEX} from '../../_helpers/regex';
+import {PHONE_REGEX, IDE_REGEX} from '../../_helpers/regex';
 import {Observable, Subject} from 'rxjs';
 import {IIdentity} from '../../_models/IIdentity';
 import {debounceTime, filter, map, mergeMap, startWith, switchMap, takeUntil} from 'rxjs/operators';
@@ -145,6 +145,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       last_name: '',
       email: '',
       company_name: '',
+      ide_id: '',
       url: '',
       city: '',
       country: '',
@@ -188,6 +189,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       email: new FormControl(null, Validators.compose(
         [Validators.required, Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$')])),
       company_name: new FormControl(),
+      ide_id: new FormControl(null, Validators.compose(
+        [Validators.pattern(IDE_REGEX)])),
       phone: new FormControl(null, Validators.pattern(PHONE_REGEX)),
       street: new FormControl(),
       street2: new FormControl(),
@@ -234,6 +237,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
           last_name: order.invoiceContact?.last_name || '',
           email: order.invoiceContact?.email || '',
           company_name: order.invoiceContact?.company_name || '',
+          ide_id: order.invoiceContact?.ide_id || '',
           phone: order.invoiceContact?.phone || '',
           street: order.invoiceContact?.street || '',
           street2: order.invoiceContact?.street2 || '',

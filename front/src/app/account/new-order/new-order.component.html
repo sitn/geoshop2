@@ -153,6 +153,13 @@
                    placeholder="Société">
           </mat-form-field>
 
+          <!-- IDE number -->
+          <mat-form-field>
+            <mat-label>Numéro d’identification des entreprises (IDE)</mat-label>
+            <input matInput type="text" formControlName="ide_id">
+            <mat-error *ngIf="contactFormGroup?.get('ide_id')?.hasError('pattern')">Mauvais format du numéro IDE, accepté : CHE-012.345.678</mat-error>
+          </mat-form-field>
+
           <!-- Phone -->
           <mat-form-field>
             <mat-label>Téléphone mandant</mat-label>

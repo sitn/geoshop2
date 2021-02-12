@@ -115,10 +115,17 @@
                autocapitalize="off"
                autofocus
                spellcheck="false"
-               required
                matInput
                placeholder="Raison sociale">
-        <mat-error *ngIf="formModifyUser.get('companyName')?.hasError('required')">Requis</mat-error>
+      </mat-form-field>
+      <mat-form-field color="primary">
+        <input formControlName="ideId"
+               autocapitalize="off"
+               autofocus
+               spellcheck="false"
+               matInput
+               placeholder="N° IDE">
+        <mat-error *ngIf="formModifyUser?.get('ideId')?.hasError('pattern')">Mauvais format du numéro IDE, accepté : CHE-012.345.678</mat-error>
       </mat-form-field>
 
       <button class="action-button-container" color="primary" mat-raised-button type="submit" [disabled]="formModifyUser.invalid">
