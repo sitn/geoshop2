@@ -27,7 +27,7 @@ class Command(BaseCommand):
         extract_permission.save()
 
         extract_user = UserModel.objects.create_user(
-            username='extract', password=os.environ['EXTRACT_USER_PASSWORD'])
+            username='sitn_extract', password=os.environ['EXTRACT_USER_PASSWORD'])
         extract_group.permissions.add(extract_permission)
         extract_group.save()
         extract_user.groups.add(extract_group)
