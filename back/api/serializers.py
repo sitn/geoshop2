@@ -25,9 +25,9 @@ from .models import (
 # Get the UserModel
 UserModel = get_user_model()
 
-class WKTLatLongPolygonField(serializers.Field):
+class WKTPolygonField(serializers.Field):
     """
-    Polygons are serialized to POLYGON((Lat, Long)) notation
+    Polygons are serialized to POLYGON((Long, Lat)) notation
     """
     def to_representation(self, value):
         if isinstance(value, dict) or value is None:
@@ -35,11 +35,7 @@ class WKTLatLongPolygonField(serializers.Field):
         new_value = copy.copy(value)
         new_value.transform(4326)
         new_geom = []
-        # transform Long/Lat to Lat/Long
-        for point in range(len(new_value.coords[0])):
-            new_geom.append(new_value.coords[0][point][::-1])
-        new_polygon = Polygon(new_geom)
-        return new_polygon.wkt or 'POLYGON EMPTY'
+        return new_value.wkt or 'POLYGON EMPTY'
 
     def to_internal_value(self, value):
         if value == '' or value is None:
@@ -213,6 +209,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(
         queryset=Product.objects.all(),
         slug_field='label')
+    product_id = serializers.PrimaryKeyRelatedField(read_only=True)
 
     available_formats = serializers.ListField(read_only=True)
 
@@ -288,24 +285,32 @@ class OrderSerializer(serializers.ModelSerializer):
             'invoice_contact', instance.invoice_contact)
         instance.save()
 
-        existing_products = instance.items.all().values_list('product__label', flat=True)
+        update_products = []
         if items_data is not None:
-            update_products = [item['product'] for item in items_data]
+            for item in items_data:
+                update_products.append(item.get('product').label)
 
-        # update order_items on PUT, no matter what is in items_data
-        # update order_items on PATCH if items_data is present
-        if not self.partial or (self.partial and items_data is not None and items_data != []):
-            for existing_item in instance.items.all():
+        # create / update / delete order_items on PUT (self.partial=False)
+        # update order_items on PATCH (self.partial=True)
+        order_items = list((instance.items).all())
+        if not self.partial:
+            for existing_item in order_items:
                 if existing_item.product.label not in update_products:
                     existing_item.delete()
 
+        if items_data:
             for item_data in items_data:
-                if item_data['product'] not in existing_products:
-                    item = OrderItem.objects.create(order=instance, **item_data)
-                    item.set_price()
-                    item.save()
-            instance.set_price()
-            instance.save()
+                oi_instance, created = OrderItem.objects.get_or_create(
+                    order=instance,
+                    product=item_data.get('product')
+                )
+                oi_instance.data_format = item_data.get('data_format', oi_instance.data_format)
+                oi_instance.product = item_data.get('product', oi_instance.product)
+                oi_instance.set_price()
+                oi_instance.save()
+
+        instance.set_price()
+        instance.save()
 
         if instance.order_type:
             if items_data or geom or 'order_type' in validated_data:
@@ -373,7 +378,7 @@ class ExtractOrderSerializer(serializers.ModelSerializer):
     items = ExtractOrderItemSerializer(many=True)
     client = UserIdentitySerializer()
     invoice_contact = IdentitySerializer()
-    geom = WKTLatLongPolygonField()
+    geom = WKTPolygonField()
     geom_srid = serializers.IntegerField()
     geom_area = serializers.FloatField()
 

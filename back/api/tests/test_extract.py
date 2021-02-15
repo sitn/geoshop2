@@ -83,7 +83,7 @@ class OrderTests(APITestCase):
 
         url = reverse('token_obtain_pair')
         resp = self.client.post(
-            url, {'username': 'extract', 'password': os.environ['EXTRACT_USER_PASSWORD']}, format='json')
+            url, {'username': 'sitn_extract', 'password': os.environ['EXTRACT_USER_PASSWORD']}, format='json')
         self.token = resp.data['access']
         resp = self.client.post(url, {'username':'private_user_order', 'password':'testPa$$word'}, format='json')
         self.client_token = resp.data['access']
