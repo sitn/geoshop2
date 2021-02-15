@@ -33,18 +33,16 @@ export class StoreService {
       }));
       return;
     }
+    // Creates an array of observables (GET of each product in order)
+    const observables = order.items.map(x => this.apiService.getProduct(x.product_id));
 
-    const observables = order.items.map(x => this.apiService.find<IProduct>(Order.getProductLabel(x), 'product'));
-
+    // for every observable
     forkJoin(observables).subscribe(results => {
-      for (const result of results) {
-        if (result) {
-          for (const product of result.results) {
-
-            for (const item of order.items) {
-              if (Order.getProductLabel(item) === product.label) {
-                item.product = product;
-              }
+      for (const product of results) {
+        if (product) {
+          for (const item of order.items) {
+            if (Order.getProductLabel(item) === product.label) {
+              item.product = product;
             }
           }
         }

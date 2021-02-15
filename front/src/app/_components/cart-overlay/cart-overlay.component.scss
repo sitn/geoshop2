@@ -1,6 +1,5 @@
 :host {
   height: 100%;
-  width: 250px;
   display: flex;
   flex-direction: column;
 
@@ -27,4 +26,8 @@
   .action-button {
     margin-top: 10px;
   }
+}
+/* larger cart panel */
+::ng-deep.mat-menu-panel {
+  max-width: 350px !important;
 }

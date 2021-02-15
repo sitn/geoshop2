@@ -1,4 +1,4 @@
-import {Component, HostBinding, OnDestroy, OnInit} from '@angular/core';
+import {Component, HostBinding, OnDestroy, OnInit, EventEmitter, Output} from '@angular/core';
 import {AppState, isLoggedIn, selectOrder} from '../../_store';
 import {Store} from '@ngrx/store';
 import * as fromCart from '../../_store/cart/cart.action';
@@ -23,6 +23,8 @@ import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
   styleUrls: ['./cart-overlay.component.scss']
 })
 export class CartOverlayComponent implements OnInit, OnDestroy {
+
+  @Output() refreshOrders = new EventEmitter<number | null>();
 
   @HostBinding('class') class = 'overlay-container';
 
@@ -57,6 +59,14 @@ export class CartOverlayComponent implements OnInit, OnDestroy {
 
   removeProduct(label: string) {
     const order = GeoshopUtils.deepCopyOrder(this.order);
+    const orderItem = order.items.filter(x => Order.getProductLabel(x) === label)[0];
+    if (orderItem.id) {
+      this.apiOrderService.deleteOrderItem(orderItem.id).subscribe(confirmed => {
+        if (confirmed) {
+          this.refreshOrders.emit(this.order.id);
+        }
+      });
+    }
     order.items = order.items.filter(x => Order.getProductLabel(x) !== label);
     this.store.dispatch(fromCart.updateOrder({order}));
   }

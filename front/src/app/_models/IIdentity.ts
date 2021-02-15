@@ -12,11 +12,6 @@ export interface IIdentity {
   url?: string;
   password1?: string;
   password2?: string;
-  last_login?: Date;
-  is_superuser?: boolean;
-  is_staff?: boolean;
-  is_active?: boolean;
-  date_joined?: Date;
   street?: string;
   street2?: string;
   postcode?: string;

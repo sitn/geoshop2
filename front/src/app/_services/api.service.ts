@@ -56,6 +56,21 @@ export class ApiService {
       );
   }
 
+  getProduct(productid: number) {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    const url = new URL(`${this.apiUrl}/product/${productid}/`);
+
+    return this.http.get<IProduct>(url.toString())
+      .pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
+  }
+
   loadMetadata(urlAsString?: string): Observable<IMetadata | null> {
     if (!urlAsString) {
       return of(null);

@@ -100,9 +100,15 @@ export class CatalogComponent implements OnInit {
 
   addToCart(product: IProduct) {
     const order = GeoshopUtils.deepCopyOrder(this.order);
-    order.items.push({
-      product
-    });
+    const itemsInCart = order.items.map(x => x.product_id);
+    if (itemsInCart.indexOf(product.id) === -1) {
+      order.items.push({
+        product,
+        product_id: product.id
+      });
+    } else {
+      this.snackBar.open('Le produit est déjà dans le panier', 'Fermer', {duration: 3000});
+    }
     this.store.dispatch(updateOrder({order}));
   }
 

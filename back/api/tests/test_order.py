@@ -291,7 +291,7 @@ class OrderTests(APITestCase):
         self.assertEqual(len(response.data['items']), 2, 'Two products are present')
         response = self.client.patch(url, data1, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(len(response.data['items']), 1, 'One product is present')
+        self.assertEqual(len(response.data['items']), 2, 'Two products are still present')
         response = self.client.put(url, self.order_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertEqual(len(response.data['items']), 0, 'No product is present')

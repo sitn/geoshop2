@@ -3,6 +3,7 @@
 import {IMetadata} from './IMetadata';
 
 export interface IProduct {
+  id: number;
   url?: string;
   label: string;
   status?: string;

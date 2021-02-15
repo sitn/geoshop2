@@ -18,12 +18,6 @@ LOGGER = logging.getLogger(__name__)
 # Get the UserModel
 UserModel = get_user_model()
 
-# Get a better name for Users based on their identities
-def get_name(self):
-    if self.identity:
-        return '{} ({} {})'.format(self.identity.email, self.identity.first_name, self.identity.last_name)
-    return '{}'.format(self.username)
-UserModel.add_to_class("__str__", get_name)
 
 class AbstractIdentity(models.Model):
     """
