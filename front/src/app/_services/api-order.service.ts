@@ -253,12 +253,50 @@ export class ApiOrderService {
       );
   }
 
+  updateOrderItemsDataFormats(order: Order): Observable<IOrder | null> {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    const url = new URL(`${this.apiUrl}/order/${order.id}/`);
+
+    return this.http.patch<IOrder | null>(url.toString(), {
+      items: order.items.map(x => {
+        x.product = Order.getProductLabel(x);
+        if (!x.data_format) {
+          delete x.data_format;
+        }
+        return x;
+      })
+    })
+      .pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
+  }
+
   delete(orderId: number) {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
     const url = new URL(`${this.apiUrl}/order/${orderId}/`);
+
+    return this.http.delete<boolean>(url.toString()).pipe(
+      map(() => true),
+      catchError(() => {
+        return of(false);
+      })
+    );
+  }
+
+  deleteOrderItem(orderItemId: number) {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    const url = new URL(`${this.apiUrl}/orderitem/${orderItemId}/`);
 
     return this.http.delete<boolean>(url.toString()).pipe(
       map(() => true),

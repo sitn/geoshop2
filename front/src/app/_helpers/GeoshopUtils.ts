@@ -58,6 +58,7 @@ export class GeoshopUtils {
           }
           const newItem: IOrderItem = {
             product: newProduct,
+            product_id: item.product_id,
             data_format: item.data_format,
             available_formats: item.available_formats,
             id: item.id,

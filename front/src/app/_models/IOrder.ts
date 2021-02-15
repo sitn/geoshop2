@@ -30,7 +30,7 @@ export type OrderStatus = 'DRAFT' |
 
 export interface IOrderItem {
   product: IProduct | string;
-
+  product_id: number;
   id?: number;
   price?: string;
   data_format?: string;
@@ -48,7 +48,7 @@ export interface IOrderToPost {
   description: string;
   geom: string | undefined;
   invoice_reference?: string;
-  invoice_contact: number | null;
+  invoice_contact?: number | null;
   items: IOrderItem[];
 }
 
@@ -221,19 +221,16 @@ export class Order {
       this.id = -1;
     }
 
-    for (let i = 0; i < this.items.length; i++) {
-      const item = this.items[i];
+    for (const item of this.items) {
       const product = item.product;
       if (typeof product === 'string') {
         item.product = {
+          id: item.product_id,
           label: product
         };
       }
       this._isAllOrderItemCalculated = this._isAllOrderItemCalculated && item.price_status === 'CALCULATED';
     }
-
-    // @ts-ignore
-    this.items.sort((a, b) => a.product.label < b.product.label ? -1 : a.product.label < b.product.label ? 1 : 0);
 
     this.initializeGeometry(options.geom);
     this.statusAsReadableIconText = Order.initializeStatus(options, this._isAllOrderItemCalculated);

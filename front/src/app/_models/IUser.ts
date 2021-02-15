@@ -19,9 +19,7 @@ export interface IUserToPost {
 
 export interface IUser {
   id: number;
-  last_login: string;
   username: string;
-  date_joined: string;
   identity_id: number;
   first_name: string;
   last_name: string;

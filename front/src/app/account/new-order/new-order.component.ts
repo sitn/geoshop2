@@ -39,10 +39,11 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   orderFormGroup: FormGroup;
   addressChoiceForm: FormGroup;
   contactFormGroup: FormGroup;
-  orderItemFormGroup: FormGroup = new FormGroup({});
+  orderItemFormGroup: FormGroup;
   invoiceContactsFormControls: { [key: string]: FormControl };
 
   isSearchLoading = false;
+  isOrderPatchLoading = false;
   isCustomerSelected = false;
   isNewInvoiceContact = false;
 
@@ -53,6 +54,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   filteredCustomers$: Observable<IContact[]> | undefined;
 
   // order item form: table's attributes
+  allAvailableFormats: Set<string>;
   dataSource: MatTableDataSource<IOrderItem>;
   products: IProduct[] = [];
   displayedColumns: string[] = ['label', 'format', 'price'];
@@ -209,6 +211,9 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       customer: new FormControl(null),
       ...this.invoiceContactsFormControls
     });
+    this.orderItemFormGroup = new FormGroup({
+      formatsForAll: new FormControl(null)
+    });
   }
 
   private updateForms(order: Order) {
@@ -251,24 +256,33 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
     }
 
-    this.dataSource = new MatTableDataSource(order.items);
-
     for (const attr in this.orderItemFormGroup.controls) {
-      if (this.orderItemFormGroup.controls[attr]) {
-        this.orderItemFormGroup.removeControl(attr);
+      if (attr !== 'formatsForAll') {
+        if (this.orderItemFormGroup.controls[attr]) {
+          this.orderItemFormGroup.removeControl(attr);
+        }
       }
     }
 
-    order.items.forEach((item) => {
+    this.allAvailableFormats = new Set();
+    for (const item of order.items) {
+      item.available_formats?.forEach(format => this.allAvailableFormats.add(format));
       const itemFormControl = new FormControl('', Validators.required);
       const controlName = this.getOrderItemControlName(item);
       this.orderItemFormGroup?.addControl(controlName, itemFormControl);
 
       if (item.data_format && item.available_formats &&
         item.available_formats.indexOf(item.data_format) > -1) {
-        itemFormControl.setValue(item.data_format);
+          itemFormControl.setValue(item.data_format);
+        }
       }
-    });
+
+    // create table source only on order PUT, don't refresh table on PATCH
+    if (this.isOrderPatchLoading) {
+      this.isOrderPatchLoading = false;
+    } else {
+      this.dataSource = new MatTableDataSource(order.items);
+    }
 
     this.updateDescription(this.orderFormGroup?.get('orderType')?.value);
     this.updateContactForm(this.addressChoiceCtrl?.value);
@@ -448,6 +462,22 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   getOrderItemControlName(orderItem: IOrderItem) {
     return `${orderItem.id}_${Order.getProductLabel(orderItem)}`;
+  }
+
+  updateAllDataFormats() {
+    this.isOrderPatchLoading = true;
+    const dataFormatName = this.orderItemFormGroup.get('formatsForAll')?.value || '';
+    for (const item of this.currentOrder.items) {
+      const availableFormats = item.available_formats || [];
+      if (availableFormats.indexOf(dataFormatName) > -1) {
+        item.data_format = dataFormatName;
+      }
+    }
+    this.apiOrderService.updateOrderItemsDataFormats(this.currentOrder).subscribe(newOrder => {
+      if (newOrder) {
+        this.storeService.addOrderToStore(new Order(newOrder as IOrder));
+      }
+    });
   }
 
   updateDataFormat(orderItem: IOrderItem) {
