@@ -168,7 +168,6 @@ export class MapComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
       if (result) {
         this.selectedPageFormat = result.selectedPageFormat;
         this.selectedPageFormatScale = result.selectedPageFormatScale;
