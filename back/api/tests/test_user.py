@@ -18,7 +18,7 @@ class UserChangeTests(APITestCase):
             password="testPa$$word",
         )
         self.user.identity.is_public = True
-        self.user.save()
+        self.user.identity.save()
 
         self.admin = UserModel.objects.create_user(
             username="admin_user",

@@ -122,12 +122,13 @@ class UserAdmin(BaseUserAdmin):
     list_display = ['username', 'identity_first_name', 'identity_last_name', 'identity_email']
     inlines = [IdentityInline]
     fieldsets = (
-        (None, {'fields': ('username', 'password')}),
+        (None, {'fields': ('username', 'password', 'email')}),
         (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
         }),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
+    readonly_fields = ('email',)
 
     def identity_first_name(self, user):
         return user.identity.first_name

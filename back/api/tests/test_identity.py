@@ -16,7 +16,7 @@ class ItentityViewsTests(APITestCase):
             password="testPa$$word",
         )
         self.userPublic.identity.is_public = True
-        self.userPublic.save()
+        self.userPublic.identity.save()
         self.userPrivate = UserModel.objects.create_user(
             username="private_user",
             password="testPa$$word",
