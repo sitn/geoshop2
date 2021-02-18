@@ -179,6 +179,7 @@ if os.environ.get('GDAL_IN_VENV', None) == "True":
 FRONT_URL = os.environ["FRONT_URL"]
 FRONT_HREF = os.environ["FRONT_HREF"]
 CSRF_COOKIE_DOMAIN = os.environ["CSRF_COOKIE_DOMAIN"]
+CSRF_COOKIE_PATH = os.environ["FRONT_HREF"]
 CSRF_TRUSTED_ORIGINS = os.environ["ALLOWED_HOST"].split(",")
 CORS_ORIGIN_WHITELIST = [
     os.environ["FRONT_PROTOCOL"] + '://' + os.environ["FRONT_URL"],

@@ -5,7 +5,7 @@ $snapshot = (Get-Content ($FilePath) | ConvertFrom-Json)
 $apiKey = "apiUrl"
 $mediaKey = "mediaUrl"
 
-$apiUrl = "https://sitn.ne.ch/geoshop2_prepub_api"
+$apiUrl = "http://localhost:8000/"
 $mediaUrl = "https://sitn.ne.ch/geoshop2_media/"
 
 Invoke-Expression ('$snapshot.' + $apiKey + "='" + $apiUrl + "'")

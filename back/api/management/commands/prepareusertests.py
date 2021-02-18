@@ -37,7 +37,7 @@ class Command(BaseCommand):
         rincevent.identity.country = 'Suisse'
         rincevent.identity.company_name = 'Service du Registre Foncier et de la Géomatique - SITN'
         rincevent.identity.phone = '+41 32 000 00 00'
-        rincevent.save()
+        rincevent.identity.save()
 
         mmi = UserModel.objects.create_user(
             username='mmi', password='mmi')
@@ -50,7 +50,7 @@ class Command(BaseCommand):
         mmi.identity.country = 'Suisse'
         mmi.identity.company_name = 'Service du Registre Foncier et de la Géomatique - SITN'
         mmi.identity.phone = '+41 32 000 00 00'
-        mmi.save()
+        mmi.identity.save()
 
         mma = UserModel.objects.create_user(
             username='mma', password='mma')
@@ -63,7 +63,7 @@ class Command(BaseCommand):
         mma.identity.country = 'Suisse'
         mma.identity.company_name = 'Service du Registre Foncier et de la Géomatique - SITN'
         mma.identity.phone = '+41 32 000 00 00'
-        mma.save()
+        mma.identity.save()
 
         mka = UserModel.objects.create_user(
             username='mka', password='mka')
@@ -77,7 +77,7 @@ class Command(BaseCommand):
         mka.identity.company_name = 'Service du Registre Foncier et de la Géomatique - SITN'
         mka.identity.phone = '+41 32 000 00 00'
         mka.identity.subscribed = True
-        mka.save()
+        mka.identity.save()
 
         # contacts
         contact1 = Contact.objects.create(

@@ -17,6 +17,7 @@ class PricingTests(APITestCase):
         rincevent = UserModel.objects.create_user(
             username='rincevent', password='rincevent')
         rincevent.identity.email = 'admin@admin.com'
+        rincevent.identity.save()
         self.base_fee = Money(50, 'CHF')
         self.unit_price = Money(150, 'CHF')
         self.pricings = Pricing.objects.bulk_create([

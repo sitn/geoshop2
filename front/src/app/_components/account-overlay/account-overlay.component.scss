@@ -4,6 +4,10 @@
   display: flex;
   flex-direction: column;
 
+  .px-16 {
+    padding: 0 16px;
+  }
+
   .name-container {
     padding: 0 15px;
     margin-bottom: 10px;

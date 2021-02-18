@@ -231,7 +231,7 @@ class OrderTests(APITestCase):
     def test_post_order_subscribed(self):
         sub_user = UserModel.objects.get(username='private_user_order')
         sub_user.identity.subscribed = True
-        sub_user.save()
+        sub_user.identity.save()
 
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)

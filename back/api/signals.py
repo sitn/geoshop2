@@ -11,6 +11,12 @@ def create_user_profile(sender, instance, created, **kwargs):
     if created and Identity.objects.filter(user=instance).first() is None:
         Identity.objects.create(user=instance)
 
-@receiver(post_save, sender=UserModel)
-def save_user_profile(sender, instance, **kwargs):
-    instance.identity.save()
+@receiver(post_save, sender=Identity)
+def copy_identity_email(sender, instance, **kwargs):
+    """
+    Copy Identity.email to UserModel.email because auth functions are based
+    UserModel.email
+    """
+    if instance.user:
+        instance.user.email = instance.email
+        instance.user.save()
