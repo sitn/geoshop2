@@ -264,20 +264,20 @@ export class Order {
         result = {
           text: `Prête pour extraction`,
           iconName: 'check_outline',
-          color: '#2bae66'
+          color: '#7593f0'
         };
         break;
       case 'IN_EXTRACT':
         result = {
           text: `Extraction en cours`,
           iconName: 'hourglass_empty',
-          color: '#86a4f0'
+          color: '#7593f0'
         };
         break;
       case 'PARTIALLY_DELIVERED':
         result = {
           text: `Partiellement traitée`,
-          iconName: 'hourglass_bot',
+          iconName: 'hourglass_bottom',
           color: '#7593f0'
         };
         break;
