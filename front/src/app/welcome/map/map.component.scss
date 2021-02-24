@@ -14,12 +14,12 @@
     right: 10px;
   }
 
-  #geocoder-container {
+  .geocoder-container {
     position: absolute;
     top: 74px;
     left: 50%;
     min-width: 350px;
-    padding: 5px;
+    padding: 1em;
     border-radius: 6px;
 
     .mat-form-field {

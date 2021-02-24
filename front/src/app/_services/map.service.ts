@@ -1,6 +1,6 @@
-import {ElementRef, Injectable} from '@angular/core';
-import {ConfigService} from 'src/app/_services/config.service';
-import {MatSnackBar, MatSnackBarRef, SimpleSnackBar} from '@angular/material/snack-bar';
+import { Injectable } from '@angular/core';
+import { ConfigService } from 'src/app/_services/config.service';
+import { MatSnackBar, MatSnackBarRef, SimpleSnackBar } from '@angular/material/snack-bar';
 
 // Openlayers imports
 import Map from 'ol/Map';
@@ -9,46 +9,43 @@ import BaseLayer from 'ol/layer/Base';
 import TileLayer from 'ol/layer/Tile';
 import LayerGroup from 'ol/layer/Group';
 import ScaleLine from 'ol/control/ScaleLine';
-import {defaults as defaultInteractions, DragAndDrop} from 'ol/interaction';
+import { defaults as defaultInteractions, DragAndDrop } from 'ol/interaction';
 import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
-import {Draw, Modify} from 'ol/interaction';
+import { Draw, Modify } from 'ol/interaction';
 import GeometryType from 'ol/geom/GeometryType';
-import {Feature} from 'ol';
-import Geolocation from 'ol/Geolocation';
-import Polygon, {fromExtent} from 'ol/geom/Polygon';
+import { Feature } from 'ol';
+import { FeatureLike } from 'ol/Feature';
+import Polygon, { fromExtent } from 'ol/geom/Polygon';
 import WMTSCapabilities from 'ol/format/WMTSCapabilities';
-import WMTS, {optionsFromCapabilities} from 'ol/source/WMTS';
-import {register} from 'ol/proj/proj4';
+import WMTS, { optionsFromCapabilities } from 'ol/source/WMTS';
+import { register } from 'ol/proj/proj4';
 import DragPan from 'ol/interaction/DragPan';
-import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
+import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
 import Point from 'ol/geom/Point';
 import GeoJSON from 'ol/format/GeoJSON';
 import Projection from 'ol/proj/Projection';
-import {boundingExtent, buffer, Extent, getArea} from 'ol/extent';
+import { boundingExtent, buffer, Extent, getArea } from 'ol/extent';
 import MultiPoint from 'ol/geom/MultiPoint';
-import {fromLonLat} from 'ol/proj';
+import { fromLonLat } from 'ol/proj';
 import KML from 'ol/format/KML';
-import {Coordinate} from 'ol/coordinate';
+import { Coordinate } from 'ol/coordinate';
 
 // ol-ext
 // @ts-ignore
 import Transform from 'ol-ext/interaction/Transform';
 
-// @ts-ignore
-import Geocoder from 'ol-geocoder/dist/ol-geocoder.js';
-
-import {BehaviorSubject, of} from 'rxjs';
-import {GeoHelper} from '../_helpers/geoHelper';
+import { BehaviorSubject, of } from 'rxjs';
+import { GeoHelper } from '../_helpers/geoHelper';
 import proj4 from 'proj4';
-import {HttpClient} from '@angular/common/http';
-import {map} from 'rxjs/operators';
-import {IBasemap, IPageFormat} from '../_models/IConfig';
-import {AppState, selectOrder} from '../_store';
-import {Store} from '@ngrx/store';
-import {updateGeometry} from '../_store/cart/cart.action';
-import {DragAndDropEvent} from 'ol/interaction/DragAndDrop';
-import {shiftKeyOnly} from 'ol/events/condition';
+import { HttpClient } from '@angular/common/http';
+import { map } from 'rxjs/operators';
+import { IBasemap, IPageFormat } from '../_models/IConfig';
+import { AppState, selectOrder } from '../_store';
+import { Store } from '@ngrx/store';
+import { updateGeometry } from '../_store/cart/cart.action';
+import { DragAndDropEvent } from 'ol/interaction/DragAndDrop';
+import { shiftKeyOnly } from 'ol/events/condition';
 
 @Injectable({
   providedIn: 'root'
@@ -104,13 +101,6 @@ export class MapService {
   // Map's interactions
   private dragInteraction: DragPan;
 
-  // Geolocation
-  private isTracking = false;
-  private geolocation: Geolocation;
-  private positionFeature = new Feature();
-  private positionLayer: VectorLayer;
-
-  public isTracking$ = new BehaviorSubject<boolean>(false);
   public isMapLoading$ = new BehaviorSubject<boolean>(true);
   public isDrawing$ = new BehaviorSubject<boolean>(false);
 
@@ -142,7 +132,6 @@ export class MapService {
     this.initializeMap().then(() => {
 
       this.initializeDrawing();
-      this.initializeGeolocation();
       this.initializeInteraction();
       this.initializeDragInteraction();
       this.initializeDelKey();
@@ -185,13 +174,7 @@ export class MapService {
     }
 
     this.featureFromDrawing = null;
-    this.store.dispatch(updateGeometry({geom: ''}));
-  }
-
-  public toggleTracking() {
-    this.isMapLoading$.next(true);
-    this.isTracking = !this.isTracking;
-    this.geolocation.setTracking(this.isTracking);
+    this.store.dispatch(updateGeometry({ geom: '' }));
   }
 
   public switchBaseMap(gsId: string) {
@@ -324,7 +307,7 @@ export class MapService {
         layers: baseLayers
       }),
       interactions: defaultInteractions(
-        {doubleClickZoom: false}
+        { doubleClickZoom: false }
       ).extend([this.initializeDragAndDropInteraction()]),
       controls: [
         new ScaleLine({
@@ -360,29 +343,57 @@ export class MapService {
     return this.basemapLayers;
   }
 
+  private addSingleFeatureToDrawingSource(features: FeatureLike[], sourceName: string): boolean {
+    if (!sourceName.endsWith('kml') || features.length === 0) {
+      this.snackBar.open(`Le fichier "${sourceName}" ne contient aucune donnée exploitable.
+      Le format supporté est le "kml".`, 'Ok', {
+        panelClass: 'notification-info'
+      });
+      return false;
+    }
+
+    if (features.length > 1) {
+      this.snackBar.open(`Le fichier "${sourceName}" contient plusieurs géométries.
+      Un seul polygone sera affiché ici.`, 'Ok', {
+        panelClass: 'notification-info'
+      });
+    }
+
+    for (const [i, featureLike] of features.entries()) {
+      if (featureLike.getGeometry().getType() !== 'Polygon') {
+        continue;
+      }
+      const feature = new Feature(featureLike.getGeometry());
+      this.map.getView().fit(feature.getGeometry().getExtent(), { nearest: true });
+      if (this.featureFromDrawing) {
+        this.drawingSource.removeFeature(this.featureFromDrawing);
+      }
+      this.featureFromDrawing = feature;
+      this.drawingSource.addFeature(feature);
+      return true;
+    }
+
+    this.snackBar.open(`Le fichier "${sourceName}" ne contient aucun polygone valide.`, 'Ok', {
+      panelClass: 'notification-error'
+    });
+
+    return false;
+  }
+
   private initializeDragAndDropInteraction() {
-    // @ts-ignore
     const dragAndDropInteraction = new DragAndDrop({
       formatConstructors: [
-        KML
+        KML as any
       ]
     });
 
     dragAndDropInteraction.on('addfeatures', (event: DragAndDropEvent) => {
-      if (!event.file.name.endsWith('kml') || event.features.length === 0) {
-        this.snackBar.open(`Le fichier "${event.file.name}" ne contient aucune donnée exploitable.
-        Le format supporté est le "kml".`, 'Ok', {
-          panelClass: 'notification-info'
-        });
+      const isDataOk = this.addSingleFeatureToDrawingSource(event.features, event.file.name);
 
+      if (!isDataOk) {
         event.preventDefault();
         event.stopPropagation();
         return;
-      }
-
-      if (event.features.length > 0) {
-        const feature = new Feature(event.features[0].getGeometry());
-        this.addFeatureFromGeocoderToDrawing(feature);
       }
 
     });
@@ -418,13 +429,13 @@ export class MapService {
       source: this.geocoderSource,
       style: [
         new Style({
-          stroke: new Stroke({width: 2, color: 'rgba(255, 235, 59, 1)'}),
-          fill: new Fill({color: 'rgba(255, 235, 59, 0.85)'})
+          stroke: new Stroke({ width: 2, color: 'rgba(255, 235, 59, 1)' }),
+          fill: new Fill({ color: 'rgba(255, 235, 59, 0.85)' })
         }),
         new Style({
           image: new CircleStyle({
             radius: 20,
-            fill: new Fill({color: 'rgba(255, 235, 59, 1)'})
+            fill: new Fill({ color: 'rgba(255, 235, 59, 1)' })
           })
         })
       ]
@@ -497,7 +508,7 @@ export class MapService {
     if (this.featureFromDrawing) {
       const area = GeoHelper.formatArea(this.featureFromDrawing.getGeometry() as Polygon);
       this.featureFromDrawing.set('area', area);
-      this.store.dispatch(updateGeometry({geom: this.geoJsonFormatter.writeGeometry(this.featureFromDrawing.getGeometry())}));
+      this.store.dispatch(updateGeometry({ geom: this.geoJsonFormatter.writeGeometry(this.featureFromDrawing.getGeometry()) }));
 
       const extent = this.featureFromDrawing.getGeometry().getExtent();
       this.map.getView().fit(extent, {
@@ -562,59 +573,26 @@ export class MapService {
     this.transformInteraction.setActive(false);
   }
 
-  private initializeGeolocation() {
-    this.positionFeature.setStyle(new Style({
-      image: new CircleStyle({
-        radius: 6,
-        fill: new Fill({
-          color: '#3399CC'
-        }),
-        stroke: new Stroke({
-          color: '#fff',
-          width: 2
-        })
-      })
-    }));
-    this.positionLayer = new VectorLayer({
-      map: this.map,
-      source: new VectorSource({
-        features: [this.positionFeature]
-      })
-    });
-    this.geolocation = new Geolocation({
-      trackingOptions: {
-        enableHighAccuracy: true
-      },
-      projection: this.map.getView().getProjection()
-    });
-    this.geolocation.on('change:position', () => {
-      const firstLoad = this.positionFeature.getGeometry() == null;
-      const coordinates = this.geolocation.getPosition();
-      this.positionFeature.setGeometry(coordinates ? new Point(coordinates) : undefined);
-      if (firstLoad) {
-        this.map.getView().animate(
-          {zoom: 10},
-          {center: coordinates},
-          {duration: 200}
-        );
-      }
-      this.isMapLoading$.next(false);
-    });
-    this.geolocation.on('change:tracking', () => {
-      this.isTracking$.next(this.geolocation.getTracking());
-      this.isTracking = this.geolocation.getTracking();
-      if (!this.isTracking) {
-        this.positionFeature.setGeometry(undefined);
-      }
-    });
-    this.geolocation.on('error', (error: Error) => {
-      this.snackBarRef = this.snackBar.open(error.message, 'Fermer');
-      this.isMapLoading$.next(false);
-    });
-  }
-
   private map_renderCompleteExecuted() {
     this.isMapLoading$.next(false);
+  }
+
+  public loadGeomFromFile(file: File) {
+    const kmlFormat = new KML();
+    const reader = new FileReader();
+    const fileName = file.name;
+
+    reader.onload = (e) => {
+      const fileContent = reader.result;
+      if (fileContent) {
+        const kmlFeatures = kmlFormat.readFeatures(fileContent, {
+          dataProjection: 'EPSG:4326',
+          featureProjection: this.configService.config.epsg
+        });
+        this.addSingleFeatureToDrawingSource(kmlFeatures, fileName);
+      }
+    };
+    reader.readAsText(file);
   }
 
   public setPageFormat(format: IPageFormat, scale: number, rotation: number) {
@@ -639,7 +617,7 @@ export class MapService {
     const feature = new Feature();
     feature.setGeometry(poly);
 
-    this.map.getView().fit(poly, {nearest: true});
+    this.map.getView().fit(poly, { nearest: true });
     this.drawingSource.addFeature(feature);
     this.featureFromDrawing?.set('area', poly);
   }
