@@ -130,7 +130,7 @@ class Identity(AbstractIdentity):
     contract_accepted = models.DateField(_('contract_accepted'), null=True, blank=True)
     is_public = models.BooleanField(_('is_public'), default=False)
     subscribed = models.BooleanField(_('subscribed'), default=False)
-    birthday = models.DateField(_('birthday'), blank=True)
+    birthday = models.DateField(_('birthday'), null=True, blank=True)
 
     class Meta:
         db_table = 'identity'
@@ -348,6 +348,7 @@ class Order(models.Model):
     class OrderStatus(models.TextChoices):
         DRAFT = 'DRAFT', _('Draft')
         PENDING = 'PENDING', _('Pending')
+        QUOTE_DONE = 'QUOTE_DONE', _('Quote done')
         READY = 'READY', _('Ready')
         IN_EXTRACT = 'IN_EXTRACT', _('In extract')
         PARTIALLY_DELIVERED = 'PARTIALLY_DELIVERED', _('Partially delivered')
@@ -420,8 +421,9 @@ class Order(models.Model):
     def quote_done(self):
         """Admins confirmation they have given a manual price"""
         price_is_set = self.set_price()
-        self.save()
         if price_is_set:
+            self.status = self.OrderStatus.QUOTE_DONE
+            self.save()
             send_geoshop_email(
                 _('Geoshop - Quote has been done'),
                 recipient=self.client.identity,

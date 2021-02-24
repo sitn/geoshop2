@@ -258,13 +258,21 @@ class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.status != Order.OrderStatus.DRAFT:
+        if instance.status == Order.OrderStatus.DRAFT:
+            response = super(OrderViewSet, self).destroy(request, *args, **kwargs)
+            return response
+
+        if instance.status == Order.OrderStatus.QUOTE_DONE:
+            instance.status = Order.OrderStatus.REJECTED
+            instance.save()
             return Response(
-                {"detail": _("This order cannot be deleted anymore.")},
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_204_NO_CONTENT
             )
-        response = super(OrderViewSet, self).destroy(request, *args, **kwargs)
-        return response
+
+        return Response(
+            {"detail": _("This order cannot be deleted anymore.")},
+            status=status.HTTP_403_FORBIDDEN
+        )
 
     @action(detail=False, methods=['get'])
     def last_draft(self, request):
@@ -284,8 +292,8 @@ class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
         Confirms order meaning it can not be edited anymore by user.
         """
         order = self.get_object()
-        if order.status not in [Order.OrderStatus.DRAFT, Order.OrderStatus.PENDING]:
-            raise PermissionDenied(detail='Order status is not DRAFT or PENDING')
+        if order.status not in [Order.OrderStatus.DRAFT, Order.OrderStatus.QUOTE_DONE]:
+            raise PermissionDenied(detail='Order status is not DRAFT or QUOTE_DONE')
         items = order.items.all()
         if not items:
             raise ValidationError(detail="This order has no item")

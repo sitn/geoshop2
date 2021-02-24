@@ -221,7 +221,7 @@ class OrderTests(APITestCase):
         url = reverse('order-detail', kwargs={'pk':order_id})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.data['status'], Order.OrderStatus.PENDING, 'Check quote has been done')
+        self.assertEqual(response.data['status'], Order.OrderStatus.QUOTE_DONE, 'Check quote has been done')
         self.assertEqual(response.data['processing_fee'], '150.00', 'Check price is ok')
         self.assertEqual(response.data['total_without_vat'], '550.00', 'Check price is ok')
         url = reverse('order-confirm', kwargs={'pk':order_id})

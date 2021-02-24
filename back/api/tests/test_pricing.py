@@ -197,7 +197,7 @@ class PricingTests(APITestCase):
         # The admin confirms he's done with the quote
         self.order.quote_done()
         self.assertEqual(len(mail.outbox), 2, 'An email has been sent to the client')
-        self.assertEqual(self.order.status, Order.OrderStatus.PENDING, 'Order status is still pending')
+        self.assertEqual(self.order.status, Order.OrderStatus.QUOTE_DONE, 'Order status has quote done')
         self.assertEqual(order_item.price_status, OrderItem.PricingStatus.CALCULATED, 'Price is calculated')
         self.order.confirm()
         self.assertEqual(self.order.status, Order.OrderStatus.READY, 'Order is ready for Extract')

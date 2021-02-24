@@ -118,6 +118,7 @@ class PricingAdmin(CustomModelAdmin):
 
 class UserAdmin(BaseUserAdmin):
     """Overrides BaseUserAdmin"""
+    change_form_template = 'admin/api/user_change_form.html'
     search_fields = ['username', 'identity__first_name', 'identity__last_name', 'identity__email']
     list_display = ['username', 'identity_first_name', 'identity_last_name', 'identity_email']
     inlines = [IdentityInline]
@@ -148,7 +149,9 @@ class UserAdmin(BaseUserAdmin):
                     recipient=obj.identity,
                     template_name='email_user_confirm',
                     template_data={
-                        'messages': [_('Your account has been registered successfully.')]
+                        'messages': [_('Your account has been registered successfully.')],
+                        'first_name': obj.identity.first_name,
+                        'last_name': obj.identity.last_name
                     }
                 )
                 self.message_user(
