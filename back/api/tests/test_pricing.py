@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon, Point
 from djmoney.money import Money
 from rest_framework.test import APITestCase
-from api.models import Pricing, Product, PricingGeometry, Order, OrderItem
+from api.models import Contact, Pricing, Product, PricingGeometry, Order, OrderItem
 
 UserModel = get_user_model()
 
@@ -14,10 +14,10 @@ class PricingTests(APITestCase):
     """
 
     def setUp(self):
-        rincevent = UserModel.objects.create_user(
+        self.user_private = UserModel.objects.create_user(
             username='rincevent', password='rincevent')
-        rincevent.identity.email = 'admin@admin.com'
-        rincevent.identity.save()
+        self.user_private.identity.email = 'admin@admin.com'
+        self.user_private.identity.save()
         self.base_fee = Money(50, 'CHF')
         self.unit_price = Money(150, 'CHF')
         self.pricings = Pricing.objects.bulk_create([
@@ -130,7 +130,7 @@ class PricingTests(APITestCase):
         ])
 
         self.order = Order.objects.create(
-            client=rincevent,
+            client=self.user_private,
             title="Test pricing order",
             geom=self.order_geom
         )
@@ -224,3 +224,45 @@ class PricingTests(APITestCase):
         orderitem2.save()
         self.order.set_price()
         self.assertEqual(self.order.processing_fee, Money(50, 'CHF'), 'Base fee is correct')
+
+    def test_user_subscribed_to_product(self):
+        self.user_private.identity.subscribed = True
+        self.user_private.identity.save()
+        self.products[3].free_when_subscribed = True
+        self.products[3].save()
+        orderitem2 = OrderItem.objects.create(
+            order=self.order,
+            product=self.products[3]
+        )
+        self.order.save()
+        orderitem2.set_price()
+        orderitem2.save()
+        self.order.set_price()
+        self.assertEqual(self.order.processing_fee, Money(0, 'CHF'), 'Processing fee is free')
+        self.assertEqual(self.order.total_with_vat, Money(0, 'CHF'), 'Order is free')
+
+    def test_invoice_contact_subscribed_to_product(self):
+        self.assertFalse(self.user_private.identity.subscribed)
+        self.products[3].free_when_subscribed = True
+        self.products[3].save()
+        orderitem2 = OrderItem.objects.create(
+            order=self.order,
+            product=self.products[3]
+        )
+        contact = Contact.objects.create(
+            first_name='Jean',
+            last_name='Doe',
+            email='test3@admin.com',
+            postcode=2000,
+            city='Lausanne',
+            country='Suisse',
+            belongs_to=self.user_private,
+            subscribed=True
+        )
+        self.order.invoice_contact = contact
+        self.order.save()
+        orderitem2.set_price()
+        orderitem2.save()
+        self.order.set_price()
+        self.assertEqual(self.order.processing_fee, Money(0, 'CHF'), 'Processing fee is free')
+        self.assertEqual(self.order.total_with_vat, Money(0, 'CHF'), 'Order is free')

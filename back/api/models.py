@@ -467,6 +467,16 @@ class Order(models.Model):
         else:
             if OrderItem.OrderItemStatus.PROCESSED in items_statuses:
                 self.status = Order.OrderStatus.PROCESSED
+                send_geoshop_email(
+                    _('Geoshop - Download ready'),
+                    recipient=self.client.identity,
+                    template_name='email_download_ready',
+                    template_data={
+                        'order_id': self.id,
+                        'first_name': self.client.identity.first_name,
+                        'last_name': self.client.identity.last_name
+                    }
+                )
             else:
                 self.status = Order.OrderStatus.REJECTED
         return self.status
@@ -552,7 +562,6 @@ class OrderItem(models.Model):
         self.price_status = OrderItem.PricingStatus.PENDING
 
         # prices are 0 when user or invoice_contact is subscribed to the product
-        # TODO: Test invoice_contact subscribed
         if self.product.free_when_subscribed:
             if self.order.client.identity.subscribed or (
                     self.order.invoice_contact is not None and self.order.invoice_contact.subscribed):
