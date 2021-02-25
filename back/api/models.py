@@ -79,7 +79,7 @@ class Document(models.Model):
     link = models.URLField(
         _('link'),
         help_text=_('Please complete the above URL'),
-        default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL,
+        default='https://sitn.ne.ch',
         max_length=2000
     )
 
@@ -88,7 +88,7 @@ class Document(models.Model):
         verbose_name = _('document')
 
     def __str__(self):
-        return self.name
+        return '%s (%s)' % (self.name, self.link.split("/")[-1])
 
 
 class DataFormat(models.Model):

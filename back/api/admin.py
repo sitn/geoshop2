@@ -44,6 +44,10 @@ class CustomModelAdmin(admin.ModelAdmin):
         return formfield
 
 
+class DocumentAdmin(CustomModelAdmin):
+    search_fields = ['name', 'link']
+    model = Document
+
 class IdentityInline(admin.StackedInline):
     model = Identity
 
@@ -59,7 +63,7 @@ class MetadataAdmin(CustomModelAdmin):
     raw_id_fields = ['modified_user', 'documents']
     search_fields = ['name', 'id_name']
     list_display = ('id_name', 'name')
-    readonly_fields = ('image_tag', 'legend_tag', 'documents', 'copyright')
+    readonly_fields = ('image_tag', 'legend_tag', 'copyright')
 
     def get_form(self, request, obj=None, change=False, **kwargs):
         form = super(MetadataAdmin, self).get_form(request, obj, change, **kwargs)
@@ -169,7 +173,7 @@ admin.site.unregister(UserModel)
 admin.site.register(UserModel, UserAdmin)
 
 admin.site.register(Copyright)
-admin.site.register(Document)
+admin.site.register(Document, DocumentAdmin)
 admin.site.register(DataFormat)
 admin.site.register(Identity, AbstractIdentityAdmin)
 admin.site.register(Contact, AbstractIdentityAdmin)
