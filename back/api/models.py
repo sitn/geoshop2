@@ -50,7 +50,7 @@ class Contact(AbstractIdentity):
     previously filled by the user.
     """
     belongs_to = models.ForeignKey(
-        UserModel, on_delete=models.DO_NOTHING, verbose_name=_('belongs_to'))
+        UserModel, on_delete=models.CASCADE, verbose_name=_('belongs_to'))
     sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
     subscribed = models.BooleanField(_('subscribed'), default=False)
     is_active = models.BooleanField(_('subscribed'), default=True)
@@ -119,7 +119,7 @@ class Identity(AbstractIdentity):
     All users have an Identity but not all identities are users.
     """
     user = models.OneToOneField(
-        UserModel, on_delete=models.DO_NOTHING, verbose_name=_('user'), blank=True, null=True)
+        UserModel, on_delete=models.SET_NULL, verbose_name=_('user'), blank=True, null=True)
     sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
     ide_id = models.CharField(_('ide_number'), max_length=15, null=True, blank=True, validators=[
         RegexValidator(
@@ -150,7 +150,7 @@ class Metadata(models.Model):
     legend_link = models.CharField(_('legend_link'), max_length=2000, blank=True)
     image_link = models.CharField(_('image_link'), max_length=250, default=settings.DEFAULT_METADATA_IMAGE_URL)
     copyright = models.ForeignKey(
-        Copyright, models.DO_NOTHING, verbose_name=_('copyright'), blank=True, null=True)
+        Copyright, models.SET_NULL, verbose_name=_('copyright'), blank=True, null=True)
     documents = models.ManyToManyField(Document, verbose_name=_('documents'), blank=True)
     contact_persons = models.ManyToManyField(
         Identity,
@@ -160,7 +160,7 @@ class Metadata(models.Model):
     modified_date = models.DateTimeField(auto_now=True)
     modified_user = models.ForeignKey(
         UserModel,
-        models.DO_NOTHING,
+        models.PROTECT,
         verbose_name=_('modified_user'),
         related_name='modified_user')
 
@@ -200,9 +200,9 @@ class MetadataContact(models.Model):
     """
     Links Metadata with the persons to contact (Identity) depending on the role they play for metadata.
     """
-    metadata = models.ForeignKey(Metadata, models.DO_NOTHING, verbose_name=_('metadata'))
+    metadata = models.ForeignKey(Metadata, models.CASCADE, verbose_name=_('metadata'))
     contact_person = models.ForeignKey(
-        Identity, models.DO_NOTHING, verbose_name=_('contact_person'), limit_choices_to={'is_public': True})
+        Identity, models.CASCADE, verbose_name=_('contact_person'), limit_choices_to={'is_public': True})
     metadata_role = models.CharField(_('role'), max_length=150, default='Gestionnaire')
 
     class Meta:
@@ -277,7 +277,7 @@ class PricingGeometry(models.Model):
     unit_price = MoneyField(
         _('price'), max_digits=14, decimal_places=2, default_currency='CHF', null=True)
     geom = models.GeometryField(_('geom'), srid=settings.DEFAULT_SRID)
-    pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'), null=True)
+    pricing = models.ForeignKey(Pricing, models.CASCADE, verbose_name=_('pricing'), null=True)
 
     class Meta:
         db_table = 'pricing_layer'
@@ -309,14 +309,14 @@ class Product(models.Model):
         DEPRECATED = 'DEPRECATED', _('Deprecated')
 
     metadata = models.ForeignKey(
-        Metadata, models.DO_NOTHING, verbose_name=_('metadata'), blank=True, null=True)
+        Metadata, models.SET_NULL, verbose_name=_('metadata'), blank=True, null=True)
     label = models.CharField(_('label'), max_length=250, blank=True)
     status = models.CharField(
         _('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     group = models.ForeignKey(
-        'self', models.DO_NOTHING, verbose_name=_('group'), blank=True, null=True)
+        'self', models.SET_NULL, verbose_name=_('group'), blank=True, null=True)
     provider = models.CharField(_('provider'), max_length=30, default='SITN')
-    pricing = models.ForeignKey(Pricing, models.DO_NOTHING, verbose_name=_('pricing'))
+    pricing = models.ForeignKey(Pricing, models.PROTECT, verbose_name=_('pricing'))
     free_when_subscribed = models.BooleanField(_('free_when_subscribed'), default=False)
     order = models.BigIntegerField(_('order_index'), blank=True, null=True)
     thumbnail_link = models.CharField(
@@ -367,17 +367,17 @@ class Order(models.Model):
     total_with_vat = MoneyField(
         _('total_with_vat'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
     geom = models.PolygonField(_('geom'), srid=settings.DEFAULT_SRID)
-    client = models.ForeignKey(UserModel, models.DO_NOTHING, verbose_name=_('client'), blank=True)
+    client = models.ForeignKey(UserModel, models.PROTECT, verbose_name=_('client'), blank=True)
     invoice_contact = models.ForeignKey(
         Contact,
-        models.DO_NOTHING,
+        models.PROTECT,
         verbose_name=_('invoice_contact'),
         related_name='invoice_contact',
         blank=True,
         null=True)
     invoice_reference = models.CharField(_('invoice_reference'), max_length=255, blank=True)
     order_type = models.ForeignKey(
-        OrderType, models.DO_NOTHING, verbose_name=_('order_type'), blank=True, null=True)
+        OrderType, models.PROTECT, verbose_name=_('order_type'), blank=True, null=True)
     status = models.CharField(
         _('status'), max_length=20, choices=OrderStatus.choices, default=OrderStatus.DRAFT)
     date_ordered = models.DateTimeField(_('date_ordered'), blank=True, null=True)
@@ -512,9 +512,9 @@ class OrderItem(models.Model):
     order = models.ForeignKey(
         Order, models.CASCADE, related_name='items', verbose_name=_('order'), blank=True, null=True)
     product = models.ForeignKey(
-        Product, models.DO_NOTHING, verbose_name=_('product'), blank=True, null=True)
+        Product, models.PROTECT, verbose_name=_('product'), blank=True, null=True)
     data_format = models.ForeignKey(
-        DataFormat, models.DO_NOTHING, verbose_name=_('data_format'), blank=True, null=True)
+        DataFormat, models.PROTECT, verbose_name=_('data_format'), blank=True, null=True)
     srid = models.IntegerField(_('srid'), default=settings.DEFAULT_SRID)
     last_download = models.DateTimeField(_('last_download'), blank=True, null=True)
     price_status = models.CharField(
@@ -626,23 +626,10 @@ class ProductField(models.Model):
         verbose_name = _('product_field')
 
 
-class ProductValidation(models.Model):
-    """
-    Some products need to be validated before order is processed. The validation depends on the order type
-    """
-    product = models.ForeignKey(Product, models.DO_NOTHING, verbose_name=_('product'))
-    order_type = models.ForeignKey(OrderType, models.DO_NOTHING, verbose_name=_('order_type'))
-    validator = models.ForeignKey(Identity, models.DO_NOTHING, verbose_name=_('validator'))
-
-    class Meta:
-        db_table = 'product_validation'
-        verbose_name = _('product_validation')
-
-
 class ProductFormat(models.Model):
     product = models.ForeignKey(
-        Product, models.DO_NOTHING, verbose_name=_('product'), related_name='product_formats')
-    data_format = models.ForeignKey(DataFormat, models.DO_NOTHING, verbose_name=_('data_format'))
+        Product, models.CASCADE, verbose_name=_('product'), related_name='product_formats')
+    data_format = models.ForeignKey(DataFormat, models.CASCADE, verbose_name=_('data_format'))
     # extraction manuelle ou automatique
     is_manual = models.BooleanField(_('is_manual'), default=False)
 
@@ -656,7 +643,7 @@ class UserChange(AbstractIdentity):
     """
     Stores temporary data in order to proceed user profile change requests.
     """
-    client = models.ForeignKey(UserModel, models.DO_NOTHING, verbose_name=_('client'))
+    client = models.ForeignKey(UserModel, models.CASCADE, verbose_name=_('client'))
     ide_id = models.CharField(_('ide_number'), max_length=15, null=True, blank=True, validators=[
         RegexValidator(
             regex=r'^CHE-([0-9]{3}\.){2}[0-9]{3}$',
