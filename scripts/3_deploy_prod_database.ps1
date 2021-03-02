@@ -11,6 +11,7 @@ foreach ($line in Get-Content $PSScriptRoot\..\back\.env.prod) {
 }
 
 $prodBackup = ("\\nesitn1\e$\backup_postgresql\{0}_geoshop2.backup"-f $(Get-Date -Format "yyyyMMdd-HHmm"))
+$tempBackup = "C:\Temp\geoshop_prepub.backup"
 
 if ($ok -eq 'y') {
     # Database
@@ -18,11 +19,12 @@ if ($ok -eq 'y') {
     pg_dump -U postgres -F c -b -v --schema=$env:PGSCHEMA -f $prodBackup $env:PGDATABASE
     psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$env:PGDATABASE';"
     psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$env:PGDATABASE';"
-    psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS old_$env:PGDATABASE;"
-    psql -U postgres -d postgres -c "ALTER DATABASE $env:PGDATABASE RENAME TO old_$env:PGDATABASE;"
+    psql -U postgres -d postgres -c "DROP SCHEMA IF EXISTS old_$env:PGSCHEMA;"
+    psql -U postgres -d postgres -c "ALTER SCHEMA $env:PGSCHEMA RENAME TO old_$env:PGSCHEMA;"
     psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = 'geoshop2_prepub';"
     psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = 'geoshop2_prepub';"
-    psql -U postgres -d postgres -c "CREATE DATABASE $env:PGDATABASE WITH TEMPLATE geoshop2_prepub OWNER '$env:PGUSER';"
+    pg_dump -U postgres -F c -b -v --schema=$env:PGSCHEMA -f $tempBackup geoshop2_prepub
+    pg_restore -U postgres -F c -d $env:PGDATABASE $dumpFile
 }
 
 cd $pwd

@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ViewChild, ElementRef} from '@angular/core';
 import {ConfigService} from 'src/app/_services/config.service';
 import {MapService} from '../../_services/map.service';
 import { CustomIconService } from '../../_services/custom-icon.service';
@@ -41,6 +41,7 @@ export const nameOfCategoryForGeocoder: { [prop: string]: string; } = {
 export class MapComponent implements OnInit {
 
   @Input() leftPositionForButtons: number;
+  @ViewChild('fileUpload', {static: false}) fileUpload: ElementRef;
 
   isDrawing = false;
   isTracking = false;
@@ -78,9 +79,6 @@ export class MapComponent implements OnInit {
 
   ngOnInit(): void {
     this.mapService.initialize();
-    this.mapService.isTracking$.subscribe((isTracking) => {
-      this.isTracking = isTracking;
-    });
     this.mapService.isDrawing$.subscribe((isDrawing) => this.isDrawing = isDrawing);
     this.basemaps = this.mapService.Basemaps;
     this.pageformats = this.mapService.PageFormats;
@@ -151,8 +149,12 @@ export class MapComponent implements OnInit {
     this.mapService.switchBaseMap(gsId);
   }
 
-  toggleGeolocation() {
-    this.mapService.toggleTracking();
+  openFileImport() {
+    const fileUpload = this.fileUpload.nativeElement;
+    fileUpload.onchange = () => {
+      this.mapService.loadGeomFromFile(fileUpload.files[0]);
+    };
+    fileUpload.click();
   }
 
   togglePageformat(): void {

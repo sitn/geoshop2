@@ -342,11 +342,11 @@ $info: #4177F6;
 
 .notification-info {
   &.mat-snack-bar-container {
-    background: $info;
+    background: mat-color($accent);
     color: white;
 
     .mat-button {
-      background: mat-color($primary);
+      background: mat-color($accent, darker);
       color: white;
     }
   }
@@ -358,7 +358,7 @@ $info: #4177F6;
     color: white;
 
     .mat-button {
-      background: mat-color($primary);
+      background: mat-color($warning, darker);
       color: white;
     }
   }

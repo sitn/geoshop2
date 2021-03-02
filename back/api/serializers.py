@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.gis.gdal import GDALException
+from django.contrib.gis.gdal import GDALException, gdal_version
 from django.contrib.gis.geos import Polygon, GEOSException, GEOSGeometry
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import force_text
@@ -34,7 +34,15 @@ class WKTPolygonField(serializers.Field):
             return value
         new_value = copy.copy(value)
         new_value.transform(4326)
-        new_geom = []
+
+        major_gdal_version = int(gdal_version().decode("utf-8")[0])
+        if major_gdal_version > 2:
+            new_geom = []
+            # transform Long/Lat to Lat/Long for GDAL version 3.* and later
+            for point in range(len(new_value.coords[0])):
+                new_geom.append(new_value.coords[0][point][::-1])
+            new_polygon = Polygon(new_geom)
+            return new_polygon.wkt or 'POLYGON EMPTY'
         return new_value.wkt or 'POLYGON EMPTY'
 
     def to_internal_value(self, value):

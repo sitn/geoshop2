@@ -33,7 +33,6 @@ def generate_fake_order():
         order_type=order_type_prive,
         client=rincevent,
         geom=order_geom1,
-        invoice_contact=contact2,
         invoice_reference='Dossier n°545454',
         date_ordered=timezone.now())
     order2 = Order.objects.create(
