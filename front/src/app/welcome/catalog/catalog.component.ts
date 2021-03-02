@@ -65,7 +65,7 @@ export class CatalogComponent implements OnInit {
         switchMap(inputText => {
           this.isSearchLoading = true;
 
-          if (!inputText || inputText.length < 3) {
+          if (!inputText || inputText.length < 2) {
             return this.apiService.getProducts(0, this.batch)
               .pipe(
                 map((response) => {

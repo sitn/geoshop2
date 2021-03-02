@@ -16,7 +16,9 @@
   {% endif %}
   {% if admin_url %}
   <p>
-    {% url admin_url admin_url_params %}
+    <a href="https://sitn.ne.ch/geoshop2_api{% url admin_url admin_url_params %}">
+      {% url admin_url admin_url_params %}
+    </a>
   </p>
   {% endif %}
 {% endblock %}

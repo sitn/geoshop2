@@ -79,7 +79,7 @@ class Document(models.Model):
     link = models.URLField(
         _('link'),
         help_text=_('Please complete the above URL'),
-        default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL,
+        default='https://sitn.ne.ch',
         max_length=2000
     )
 
@@ -88,7 +88,7 @@ class Document(models.Model):
         verbose_name = _('document')
 
     def __str__(self):
-        return self.name
+        return '%s (%s)' % (self.name, self.link.split("/")[-1])
 
 
 class DataFormat(models.Model):
@@ -130,7 +130,7 @@ class Identity(AbstractIdentity):
     contract_accepted = models.DateField(_('contract_accepted'), null=True, blank=True)
     is_public = models.BooleanField(_('is_public'), default=False)
     subscribed = models.BooleanField(_('subscribed'), default=False)
-    birthday = models.DateField(_('birthday'), blank=True)
+    birthday = models.DateField(_('birthday'), null=True, blank=True)
 
     class Meta:
         db_table = 'identity'
@@ -348,6 +348,7 @@ class Order(models.Model):
     class OrderStatus(models.TextChoices):
         DRAFT = 'DRAFT', _('Draft')
         PENDING = 'PENDING', _('Pending')
+        QUOTE_DONE = 'QUOTE_DONE', _('Quote done')
         READY = 'READY', _('Ready')
         IN_EXTRACT = 'IN_EXTRACT', _('In extract')
         PARTIALLY_DELIVERED = 'PARTIALLY_DELIVERED', _('Partially delivered')
@@ -420,8 +421,9 @@ class Order(models.Model):
     def quote_done(self):
         """Admins confirmation they have given a manual price"""
         price_is_set = self.set_price()
-        self.save()
         if price_is_set:
+            self.status = self.OrderStatus.QUOTE_DONE
+            self.save()
             send_geoshop_email(
                 _('Geoshop - Quote has been done'),
                 recipient=self.client.identity,
@@ -465,6 +467,16 @@ class Order(models.Model):
         else:
             if OrderItem.OrderItemStatus.PROCESSED in items_statuses:
                 self.status = Order.OrderStatus.PROCESSED
+                send_geoshop_email(
+                    _('Geoshop - Download ready'),
+                    recipient=self.client.identity,
+                    template_name='email_download_ready',
+                    template_data={
+                        'order_id': self.id,
+                        'first_name': self.client.identity.first_name,
+                        'last_name': self.client.identity.last_name
+                    }
+                )
             else:
                 self.status = Order.OrderStatus.REJECTED
         return self.status
@@ -550,7 +562,6 @@ class OrderItem(models.Model):
         self.price_status = OrderItem.PricingStatus.PENDING
 
         # prices are 0 when user or invoice_contact is subscribed to the product
-        # TODO: Test invoice_contact subscribed
         if self.product.free_when_subscribed:
             if self.order.client.identity.subscribed or (
                     self.order.invoice_contact is not None and self.order.invoice_contact.subscribed):

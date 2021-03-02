@@ -83,7 +83,7 @@ python manage.py runserver
 Translations can be generated with:
 
 ```powershell
-python manage.py compilemessages
+python manage.py compilemessages --locale=fr
 ```
 
 ### Run tests

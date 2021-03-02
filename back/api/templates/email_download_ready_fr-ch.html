@@ -1,0 +1,10 @@
+{% extends "email_base_template.html" %}
+{% block content %}
+        <p>L'extraction pour la commande n°{{ order_id }} a été réalisée.</p>
+        <p>Connectez-vous sur le géoshop et téléchargez les produits commandés dans la section "Mes commandes".</p>
+{% endblock %}
+{% block footer %}
+        <p>
+          Cet email est adressé à {{ first_name }} {{ last_name }}.
+        </p>
+{% endblock %}

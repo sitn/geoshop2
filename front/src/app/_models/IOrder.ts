@@ -20,6 +20,7 @@ export interface IStatusAsReadableIcon {
 
 export type OrderStatus = 'DRAFT' |
   'PENDING' |
+  'QUOTE_DONE' |
   'READY' |
   'IN_EXTRACT' |
   'PARTIALLY_DELIVERED' |
@@ -134,7 +135,7 @@ export class Order {
   }
 
   get isQuotationCalculationFinished() {
-    return this.status === 'PENDING' && this._isAllOrderItemCalculated;
+    return this.status === 'QUOTE_DONE';
   }
 
   private _invoiceContact: Contact | undefined;
@@ -253,11 +254,16 @@ export class Order {
         break;
       case 'PENDING':
         result = {
-          text: isPendingConfirm ?
-            'Devis réalisé, en attente de confirmation' :
-            'En attente du devis',
-          iconName: 'warning',
-          color: '#FFDFBE'
+          text: 'En attente du devis',
+          iconName: 'calculate',
+          color: '#7593f0'
+        };
+        break;
+      case 'QUOTE_DONE':
+        result = {
+          text: 'Devis réalisé, en attente de confirmation',
+          iconName: 'check_outline',
+          color: '#7593f0'
         };
         break;
       case 'READY':
@@ -299,7 +305,7 @@ export class Order {
         result = {
           text: `Annulée`,
           iconName: 'cancel',
-          color: '#D0414E'
+          color: '#000000'
         };
         break;
 

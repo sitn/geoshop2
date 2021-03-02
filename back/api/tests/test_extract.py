@@ -3,12 +3,11 @@
 import os
 import time
 from django.urls import reverse
-from django.core import management
+from django.core import management, mail
 from django.utils import timezone
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
-from djmoney.money import Money
 from rest_framework import status
 from rest_framework.test import APITestCase
 from api.models import OrderType, DataFormat, Pricing, Product, OrderItem, Order
@@ -27,6 +26,8 @@ class OrderTests(APITestCase):
             username="private_user_order",
             password="testPa$$word",
         )
+        self.user_private.identity.email = 'user@sitn.com'
+        self.user_private.identity.save()
         order_type_private = OrderType.objects.create(
             name="Privé",
         )
@@ -117,6 +118,12 @@ class OrderTests(APITestCase):
         extract_file = SimpleUploadedFile("result2.zip", empty_zip_data, content_type="multipart/form-data")
         response = self.client.put(url, {'extract_result': extract_file})
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+        self.assertEqual(
+            Order.objects.get(pk=order_id).status,
+            Order.OrderStatus.PROCESSED,
+            "Check order status is processed"
+        )
+        self.assertEqual(len(mail.outbox), 1, 'An email has been sent to client')
 
         # Download file by user
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.client_token)

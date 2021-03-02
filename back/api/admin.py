@@ -44,6 +44,10 @@ class CustomModelAdmin(admin.ModelAdmin):
         return formfield
 
 
+class DocumentAdmin(CustomModelAdmin):
+    search_fields = ['name', 'link']
+    model = Document
+
 class IdentityInline(admin.StackedInline):
     model = Identity
 
@@ -59,7 +63,7 @@ class MetadataAdmin(CustomModelAdmin):
     raw_id_fields = ['modified_user', 'documents']
     search_fields = ['name', 'id_name']
     list_display = ('id_name', 'name')
-    readonly_fields = ('image_tag', 'legend_tag', 'documents', 'copyright')
+    readonly_fields = ('image_tag', 'legend_tag', 'copyright')
 
     def get_form(self, request, obj=None, change=False, **kwargs):
         form = super(MetadataAdmin, self).get_form(request, obj, change, **kwargs)
@@ -118,6 +122,7 @@ class PricingAdmin(CustomModelAdmin):
 
 class UserAdmin(BaseUserAdmin):
     """Overrides BaseUserAdmin"""
+    change_form_template = 'admin/api/user_change_form.html'
     search_fields = ['username', 'identity__first_name', 'identity__last_name', 'identity__email']
     list_display = ['username', 'identity_first_name', 'identity_last_name', 'identity_email']
     inlines = [IdentityInline]
@@ -148,7 +153,9 @@ class UserAdmin(BaseUserAdmin):
                     recipient=obj.identity,
                     template_name='email_user_confirm',
                     template_data={
-                        'messages': [_('Your account has been registered successfully.')]
+                        'messages': [_('Your account has been registered successfully.')],
+                        'first_name': obj.identity.first_name,
+                        'last_name': obj.identity.last_name
                     }
                 )
                 self.message_user(
@@ -166,7 +173,7 @@ admin.site.unregister(UserModel)
 admin.site.register(UserModel, UserAdmin)
 
 admin.site.register(Copyright)
-admin.site.register(Document)
+admin.site.register(Document, DocumentAdmin)
 admin.site.register(DataFormat)
 admin.site.register(Identity, AbstractIdentityAdmin)
 admin.site.register(Contact, AbstractIdentityAdmin)
