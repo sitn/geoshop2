@@ -145,6 +145,7 @@ class Metadata(models.Model):
     name = models.CharField(_('name'), max_length=300, blank=True)
     description_short = models.CharField(_('description_short'), max_length=500, blank=True)
     description_long = models.TextField(_('description_long'), blank=True)
+    datasource = models.CharField(_('datasource'), max_length=260, blank=True, null=True)
     scale = models.CharField(_('scale'), max_length=500, blank=True)
     geocat_link = models.CharField(_('geocat_link'), max_length=2000, blank=True)
     legend_link = models.CharField(_('legend_link'), max_length=2000, blank=True)
