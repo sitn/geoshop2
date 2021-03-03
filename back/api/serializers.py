@@ -168,7 +168,7 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Metadata
-        fields = '__all__'
+        exclude = ['datasource']
         lookup_field = 'id_name'
         extra_kwargs = {
             'url': {'lookup_field': 'id_name'}

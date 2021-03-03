@@ -24,12 +24,12 @@
       <!--<span class="item-price text-accent">{{product.Price}}</span>-->
       <button class="item-help" matTooltip="Voir les meta données" aria-label="Voir les meta données"
               [disabled]="!product.metadata"
-              color="primary" mat-mini-fab
+              color="primary" mat-button
               (click)="openMetadata(product)">
         <mat-icon>description</mat-icon>
       </button>
 
-      <button class="item-cart" color="primary" mat-mini-fab matTooltip="Ajouter au panier" (click)="addToCart(product)"
+      <button class="item-cart" color="primary" mat-button matTooltip="Ajouter au panier" (click)="addToCart(product)"
               aria-label="Ajouter au panier">
         <mat-icon>add_shopping_cart</mat-icon>
       </button>
