@@ -27,6 +27,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import Projection from 'ol/proj/Projection';
 import { boundingExtent, buffer, Extent, getArea } from 'ol/extent';
 import MultiPoint from 'ol/geom/MultiPoint';
+import MultiPolygon from 'ol/geom/MultiPolygon';
 import { fromLonLat } from 'ol/proj';
 import KML from 'ol/format/KML';
 import { Coordinate } from 'ol/coordinate';
@@ -249,6 +250,16 @@ export class MapService {
     );
   }
 
+  /**
+   * Sets two geometries on the map based on the feature returned by de geocoder:
+   * - The extent as an order perimeter
+   * - The feature itself highlighted
+   *
+   * If the extent of the feature returned by the geocoder is bigger than 1km², typically a cadastre, commune
+   * then the order permimeter will be set to the feature itself and not the extent.
+   *
+   * @param feature - The feature returned by the geocoder
+   */
   public addFeatureFromGeocoderToDrawing(feature: Feature) {
     this.geocoderSource.clear();
     if (this.featureFromDrawing) {
@@ -256,20 +267,23 @@ export class MapService {
     }
     this.geocoderSource.addFeature(feature.clone());
 
-    let bufferExtent: Extent;
+    let poly: Polygon|MultiPolygon;
     const geometry = feature.getGeometry();
     if (geometry instanceof Point) {
       const text = boundingExtent([geometry.getCoordinates()]);
       const bv = 50;
-      bufferExtent = buffer(text, bv);
+      poly = fromExtent(buffer(text, bv));
     } else {
       const originalExtent = feature.getGeometry().getExtent();
       const area = getArea(originalExtent);
-      const bufferValue = area * 0.001;
-      bufferExtent = buffer(originalExtent, bufferValue);
+      if ((geometry instanceof Polygon || geometry instanceof MultiPolygon) && area > 10) {
+        poly = geometry;
+      } else {
+        const bufferValue = area * 0.001;
+        poly = fromExtent(buffer(originalExtent, bufferValue));
+      }
     }
 
-    const poly = fromExtent(bufferExtent);
     feature.setGeometry(poly);
     this.drawingSource.addFeature(feature);
     this.modifyInteraction.setActive(true);
@@ -485,7 +499,6 @@ export class MapService {
     });
     this.modifyInteraction.on('modifyend', (evt) => {
       this.featureFromDrawing = evt.features.item(0);
-      this.setAreaToCurrentFeature();
       setTimeout(() => {
         this.transformInteraction.setActive(true);
       }, 500);
