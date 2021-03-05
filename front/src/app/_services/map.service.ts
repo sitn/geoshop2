@@ -27,7 +27,6 @@ import GeoJSON from 'ol/format/GeoJSON';
 import Projection from 'ol/proj/Projection';
 import { boundingExtent, buffer, Extent, getArea } from 'ol/extent';
 import MultiPoint from 'ol/geom/MultiPoint';
-import MultiPolygon from 'ol/geom/MultiPolygon';
 import { fromLonLat } from 'ol/proj';
 import KML from 'ol/format/KML';
 import { Coordinate } from 'ol/coordinate';
@@ -284,7 +283,7 @@ export class MapService {
     }
     this.geocoderSource.addFeature(feature.clone());
 
-    let poly: Polygon|MultiPolygon;
+    let poly: Polygon;
     const geometry = feature.getGeometry();
     if (geometry instanceof Point) {
       const text = boundingExtent([geometry.getCoordinates()]);
