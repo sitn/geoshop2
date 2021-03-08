@@ -31,6 +31,8 @@ export const nameOfCategoryForGeocoder: { [prop: string]: string; } = {
   localite: 'Localité',
   search_fo09: 'Secours en forêt',
   search_conc_hydr: 'Concessions hydrauliques',
+  communes: 'Communes',
+  cadastres: 'Cadastres',
 };
 
 @Component({
@@ -137,8 +139,8 @@ export class MapComponent implements OnInit {
     this.shouldDisplayClearButton = true;
   }
 
-  toggleDrawing() {
-    this.mapService.toggleDrawing();
+  toggleDrawing(drawingMode?: string) {
+    this.mapService.toggleDrawing(drawingMode);
   }
 
   eraseDrawing() {

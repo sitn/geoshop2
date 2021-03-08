@@ -51,12 +51,19 @@ class DocumentAdmin(CustomModelAdmin):
 class IdentityInline(admin.StackedInline):
     model = Identity
 
-
 class MetadataContactInline(admin.StackedInline):
     raw_id_fields = ['contact_person']
     model = MetadataContact
     extra = 1
 
+class ProductFormatInline(admin.TabularInline):
+    model = ProductFormat
+    exclude = ['is_manual']
+    extra = 3
+
+class DataFormatAdmin(CustomModelAdmin):
+    search_fields = ['name']
+    model = DataFormat
 
 class MetadataAdmin(CustomModelAdmin):
     inlines = [MetadataContactInline]
@@ -104,6 +111,7 @@ class OrderAdmin(admin.OSMGeoAdmin):
 
 
 class ProductAdmin(CustomModelAdmin):
+    inlines = [ProductFormatInline]
     raw_id_fields = ('metadata', 'group')
     exclude = ('ts',)
     search_fields = ['label']

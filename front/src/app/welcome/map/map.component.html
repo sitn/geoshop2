@@ -40,8 +40,15 @@
   <button matTooltip="Un clic droit ou un double clic termine le dessin"
           aria-label="Un clic droit ou un double clic termine le dessin"
           [color]="isDrawing ? 'accent' : 'primary'"
-          mat-mini-fab  (click)="toggleDrawing()">
+          mat-mini-fab (click)="toggleDrawing('Free')">
     <mat-icon>edit</mat-icon>
+  </button>
+
+  <button matTooltip="Dessiner un rectangle"
+          aria-label="Dessiner un rectangle"
+          [color]="isDrawing ? 'accent' : 'primary'"
+          mat-mini-fab (click)="toggleDrawing('Box')">
+    <mat-icon>crop_3_2</mat-icon>
   </button>
 
   <button matTooltip="Supprimer le dessin"

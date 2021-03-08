@@ -16,14 +16,14 @@ $tempBackup = "C:\Temp\geoshop_prepub.backup"
 if ($ok -eq 'y') {
     # Database
     $env:PGPASSWORD = $env:PGPOSTGRESPASSWORD
-    pg_dump -U postgres -F c -b -v --schema=$env:PGSCHEMA -f $prodBackup $env:PGDATABASE
+    pg_dump -U postgres -F c -b --schema=$env:PGSCHEMA -f $prodBackup $env:PGDATABASE
     psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$env:PGDATABASE';"
     psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$env:PGDATABASE';"
-    psql -U postgres -d $env:PGDATABASE -c "DROP SCHEMA IF EXISTS old_$env:PGSCHEMA;"
+    psql -U postgres -d $env:PGDATABASE -c "DROP SCHEMA IF EXISTS old_$env:PGSCHEMA CASCADE;"
     psql -U postgres -d $env:PGDATABASE -c "ALTER SCHEMA $env:PGSCHEMA RENAME TO old_$env:PGSCHEMA;"
     psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = 'geoshop2_prepub';"
     psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = 'geoshop2_prepub';"
-    pg_dump -U postgres -F c -b -v --schema=$env:PGSCHEMA -f $tempBackup geoshop2_prepub
+    pg_dump -U postgres -F c -b --schema=$env:PGSCHEMA -f $tempBackup geoshop2_prepub
     pg_restore -U postgres -F c -d $env:PGDATABASE $tempBackup
 }
 

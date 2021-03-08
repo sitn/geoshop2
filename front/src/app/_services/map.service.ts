@@ -46,6 +46,7 @@ import { Store } from '@ngrx/store';
 import { updateGeometry } from '../_store/cart/cart.action';
 import { DragAndDropEvent } from 'ol/interaction/DragAndDrop';
 import { shiftKeyOnly } from 'ol/events/condition';
+import { createBox } from 'ol/interaction/Draw';
 
 @Injectable({
   providedIn: 'root'
@@ -149,10 +150,26 @@ export class MapService {
     });
   }
 
-  public toggleDrawing() {
+  public toggleDrawing(drawMode?: string) {
     this.isDrawModeActivated = !this.isDrawModeActivated;
-    this.modifyInteraction.setActive(this.isDrawModeActivated);
-    this.drawInteraction.setActive(this.isDrawModeActivated);
+    if (this.isDrawModeActivated) {
+      this.createDrawingInteraction(drawMode);
+      this.transformInteraction.setActive(false);
+      if (this.featureFromDrawing && this.drawingSource.getFeatures().length > 0) {
+        this.drawingSource.removeFeature(this.featureFromDrawing);
+      }
+      window.oncontextmenu = (event: MouseEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
+        this.drawInteraction.finishDrawing();
+        window.oncontextmenu = null;
+      };
+    } else {
+      this.geocoderSource.clear();
+      this.map.removeInteraction(this.drawInteraction);
+    }
+    this.toggleDragInteraction(!this.isDrawModeActivated);
+    this.isDrawing$.next(this.isDrawModeActivated);
   }
 
   public eraseDrawing() {
@@ -249,6 +266,16 @@ export class MapService {
     );
   }
 
+  /**
+   * Sets two geometries on the map based on the feature returned by de geocoder:
+   * - The extent as an order perimeter
+   * - The feature itself highlighted
+   *
+   * If the extent of the feature returned by the geocoder is bigger than 1km², typically a cadastre, commune
+   * then the order permimeter will be set to the feature itself and not the extent.
+   *
+   * @param feature - The feature returned by the geocoder
+   */
   public addFeatureFromGeocoderToDrawing(feature: Feature) {
     this.geocoderSource.clear();
     if (this.featureFromDrawing) {
@@ -256,20 +283,23 @@ export class MapService {
     }
     this.geocoderSource.addFeature(feature.clone());
 
-    let bufferExtent: Extent;
+    let poly: Polygon;
     const geometry = feature.getGeometry();
     if (geometry instanceof Point) {
       const text = boundingExtent([geometry.getCoordinates()]);
       const bv = 50;
-      bufferExtent = buffer(text, bv);
+      poly = fromExtent(buffer(text, bv));
     } else {
       const originalExtent = feature.getGeometry().getExtent();
       const area = getArea(originalExtent);
-      const bufferValue = area * 0.001;
-      bufferExtent = buffer(originalExtent, bufferValue);
+      if (geometry instanceof Polygon && area > 1000000) {
+        poly = geometry;
+      } else {
+        const bufferValue = area * 0.001;
+        poly = fromExtent(buffer(originalExtent, bufferValue));
+      }
     }
 
-    const poly = fromExtent(bufferExtent);
     feature.setGeometry(poly);
     this.drawingSource.addFeature(feature);
     this.modifyInteraction.setActive(true);
@@ -401,6 +431,28 @@ export class MapService {
     return dragAndDropInteraction;
   }
 
+  private createDrawingInteraction(drawingMode?: string) {
+    if (drawingMode === 'Box') {
+      this.drawInteraction = new Draw({
+        source: this.drawingSource,
+        type: GeometryType.CIRCLE,
+        geometryFunction: createBox()
+      });
+    } else {
+      this.drawInteraction = new Draw({
+        source: this.drawingSource,
+        type: GeometryType.POLYGON,
+        finishCondition: (evt) => {
+          return true;
+        }
+      });
+    }
+    this.drawInteraction.on('drawend', () => {
+      this.toggleDrawing();
+    });
+    this.map.addInteraction(this.drawInteraction);
+  }
+
   private initializeDrawing() {
     this.drawingSource = new VectorSource({
       useSpatialIndex: false,
@@ -413,7 +465,6 @@ export class MapService {
     }
     this.drawingSource.on('addfeature', (evt) => {
       this.featureFromDrawing = evt.feature;
-      this.drawInteraction.setActive(false);
       this.setAreaToCurrentFeature();
 
       setTimeout(() => {
@@ -446,46 +497,12 @@ export class MapService {
     this.modifyInteraction = new Modify({
       source: this.drawingSource
     });
-    this.drawInteraction = new Draw({
-      source: this.drawingSource,
-      type: GeometryType.POLYGON,
-      finishCondition: (evt) => {
-        return true;
-      }
-    });
-
-    this.drawInteraction.on('change:active', () => {
-      const isActive = this.drawInteraction.getActive();
-
-      if (isActive) {
-        this.transformInteraction.setActive(false);
-      }
-
-      if (this.featureFromDrawing && isActive && this.drawingSource.getFeatures().length > 0) {
-        this.drawingSource.removeFeature(this.featureFromDrawing);
-      }
-      this.geocoderSource.clear();
-      this.toggleDragInteraction(!isActive);
-
-      this.isDrawModeActivated = isActive;
-      this.isDrawing$.next(isActive);
-
-      if (isActive) {
-        window.oncontextmenu = (event: MouseEvent) => {
-          event.preventDefault();
-          event.stopPropagation();
-          this.drawInteraction.finishDrawing();
-          window.oncontextmenu = null;
-        };
-      }
-    });
 
     this.modifyInteraction.on('modifystart', () => {
       this.transformInteraction.setActive(false);
     });
     this.modifyInteraction.on('modifyend', (evt) => {
       this.featureFromDrawing = evt.features.item(0);
-      this.setAreaToCurrentFeature();
       setTimeout(() => {
         this.transformInteraction.setActive(true);
       }, 500);
@@ -498,10 +515,7 @@ export class MapService {
     });
 
     this.map.addInteraction(this.modifyInteraction);
-    this.map.addInteraction(this.drawInteraction);
-
     this.modifyInteraction.setActive(false);
-    this.drawInteraction.setActive(false);
   }
 
   private setAreaToCurrentFeature() {
