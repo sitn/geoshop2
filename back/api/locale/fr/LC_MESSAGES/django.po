@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-02-24 15:50+0100\n"
+"POT-Creation-Date: 2021-03-22 16:24+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,37 +17,37 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: .\api\admin.py:92
+#: .\api\admin.py:103
 msgid "Quote has been successfully done and an email has been sent to client"
 msgstr "Le devis de la commande a été calculé et le client a été notifié"
 
-#: .\api\admin.py:96
+#: .\api\admin.py:107
 msgid "Order prices cannot be calculated! Client will not be notified!"
 msgstr ""
 "Le devis de la commande ne peut pas être calculé, le client ne sera pas "
 "notifié"
 
-#: .\api\admin.py:127
+#: .\api\admin.py:139
 msgid "Permissions"
 msgstr "Permissions"
 
-#: .\api\admin.py:130
+#: .\api\admin.py:142
 msgid "Important dates"
 msgstr "Dates importantes"
 
-#: .\api\admin.py:148
+#: .\api\admin.py:160
 msgid "Registration confirmation"
 msgstr "Confirmation d'inscription"
 
-#: .\api\admin.py:152
+#: .\api\admin.py:164
 msgid "Your account has been registered successfully."
 msgstr "Votre compte est désormais actif."
 
-#: .\api\admin.py:159
+#: .\api\admin.py:171
 msgid "User is registered and an email has been sent to client"
 msgstr "Le client est actif et un email lui a été envoyé."
 
-#: .\api\admin.py:163
+#: .\api\admin.py:175
 msgid "User is not active yet! Client will not be notified!"
 msgstr ""
 "Le client n'est pas encore actif, aucun email ne lui a été envoyé pour "
@@ -117,16 +117,16 @@ msgstr "utilisateur permanent"
 msgid "contact"
 msgstr "contact"
 
-#: .\api\models.py:68 .\api\models.py:153
+#: .\api\models.py:68 .\api\models.py:154
 msgid "copyright"
 msgstr "copyright"
 
 #: .\api\models.py:78 .\api\models.py:95 .\api\models.py:106
-#: .\api\models.py:145 .\api\models.py:233 .\api\models.py:276
+#: .\api\models.py:145 .\api\models.py:234 .\api\models.py:277
 msgid "name"
 msgstr "nom"
 
-#: .\api\models.py:80 .\api\models.py:588
+#: .\api\models.py:80 .\api\models.py:598
 msgid "link"
 msgstr "lien"
 
@@ -138,7 +138,7 @@ msgstr "Veuillez compléter l'URL ci-dessus"
 msgid "document"
 msgstr "document"
 
-#: .\api\models.py:99 .\api\models.py:507 .\api\models.py:636
+#: .\api\models.py:99 .\api\models.py:518 .\api\models.py:633
 msgid "data_format"
 msgstr "format du produit"
 
@@ -154,11 +154,11 @@ msgstr "types de commande"
 msgid "user"
 msgstr "utilisateur"
 
-#: .\api\models.py:124 .\api\models.py:651
+#: .\api\models.py:124 .\api\models.py:648
 msgid "ide_number"
 msgstr "Numéro IDE"
 
-#: .\api\models.py:127 .\api\models.py:654
+#: .\api\models.py:127 .\api\models.py:651
 msgid "IDE number is not valid"
 msgstr "Le numéro IDE n'est pas valable"
 
@@ -191,335 +191,335 @@ msgid "description_long"
 msgstr "description longue"
 
 #: .\api\models.py:148
+msgid "datasource"
+msgstr "source des données"
+
+#: .\api\models.py:149
 msgid "scale"
 msgstr "échelle"
 
-#: .\api\models.py:149
+#: .\api\models.py:150
 msgid "geocat_link"
 msgstr "lien Géocat"
 
-#: .\api\models.py:150
+#: .\api\models.py:151
 msgid "legend_link"
 msgstr "lien vers la légende"
 
-#: .\api\models.py:151
+#: .\api\models.py:152
 msgid "image_link"
 msgstr "lien vers l'image"
 
-#: .\api\models.py:154
+#: .\api\models.py:155
 msgid "documents"
 msgstr "documents"
 
-#: .\api\models.py:157
+#: .\api\models.py:158
 msgid "contact_persons"
 msgstr "contact"
 
-#: .\api\models.py:164
+#: .\api\models.py:165
 msgid "modified_user"
 msgstr "modifié par"
 
-#: .\api\models.py:169 .\api\models.py:203 .\api\models.py:312
+#: .\api\models.py:170 .\api\models.py:204 .\api\models.py:313
 msgid "metadata"
 msgstr "métadonnée"
 
-#: .\api\models.py:190
+#: .\api\models.py:191
 msgid "legend"
 msgstr "légende"
 
-#: .\api\models.py:196
+#: .\api\models.py:197
 msgid "image"
 msgstr "image"
 
-#: .\api\models.py:205
+#: .\api\models.py:206
 msgid "contact_person"
 msgstr "contact"
 
-#: .\api\models.py:206
+#: .\api\models.py:207
 msgid "role"
 msgstr "role"
 
-#: .\api\models.py:210
+#: .\api\models.py:211
 msgid "metadata_contact"
 msgstr "interlocuteur"
 
-#: .\api\models.py:226
+#: .\api\models.py:227
 msgid "Free"
 msgstr "gratuit"
 
-#: .\api\models.py:227
+#: .\api\models.py:228
 msgid "Single"
 msgstr "unique"
 
-#: .\api\models.py:228
+#: .\api\models.py:229
 msgid "By number of objects"
 msgstr "selon le nombre d'objets"
 
-#: .\api\models.py:229
+#: .\api\models.py:230
 msgid "By area"
 msgstr "selon la surface"
 
-#: .\api\models.py:230
+#: .\api\models.py:231
 msgid "From a pricing layer"
 msgstr "selon couche de tarification"
 
-#: .\api\models.py:231
+#: .\api\models.py:232
 msgid "Manual"
 msgstr "traitement manuel"
 
-#: .\api\models.py:235
+#: .\api\models.py:236
 msgid "pricing_type"
 msgstr "type de tarification"
 
-#: .\api\models.py:237 .\api\models.py:517
+#: .\api\models.py:238 .\api\models.py:528
 msgid "base_fee"
 msgstr "taxe de base"
 
-#: .\api\models.py:239
+#: .\api\models.py:240
 msgid "min_price"
 msgstr "prix minimum"
 
-#: .\api\models.py:241
+#: .\api\models.py:242
 msgid "max_price"
 msgstr "prix maximum"
 
-#: .\api\models.py:243
+#: .\api\models.py:244
 msgid "unit_price"
 msgstr "prix unitaire"
 
-#: .\api\models.py:247 .\api\models.py:280 .\api\models.py:319
+#: .\api\models.py:248 .\api\models.py:281 .\api\models.py:320
 msgid "pricing"
 msgstr "tarification"
 
-#: .\api\models.py:278 .\api\models.py:515
+#: .\api\models.py:279 .\api\models.py:526
 msgid "price"
 msgstr "prix"
 
-#: .\api\models.py:279 .\api\models.py:369
+#: .\api\models.py:280 .\api\models.py:370
 msgid "geom"
 msgstr "géométrie"
 
-#: .\api\models.py:284
+#: .\api\models.py:285
 msgid "pricing_layer"
 msgstr "couche de tarification"
 
-#: .\api\models.py:306 .\api\models.py:349
+#: .\api\models.py:307 .\api\models.py:350
 msgid "Draft"
 msgstr "Brouillon"
 
-#: .\api\models.py:307
+#: .\api\models.py:308
 msgid "Published"
 msgstr "Publié"
 
-#: .\api\models.py:308
+#: .\api\models.py:309
 msgid "Published only in group"
 msgstr "Seulement dans un groupe"
 
-#: .\api\models.py:309
+#: .\api\models.py:310
 msgid "Deprecated"
 msgstr "Obsolète"
 
-#: .\api\models.py:313
+#: .\api\models.py:314
 msgid "label"
 msgstr "étiquette"
 
-#: .\api\models.py:315 .\api\models.py:382 .\api\models.py:513
+#: .\api\models.py:316 .\api\models.py:383 .\api\models.py:524
 msgid "status"
 msgstr "statut"
 
-#: .\api\models.py:317
+#: .\api\models.py:318
 msgid "group"
 msgstr "groupe"
 
-#: .\api\models.py:318
+#: .\api\models.py:319
 msgid "provider"
 msgstr "fournisseur"
 
-#: .\api\models.py:320
+#: .\api\models.py:321
 msgid "free_when_subscribed"
 msgstr "gratuit pour utilisateurs permanents"
 
-#: .\api\models.py:321
+#: .\api\models.py:322
 msgid "order_index"
 msgstr "rang"
 
-#: .\api\models.py:323
+#: .\api\models.py:324
 msgid "thumbnail_link"
 msgstr "lien vers l'aperçu"
 
-#: .\api\models.py:328 .\api\models.py:505 .\api\models.py:587
-#: .\api\models.py:613 .\api\models.py:624 .\api\models.py:635
+#: .\api\models.py:329 .\api\models.py:516 .\api\models.py:597
+#: .\api\models.py:623 .\api\models.py:632
 msgid "product"
 msgstr "produit"
 
-#: .\api\models.py:340
+#: .\api\models.py:341
 msgid "thumbnail"
 msgstr "aperçu"
 
-#: .\api\models.py:350 .\api\models.py:492 .\api\models.py:497
+#: .\api\models.py:351 .\api\models.py:503 .\api\models.py:508
 msgid "Pending"
 msgstr "En attente"
 
-#: .\api\models.py:351
+#: .\api\models.py:352
 msgid "Quote done"
 msgstr "Devis réalisé"
 
-#: .\api\models.py:352
+#: .\api\models.py:353
 msgid "Ready"
 msgstr "Prêt"
 
-#: .\api\models.py:353
+#: .\api\models.py:354
 msgid "In extract"
 msgstr "Dans Extract"
 
-#: .\api\models.py:354
+#: .\api\models.py:355
 msgid "Partially delivered"
 msgstr "Partiellement traité"
 
-#: .\api\models.py:355 .\api\models.py:498
+#: .\api\models.py:356 .\api\models.py:509
 msgid "Processed"
 msgstr "Traité"
 
-#: .\api\models.py:356 .\api\models.py:499
+#: .\api\models.py:357 .\api\models.py:510
 msgid "Archived"
 msgstr "Archivé"
 
-#: .\api\models.py:357 .\api\models.py:500
+#: .\api\models.py:358 .\api\models.py:511
 msgid "Rejected"
 msgstr "Rejeté"
 
-#: .\api\models.py:359
+#: .\api\models.py:360
 msgid "title"
 msgstr "titre"
 
-#: .\api\models.py:360
+#: .\api\models.py:361
 msgid "description"
 msgstr "description"
 
-#: .\api\models.py:362
+#: .\api\models.py:363
 msgid "processing_fee"
 msgstr "taxe de base"
 
-#: .\api\models.py:364
+#: .\api\models.py:365
 msgid "total_without_vat"
 msgstr "total sans TVA"
 
-#: .\api\models.py:366
+#: .\api\models.py:367
 msgid "part_vat"
 msgstr "dont TVA"
 
-#: .\api\models.py:368
+#: .\api\models.py:369
 msgid "total_with_vat"
 msgstr "total avec TVA"
 
-#: .\api\models.py:370 .\api\models.py:650
+#: .\api\models.py:371 .\api\models.py:647
 msgid "client"
 msgstr "client"
 
-#: .\api\models.py:374
+#: .\api\models.py:375
 msgid "invoice_contact"
 msgstr "facture"
 
-#: .\api\models.py:378
+#: .\api\models.py:379
 msgid "invoice_reference"
 msgstr "référence"
 
-#: .\api\models.py:380 .\api\models.py:625
+#: .\api\models.py:381
 msgid "order_type"
 msgstr "type de commande"
 
-#: .\api\models.py:383
+#: .\api\models.py:384
 msgid "date_ordered"
 msgstr "date de commande"
 
-#: .\api\models.py:384
+#: .\api\models.py:385
 msgid "date_downloaded"
 msgstr "date de téléchargement"
 
-#: .\api\models.py:385
+#: .\api\models.py:386
 msgid "date_processed"
 msgstr "date de traitement"
 
-#: .\api\models.py:391 .\api\models.py:503 .\api\models.py:586
+#: .\api\models.py:392 .\api\models.py:514 .\api\models.py:596
 msgid "order"
 msgstr "commande"
 
-#: .\api\models.py:428
+#: .\api\models.py:429
 msgid "Geoshop - Quote has been done"
 msgstr "Geoshop - Devis réalisé"
 
-#: .\api\models.py:493
+#: .\api\models.py:472
+msgid "Geoshop - Download ready"
+msgstr "Geoshop - Commande traitée"
+
+#: .\api\models.py:504
 msgid "Calculated"
 msgstr "calculé"
 
-#: .\api\models.py:494
+#: .\api\models.py:505
 msgid "Imported"
 msgstr "importé"
 
-#: .\api\models.py:508
+#: .\api\models.py:519
 msgid "srid"
 msgstr "SRID"
 
-#: .\api\models.py:509
+#: .\api\models.py:520
 msgid "last_download"
 msgstr "date du dernier téléchargement"
 
-#: .\api\models.py:511
+#: .\api\models.py:522
 msgid "price_status"
 msgstr "statut du prix"
 
-#: .\api\models.py:519
+#: .\api\models.py:530
 msgid "comment"
 msgstr "Remarques"
 
-#: .\api\models.py:524
+#: .\api\models.py:535
 msgid "order_item"
 msgstr "produit commandé"
 
-#: .\api\models.py:581
+#: .\api\models.py:591
 msgid "Geoshop - Quote requested"
 msgstr "Geoshop - Devis demandé"
 
-#: .\api\models.py:584
+#: .\api\models.py:594
 msgid "A new quote has been requested:"
 msgstr "Un devis a été demandé:"
 
-#: .\api\models.py:608
+#: .\api\models.py:618
 msgid "db_name"
 msgstr "nom de la bd"
 
-#: .\api\models.py:609
+#: .\api\models.py:619
 msgid "export_name"
 msgstr "nom d'export"
 
-#: .\api\models.py:611
+#: .\api\models.py:621
 msgid "field_type"
 msgstr "type de champ"
 
-#: .\api\models.py:612
+#: .\api\models.py:622
 msgid "field_length"
 msgstr "longueur du champ"
 
-#: .\api\models.py:617
+#: .\api\models.py:627
 msgid "product_field"
 msgstr "attribut"
 
-#: .\api\models.py:626
-msgid "validator"
-msgstr "validateur"
-
-#: .\api\models.py:630
-msgid "product_validation"
-msgstr "validation de produit"
-
-#: .\api\models.py:638
+#: .\api\models.py:635
 msgid "is_manual"
 msgstr "traitement manuel"
 
-#: .\api\models.py:643
+#: .\api\models.py:640
 msgid "product_format"
 msgstr "Relation format - produit"
 
-#: .\api\models.py:660
+#: .\api\models.py:657
 msgid "user_change"
 msgstr "changement d'un utilisateur"
 
@@ -530,6 +530,16 @@ msgstr "Geoshop - Erreur, tarification inconnue"
 #: .\api\pricing.py:37
 msgid "{} is not defined in pricing module."
 msgstr "{} n'est pas définie dans le module pricing."
+
+#: .\api\pricing.py:94
+msgid "Geoshop - Error, pricing has no geometries linked to it"
+msgstr "Geoshop - Erreur, la tarification n'a pas de géométrie associée"
+
+#: .\api\pricing.py:98
+msgid "The pricing \"{}\" is defined but no geometries were found for it."
+msgstr ""
+"La tarification \"{}\" existe mais aucune couche géométrique n'a été trouvée "
+"pour le calcul."
 
 #: .\api\serializers.py:61
 msgid ""
@@ -567,7 +577,7 @@ msgid ""
 "to contact us at"
 msgstr ""
 "Ceci est un email automatique, prière de ne pas y répondre. Pour toute "
-"questionou information supplémentaire, n'ésitez pas à nous contacter à"
+"question ou information supplémentaire, n'ésitez pas à nous contacter à"
 
 #: .\api\templates\email_password_reset.html:4
 #: .\api\templates\registration\password_reset_email.html:2
@@ -652,3 +662,9 @@ msgstr "Geoshop - Votre demande de modification"
 #: .\api\views.py:562
 msgid "ok"
 msgstr "ok"
+
+#~ msgid "validator"
+#~ msgstr "validateur"
+
+#~ msgid "product_validation"
+#~ msgstr "validation de produit"

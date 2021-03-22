@@ -77,8 +77,8 @@ class ProductPriceCalculator():
         area = polygon.area / 10000
         return unit_price * area
 
-    @staticmethod
-    def _get_from_pricing_layer_price(**kwargs):
+    @classmethod
+    def _get_from_pricing_layer_price(cls, **kwargs):
         """
         The area is expected to be in hectares
         As the price may vary from one polygon to
@@ -88,6 +88,19 @@ class ProductPriceCalculator():
         polygon = kwargs.get('polygon')
         pricing_instance = kwargs.get('pricing_instance')
         pricing_geometry_instance = pricing_instance.pricinggeometry_set
+        if pricing_geometry_instance.count() == 0:
+            LOGGER.info('%s HAS NO GEOMETRIES LINKED TO IT', pricing_instance.name)
+            send_geoshop_email(
+                _('Geoshop - Error, pricing has no geometries linked to it'),
+                template_name='email_admin',
+                template_data={
+                    'messages': [
+                        _('The pricing "{}" is defined but no geometries were found for it.').format(
+                            pricing_instance.name)
+                    ]
+                }
+            )
+            return cls._get_manual_price(**kwargs)
         total = pricing_geometry_instance.filter(
             pricing=pricing_instance.id
         ).filter(
