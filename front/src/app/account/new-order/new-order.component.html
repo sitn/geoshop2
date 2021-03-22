@@ -49,11 +49,14 @@
       <mat-radio-group *ngIf="IsOrderTypePrivate" class="flex-column"
                        formControlName="addressChoice"
                        aria-label="Choisir une option">
-        <mat-radio-button value="1">La facturation est adressé à
-          l'utilisateur courant: {{(currentUser$|async)?.email}}</mat-radio-button>
-        <mat-radio-button value="2">La facturation est adressé à un mandant</mat-radio-button>
+        <mat-radio-button value="1">La facturation est adressée à
+          l'utilisateur courant: {{(currentUser$|async)?.username}} ({{(currentUser$|async)?.email}})</mat-radio-button>
+        <mat-radio-button value="2">La facturation est adressée à un mandant</mat-radio-button>
       </mat-radio-group>
     </form>
+
+    <mat-label *ngIf="!IsOrderTypePrivate">Vous devez spécifier les informations de contact du tiers pour un mandat
+       de type {{ orderFormGroup.get('orderType')?.value?.name | lowercase }}.</mat-label>
 
     <form class="form-height-mini" [formGroup]="contactFormGroup">
       <ng-container *ngIf="(IsOrderTypePrivate && !IsAddressForCurrentUser) || !IsOrderTypePrivate">
@@ -76,7 +79,7 @@
             <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayCustomer"
                               (optionSelected)="updateCustomerForm($event)">
               <mat-option *ngFor="let identity of filteredCustomers$|async" [value]="identity">
-                <span>{{identity.first_name}}</span>
+                <span>{{ identity.first_name }} {{ identity.last_name }} ({{ identity.email }})</span>
               </mat-option>
             </mat-autocomplete>
           </mat-form-field>
