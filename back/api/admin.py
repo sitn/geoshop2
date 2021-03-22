@@ -125,7 +125,7 @@ class AbstractIdentityAdmin(CustomModelAdmin):
 
 
 class PricingAdmin(CustomModelAdmin):
-    list_display = ['id', 'name']
+    list_display = ['name', 'pricing_type', 'base_fee', 'unit_price', 'min_price', 'max_price']
 
 
 class UserAdmin(BaseUserAdmin):
