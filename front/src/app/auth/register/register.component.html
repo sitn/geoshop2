@@ -1,7 +1,7 @@
 <mat-card>
   <mat-card-header>
-    <mat-card-title>GeoShop</mat-card-title>
-    <mat-card-subtitle>Création d'un nouveau compte</mat-card-subtitle>
+    <mat-card-title>Inscription au GeoShop</mat-card-title>
+    <mat-card-subtitle>Une fois soumise, votre inscription sera contrôlée et validée par le SITN</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
 
@@ -9,13 +9,8 @@
       <mat-step [stepControl]="formCredentials" label="Identifiants">
         <form [formGroup]="formCredentials" class="flex-column">
           <mat-form-field color="primary">
-            <input #firstInput formControlName="username"
-                   autocapitalize="off"
-                   autofocus
-                   spellcheck="false"
-                   required
-                   matInput
-                   placeholder="Login">
+            <input #firstInput formControlName="username" autocapitalize="off" autofocus spellcheck="false" required
+              matInput placeholder="Login">
             <mat-error *ngIf="username?.hasError('required')">Requis</mat-error>
             <mat-error *ngIf="username?.hasError('duplicate')">Identifiant déjà pris</mat-error>
           </mat-form-field>
@@ -23,18 +18,14 @@
           <div class="flex-column" formGroupName="passwords">
 
             <mat-form-field color="primary">
-              <input formControlName="password" autocapitalize="off" autocomplete="off"
-                     spellcheck="false"
-                     required matInput
-                     placeholder="Mot de passe" type="password">
+              <input formControlName="password" autocapitalize="off" autocomplete="off" spellcheck="false" required
+                matInput placeholder="Mot de passe" type="password">
               <mat-error *ngIf="password?.hasError('required')">Required</mat-error>
             </mat-form-field>
 
             <mat-form-field color="primary">
-              <input formControlName="passwordConfirm" autocapitalize="off" autocomplete="off"
-                     spellcheck="false"
-                     required matInput
-                     placeholder="Confirmation du mot de passe" type="password">
+              <input formControlName="passwordConfirm" autocapitalize="off" autocomplete="off" spellcheck="false"
+                required matInput placeholder="Confirmation du mot de passe" type="password">
               <mat-error *ngIf="passwordConfirm?.hasError('required')">Required</mat-error>
             </mat-form-field>
 
@@ -52,47 +43,27 @@
       <mat-step [stepControl]="formContact" label="Contact">
         <form [formGroup]="formContact" class="flex-column">
           <mat-form-field color="primary">
-            <input id="registerInput1" formControlName="firstName"
-                   autocapitalize="off"
-                   autofocus
-                   spellcheck="false"
-                   required
-                   matInput
-                   placeholder="Prénom">
+            <input id="registerInput1" formControlName="firstName" autocapitalize="off" autofocus spellcheck="false"
+              required matInput placeholder="Prénom">
             <mat-error *ngIf="firstName?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
           <mat-form-field color="primary">
-            <input formControlName="lastName"
-                   autocapitalize="off"
-                   autofocus
-                   spellcheck="false"
-                   required
-                   matInput
-                   placeholder="Nom">
+            <input formControlName="lastName" autocapitalize="off" autofocus spellcheck="false" required matInput
+              placeholder="Nom">
             <mat-error *ngIf="lastName?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
           <mat-form-field color="primary">
-            <input formControlName="email"
-                   autocapitalize="off"
-                   autofocus
-                   spellcheck="false"
-                   required
-                   matInput
-                   placeholder="Courriel">
+            <input formControlName="email" autocapitalize="off" autofocus spellcheck="false" required matInput
+              placeholder="Courriel">
             <mat-error *ngIf="email?.hasError('required')">Requis</mat-error>
             <mat-error *ngIf="email?.hasError('email')">Format de courriel incorrect</mat-error>
           </mat-form-field>
 
           <mat-form-field color="primary">
-            <input formControlName="phone"
-                   autocapitalize="off"
-                   autofocus
-                   spellcheck="false"
-                   required
-                   matInput
-                   placeholder="Téléphone">
+            <input formControlName="phone" autocapitalize="off" autofocus spellcheck="false" required matInput
+              placeholder="Téléphone">
             <mat-error *ngIf="phone?.hasError('required')">Requis</mat-error>
             <mat-error *ngIf="phone?.hasError('pattern')">
               <ul>Mauvais format de téléphone, accepté :
@@ -116,65 +87,39 @@
       <mat-step [stepControl]="formAddress" label="Adresse">
         <form [formGroup]="formAddress" class="flex-column">
           <mat-form-field color="primary">
-            <input id="registerInput2" formControlName="companyName"
-                   autocapitalize="off"
-                   autofocus
-                   spellcheck="false"
-                   matInput
-                   placeholder="Raison sociale">
+            <input id="registerInput2" formControlName="companyName" autocapitalize="off" autofocus spellcheck="false"
+              matInput placeholder="Raison sociale">
           </mat-form-field>
 
           <mat-form-field color="primary" *ngIf="companyName?.value?.trim().length">
-            <input formControlName="ideId"
-                   autocapitalize="off"
-                   required
-                   autofocus
-                   spellcheck="false"
-                   matInput
-                   placeholder="N° IDE">
-            <mat-error *ngIf="street?.hasError('required')">Le numéro d'dentification des entreprises est requis.</mat-error>
-            <mat-error *ngIf="ideId?.hasError('pattern')">Mauvais format du numéro IDE, accepté : CHE-012.345.678</mat-error>
+            <input formControlName="ideId" autocapitalize="off" required autofocus spellcheck="false" matInput
+              placeholder="N° IDE">
+            <mat-error *ngIf="street?.hasError('required')">Le numéro d'dentification des entreprises est requis.
+            </mat-error>
+            <mat-error *ngIf="ideId?.hasError('pattern')">Mauvais format du numéro IDE, accepté : CHE-012.345.678
+            </mat-error>
           </mat-form-field>
 
           <mat-form-field color="primary">
-            <input formControlName="street"
-                   autocapitalize="off"
-                   autofocus
-                   spellcheck="false"
-                   required
-                   matInput
-                   placeholder="Adresse">
+            <input formControlName="street" autocapitalize="off" autofocus spellcheck="false" required matInput
+              placeholder="Adresse">
             <mat-error *ngIf="street?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
           <mat-form-field color="primary">
-            <input formControlName="street2"
-                   autocapitalize="off"
-                   autofocus
-                   spellcheck="false"
-                   matInput
-                   placeholder="Complément d'adresse">
+            <input formControlName="street2" autocapitalize="off" autofocus spellcheck="false" matInput
+              placeholder="Complément d'adresse">
           </mat-form-field>
 
           <mat-form-field color="primary">
-            <input formControlName="postcode"
-                   autocapitalize="off"
-                   autofocus
-                   spellcheck="false"
-                   required
-                   matInput
-                   placeholder="Code postal">
+            <input formControlName="postcode" autocapitalize="off" autofocus spellcheck="false" required matInput
+              placeholder="Code postal">
             <mat-error *ngIf="postcode?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
           <mat-form-field color="primary">
-            <input formControlName="city"
-                   autocapitalize="off"
-                   autofocus
-                   spellcheck="false"
-                   required
-                   matInput
-                   placeholder="Ville">
+            <input formControlName="city" autocapitalize="off" autofocus spellcheck="false" required matInput
+              placeholder="Ville">
             <mat-error *ngIf="city?.hasError('required')">Requis</mat-error>
           </mat-form-field>
 
@@ -195,13 +140,20 @@
             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker startView="multi-year" [startAt]="startDate"></mat-datepicker>
           </mat-form-field>
+
+          <mat-label>
+            En vous inscrivant sur le géoshop, vous vous soumettez aux conditions générales d'utilisation
+            <a mat-icon-button aria-label="Ouvrir les conditions générales d'utilisation" color="primary"
+              href="https://sitn.ne.ch/geoshop2_media/documents/contrat_sitn.pdf" target="_blank">
+              <mat-icon>open_in_new</mat-icon>
+            </a>
+          </mat-label>
         </form>
 
         <div class="bottom-container">
           <button color="primary" mat-button matStepperPrevious> Retour</button>
           <button mat-button color="warn" (click)="stepper.reset()">Remettre à zéro</button>
-          <button class="form-login-button" color="primary" mat-button type="submit" (click)="submit()"
-                  [disabled]="
+          <button class="form-login-button" color="primary" mat-button type="submit" (click)="submit()" [disabled]="
                     formAddress.invalid || formAddress.pristine ||
                     formContact.invalid || formContact.pristine ||
                     formCredentials.invalid || formCredentials.pristine
@@ -214,4 +166,3 @@
 
   </mat-card-content>
 </mat-card>
-

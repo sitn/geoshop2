@@ -341,8 +341,15 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   }
 
   clearForms() {
-    this.updateDescription(this.orderFormGroup?.get('orderType')?.value);
-
+    const orderTypeValue = this.orderFormGroup?.get('orderType')?.value;
+    this.updateDescription(orderTypeValue);
+    const mandatoryContactOrders = ['Communal', 'Cantonal', 'Fédéral', 'Académique'];
+    if (mandatoryContactOrders.indexOf(orderTypeValue.name) > -1) {
+      // Force enable contact form because it's a public mandate
+      this.updateContactForm('2');
+    } else {
+      this.updateContactForm('1');
+    }
     this.orderFormGroup.get('title')?.setValue('');
     this.orderFormGroup.get('invoice_reference')?.setValue('');
     this.orderFormGroup.get('description')?.setValue('');

@@ -149,7 +149,7 @@ class Metadata(models.Model):
     scale = models.CharField(_('scale'), max_length=500, blank=True)
     geocat_link = models.CharField(_('geocat_link'), max_length=2000, blank=True)
     legend_link = models.CharField(_('legend_link'), max_length=2000, blank=True)
-    image_link = models.CharField(_('image_link'), max_length=250, default=settings.DEFAULT_METADATA_IMAGE_URL)
+    image_link = models.CharField(_('image_link'), max_length=250, default=settings.DEFAULT_METADATA_IMAGE_URL, blank=True)
     copyright = models.ForeignKey(
         Copyright, models.SET_NULL, verbose_name=_('copyright'), blank=True, null=True)
     documents = models.ManyToManyField(Document, verbose_name=_('documents'), blank=True)
@@ -220,7 +220,7 @@ class Pricing(models.Model):
     For free products, set base_fee and unit_price both to 0.
     For unique price set base_fee to desired amount and unit_price to 0.
     For price based on area, provide unit_price
-    For price base on a PricingGeometry, create the princing layer and 
+    For prices based on a PricingGeometry, create the pricing layer and 
     link it to pricing_layer field.
     """
     class PricingType(models.TextChoices):
@@ -267,7 +267,7 @@ class Pricing(models.Model):
         return price, self.base_fee
 
     def __str__(self):
-        return '%s - %s' % (self.id, self.name)
+        return '%s + %s CHF de taxe' % (self.name, self.base_fee)
 
 
 class PricingGeometry(models.Model):
