@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.gis.gdal import GDALException, gdal_version
-from django.contrib.gis.geos import Polygon, GEOSException, GEOSGeometry
+from django.contrib.gis.geos import Polygon, GEOSException, GEOSGeometry, WKTWriter
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
@@ -25,15 +25,26 @@ from .models import (
 # Get the UserModel
 UserModel = get_user_model()
 
+
 class WKTPolygonField(serializers.Field):
     """
     Polygons are serialized to POLYGON((Long, Lat)) notation
     """
+
     def to_representation(self, value):
         if isinstance(value, dict) or value is None:
             return value
         new_value = copy.copy(value)
+        new_value = new_value.buffer(0.5)
+
+        # Use Douglas-Peucker to simplify geom (one vertex 0.2m) for large polygons
+        if new_value.num_coords > 1000:
+            new_value = new_value.simplify(0.2, preserve_topology=False)
         new_value.transform(4326)
+
+        wkt_w = WKTWriter()
+        # number of decimals
+        wkt_w.precision = 6
 
         major_gdal_version = int(gdal_version().decode("utf-8")[0])
         if major_gdal_version > 2:
@@ -41,9 +52,11 @@ class WKTPolygonField(serializers.Field):
             # transform Long/Lat to Lat/Long for GDAL version 3.* and later
             for point in range(len(new_value.coords[0])):
                 new_geom.append(new_value.coords[0][point][::-1])
-            new_polygon = Polygon(new_geom)
-            return new_polygon.wkt or 'POLYGON EMPTY'
-        return new_value.wkt or 'POLYGON EMPTY'
+            new_value = Polygon(new_geom)
+
+        if new_value.area > 0:
+            return wkt_w.write(new_value).decode()
+        return 'POLYGON EMPTY'
 
     def to_internal_value(self, value):
         if value == '' or value is None:
@@ -264,7 +277,10 @@ class OrderSerializer(serializers.ModelSerializer):
         items_data = validated_data.pop('items', None)
         geom = validated_data.pop('geom', None)
         order = Order(**validated_data)
-        order.geom = Polygon(geom.coords[0], srid=settings.DEFAULT_SRID)
+        order.geom = Polygon(
+            [xy[0:2] for xy in list(geom.coords[0])],
+            srid=settings.DEFAULT_SRID
+        )
         order.save()
         for item_data in items_data:
             item = OrderItem.objects.create(order=order, **item_data)
@@ -284,7 +300,10 @@ class OrderSerializer(serializers.ModelSerializer):
         geom = validated_data.pop('geom', None)
 
         if geom is not None:
-            instance.geom = Polygon(geom.coords[0], srid=settings.DEFAULT_SRID)
+            instance.geom = Polygon(
+                [xy[0:2] for xy in list(geom.coords[0])],
+                srid=settings.DEFAULT_SRID
+            )
 
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get(
@@ -312,8 +331,10 @@ class OrderSerializer(serializers.ModelSerializer):
                     order=instance,
                     product=item_data.get('product')
                 )
-                oi_instance.data_format = item_data.get('data_format', oi_instance.data_format)
-                oi_instance.product = item_data.get('product', oi_instance.product)
+                oi_instance.data_format = item_data.get(
+                    'data_format', oi_instance.data_format)
+                oi_instance.product = item_data.get(
+                    'product', oi_instance.product)
                 oi_instance.set_price()
                 oi_instance.save()
 
@@ -507,6 +528,7 @@ class ProductDigestSerializer(serializers.ModelSerializer):
         view_name='metadata-detail',
         lookup_field='id_name'
     )
+
     class Meta:
         model = Product
         exclude = ['ts']
