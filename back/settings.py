@@ -143,7 +143,7 @@ USE_TZ = True
 
 SITE_ID = 2
 
-VAT = 0.076
+VAT = 0.077
 
 # Django REST specific configuration
 # https://www.django-rest-framework.org/
@@ -187,4 +187,8 @@ DEFAULT_PRODUCT_THUMBNAIL_URL = 'default_product_thumbnail.png'
 DEFAULT_METADATA_IMAGE_URL = 'default_metadata_image.png'
 AUTO_LEGEND_URL = os.environ.get('AUTO_LEGEND_URL', '')
 INTRA_LEGEND_URL = os.environ.get('INTRA_LEGEND_URL', '')
+
+# Geometries settings
+DEFAULT_SRID = 2056
+EXTRACT = 2056
 DEFAULT_SRID = 2056
