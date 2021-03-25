@@ -55,7 +55,7 @@ export class MapComponent implements OnInit {
   selectedPageFormat: IPageFormat;
   selectedPageFormatScale: number;
   rotationPageFormat: number;
-  pageFormatScales: Array<number> = [500, 1000, 1500, 2000, 3000];
+  pageFormatScales: Array<number> = [500, 1000, 2000, 5000];
 
   // Geocoder
   formGeocoder = new FormGroup({
