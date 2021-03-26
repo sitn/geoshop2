@@ -369,7 +369,7 @@ msgstr "Devis réalisé"
 
 #: .\api\models.py:353
 msgid "Ready"
-msgstr "Prêt"
+msgstr "A traiter"
 
 #: .\api\models.py:354
 msgid "In extract"
