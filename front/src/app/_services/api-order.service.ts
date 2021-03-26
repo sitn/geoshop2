@@ -67,7 +67,7 @@ export class ApiOrderService {
       );
   }
 
-  getOrders(offset?: number, limit?: number): Observable<IApiResponse<IOrderSummary> | null> {
+  getOrders(offset?: number, limit?: number, ordering?: string): Observable<IApiResponse<IOrderSummary> | null> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
@@ -78,6 +78,9 @@ export class ApiOrderService {
     }
     if (offset) {
       url.searchParams.append('offset', offset.toString());
+    }
+    if (ordering) {
+      url.searchParams.append('ordering', ordering);
     }
 
     return this.http.get<IApiResponse<IOrderSummary> | null>(url.toString())

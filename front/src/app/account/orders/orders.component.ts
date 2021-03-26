@@ -102,13 +102,12 @@ export class OrdersComponent implements OnInit, OnDestroy {
   getBatch(offset: number) {
     const init: { [key: string]: IOrderSummary } = {};
 
-    return this.apiOrderService.getOrders(offset, this.batch)
+    return this.apiOrderService.getOrders(offset, this.batch, '-id')
       .pipe(
         tap(response => this.total = response ? response.count : 0),
         map((response) => {
           if (response) {
             return response.results
-              .sort((a) => a.status === 'PENDING' ? 1 : a.status === 'READY' ? 1 : 0)
               .map(p => {
                 p.statusAsReadableIconText = Order.initializeStatus(p);
                 p.id = GeoshopUtils.ExtractIdFromUrl(p.url);

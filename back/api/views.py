@@ -237,8 +237,9 @@ class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
 
     To modify or delete an existing item, please use `/orderitem/` endpoint.
     """
-    search_fields = ['title', 'description']
-    filter_backends = [filters.SearchFilter]
+    search_fields = ['title', 'description', 'id']
+    ordering_fields = ['id']
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     serializers = {
         'default':  OrderSerializer,
         'list':    OrderDigestSerializer,
