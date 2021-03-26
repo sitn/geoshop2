@@ -21,7 +21,7 @@
       <img class="item-logo rounded-image" alt="Logo du produit" aria-label="Logo du produit"
            src="{{mediaUrl}}/{{product.thumbnail_link}}">
       <div class="item-label text-ellipsis-2" [matTooltip]="product.label">{{product.label}}</div>
-      <!--<span class="item-price text-accent">{{product.Price}}</span>-->
+      <span class="item-price text-secondary">{{product.pricing}}</span>
       <button class="item-help" matTooltip="Voir les meta données" aria-label="Voir les meta données"
               [disabled]="!product.metadata"
               color="primary" mat-button
