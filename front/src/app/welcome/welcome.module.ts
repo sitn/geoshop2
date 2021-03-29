@@ -24,6 +24,7 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {PageformatComponent} from './map/pageformat/pageformat.component';
 import {DragDropModule} from '@angular/cdk/drag-drop';
 import {MatSelectModule} from '@angular/material/select';
+import {MatListModule} from '@angular/material/list';
 import {SharedModule} from '../shared/shared.module';
 
 const MODULES = [
@@ -32,6 +33,7 @@ const MODULES = [
   MatTooltipModule,
   MatInputModule,
   MatCardModule,
+  MatListModule,
   MatProgressSpinnerModule,
   AngularSplitModule,
   MatButtonModule,

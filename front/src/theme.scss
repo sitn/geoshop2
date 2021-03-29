@@ -281,6 +281,10 @@ $info: #4177F6;
   color: mat-color($accent);
 }
 
+.text-secondary {
+  font-style: italic;
+}
+
 .text-error {
   color: mat-color($warning);
 

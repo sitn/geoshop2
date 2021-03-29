@@ -1,3 +1,4 @@
+@import '../../../../theme.scss';
 :host {
 
   .mat-expansion-panel-header-title {
@@ -6,6 +7,18 @@
     gs2-icon-text {
       margin-right: 16px;
     }
+
+    .title-block {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+
+      .date-el {
+        font-weight: 400;
+        font-style: italic;
+        padding-right: 1em;
+      }
+   }
   }
 
   .mat-expansion-panel-header-description {

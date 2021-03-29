@@ -5,6 +5,7 @@ from django.contrib.gis.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex, BTreeIndex
+from django.utils import timezone
 from django.utils.html import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
@@ -446,6 +447,7 @@ class Order(models.Model):
                 item.ask_price()
                 has_all_prices_calculated = has_all_prices_calculated and False
         if has_all_prices_calculated:
+            self.date_ordered = timezone.now()
             self.status = Order.OrderStatus.READY
         else:
             self.status = Order.OrderStatus.PENDING

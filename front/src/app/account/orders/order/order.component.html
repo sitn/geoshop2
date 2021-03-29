@@ -7,7 +7,14 @@
                      [matIconName]="order?.statusAsReadableIconText?.iconName"
                      [fontColor]="order?.statusAsReadableIconText?.color"
                      [fontSize]="16"></gs2-icon-text>
-      <span class="title" [class]="panel.expanded ? '' : 'text-ellipsis-2'">N°{{order?.id}} - {{order?.title}}</span>
+      <div class="title-block">
+        <div class="title-el">
+          <span class="title" [class]="panel.expanded ? '' : 'text-ellipsis-2'">N°{{order?.id}} - {{order?.title}}</span>
+        </div>
+        <div class="date-el">
+          <span class="title" [class]="panel.expanded ? '' : 'text-ellipsis-2'">{{order?.date_ordered | date}}</span>
+        </div>
+      </div>
     </mat-panel-title>
     <mat-panel-description>
       <span [class]="panel.expanded ? '' : 'text-ellipsis-2'">{{order?.description}}</span>

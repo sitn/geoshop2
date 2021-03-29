@@ -528,6 +528,11 @@ class ProductDigestSerializer(serializers.ModelSerializer):
         view_name='metadata-detail',
         lookup_field='id_name'
     )
+    pricing = serializers.SlugRelatedField(
+        required=False,
+        queryset=DataFormat.objects.all(),
+        slug_field='name'
+    )
 
     class Meta:
         model = Product

@@ -55,17 +55,19 @@ def send_geoshop_email(subject, message='', recipient=None, template_name=None, 
     )
 
 
-def _zip_them_all(full_zip_path, zip_list_path):
+def _zip_them_all(full_zip_path, files_list_path):
     """
     Takes a list of zip paths and brings the content together in a single zip
     """
     full_zip_file = zipfile.ZipFile(full_zip_path, 'w', zipfile.ZIP_DEFLATED)
 
-    for zip_path in zip_list_path:
-        if zip_path != '':
-            zip_file = zipfile.ZipFile('{}/{}'.format(settings.MEDIA_ROOT, zip_path), 'r')
+    for file_path in files_list_path:
+        if file_path.endswith(".zip"):
+            zip_file = zipfile.ZipFile('{}/{}'.format(settings.MEDIA_ROOT, file_path), 'r')
             for unzipped_file in zip_file.namelist():
                 full_zip_file.writestr(unzipped_file, zip_file.open(unzipped_file).read())
+        elif file_path != '':
+            full_zip_file.write('{}/{}'.format(settings.MEDIA_ROOT, file_path))
 
     full_zip_file.close()
 
@@ -75,7 +77,7 @@ def zip_all_orderitems(order):
     Takes all zips'content from order items and makes one single zip of it
     calling _zip_them_all as a backgroud process.
     """
-    zip_list_path = list(order.items.all().values_list('extract_result', flat=True))
+    files_list_path = list(order.items.all().values_list('extract_result', flat=True))
 
     today = timezone.now()
     first_part = str(uuid.uuid4())[0:9]
@@ -86,6 +88,6 @@ def zip_all_orderitems(order):
     order.extract_result.name = zip_path.as_posix()
     full_zip_path = Path(settings.MEDIA_ROOT, zip_path)
 
-    back_process = Process(target=_zip_them_all, args=(full_zip_path, zip_list_path))
+    back_process = Process(target=_zip_them_all, args=(full_zip_path, files_list_path))
     back_process.daemon = True
     back_process.start()
