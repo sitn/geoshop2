@@ -378,8 +378,7 @@ class Order(models.Model):
         blank=True,
         null=True)
     invoice_reference = models.CharField(_('invoice_reference'), max_length=255, blank=True)
-    order_type = models.ForeignKey(
-        OrderType, models.PROTECT, verbose_name=_('order_type'), blank=True, null=True)
+    order_type = models.ForeignKey(OrderType, models.PROTECT, verbose_name=_('order_type'))
     status = models.CharField(
         _('status'), max_length=20, choices=OrderStatus.choices, default=OrderStatus.DRAFT)
     date_ordered = models.DateTimeField(_('date_ordered'), blank=True, null=True)
@@ -572,6 +571,13 @@ class OrderItem(models.Model):
                 self._base_fee = Money(0, 'CHF')
                 self.price_status = OrderItem.PricingStatus.CALCULATED
                 return
+
+        # prices are 0 when order is for public authorities or academic purposes
+        if self.order.order_type.name in ( 'Communal', 'Cantonal', 'Fédéral', 'Académique'):
+            self._price = Money(0, 'CHF')
+            self._base_fee = Money(0, 'CHF')
+            self.price_status = OrderItem.PricingStatus.CALCULATED
+            return
 
         if self.product.pricing.pricing_type != Pricing.PricingType.MANUAL:
             self._price, self._base_fee = self.product.pricing.get_price(self.order.geom)

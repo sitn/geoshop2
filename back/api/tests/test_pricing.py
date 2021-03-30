@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon, Point
 from djmoney.money import Money
 from rest_framework.test import APITestCase
-from api.models import Contact, Pricing, Product, PricingGeometry, Order, OrderItem
+from api.models import Contact, Pricing, Product, PricingGeometry, Order, OrderItem, OrderType
 
 UserModel = get_user_model()
 
@@ -135,6 +135,13 @@ class PricingTests(APITestCase):
             geom=self.order_geom
         )
 
+        self.orderTypePrivate = OrderType.objects.create(
+            name="Privé",
+        )
+        self.orderTypePublic = OrderType.objects.create(
+            name="Communal",
+        )
+
         for geom in self.building_pricing_geometry:
             geom.pricing = Pricing.objects.filter(
                 name="Par nombre d'objets").first()
@@ -179,6 +186,7 @@ class PricingTests(APITestCase):
             order=self.order,
             product=self.products[5]
         )
+        self.order.order_type = self.orderTypePrivate
         self.order.save()
         self.assertEqual(self.order.status, Order.OrderStatus.DRAFT)
         self.assertEqual(order_item.price_status, OrderItem.PricingStatus.PENDING, 'princing status stays pending')
@@ -217,6 +225,7 @@ class PricingTests(APITestCase):
             order=self.order,
             product=self.products[3]
         )
+        self.order.order_type = self.orderTypePrivate
         self.order.save()
         orderitem1.set_price()
         orderitem1.save()
@@ -234,6 +243,7 @@ class PricingTests(APITestCase):
             order=self.order,
             product=self.products[3]
         )
+        self.order.order_type = self.orderTypePrivate
         self.order.save()
         orderitem2.set_price()
         orderitem2.save()
@@ -260,6 +270,20 @@ class PricingTests(APITestCase):
             subscribed=True
         )
         self.order.invoice_contact = contact
+        self.order.order_type = self.orderTypePrivate
+        self.order.save()
+        orderitem2.set_price()
+        orderitem2.save()
+        self.order.set_price()
+        self.assertEqual(self.order.processing_fee, Money(0, 'CHF'), 'Processing fee is free')
+        self.assertEqual(self.order.total_with_vat, Money(0, 'CHF'), 'Order is free')
+
+    def test_public_order_is_free(self):
+        orderitem2 = OrderItem.objects.create(
+            order=self.order,
+            product=self.products[3]
+        )
+        self.order.order_type = self.orderTypePublic
         self.order.save()
         orderitem2.set_price()
         orderitem2.save()
