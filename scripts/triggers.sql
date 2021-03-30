@@ -1,3 +1,8 @@
+CREATE TEXT SEARCH CONFIGURATION fr ( COPY = french );
+ALTER TEXT SEARCH CONFIGURATION fr
+        ALTER MAPPING FOR hword, hword_part, word
+        WITH unaccent, french_stem;
+
 CREATE FUNCTION geoshop.update_product_tsvector()
     RETURNS trigger
     LANGUAGE 'plpgsql'
@@ -5,7 +10,7 @@ CREATE FUNCTION geoshop.update_product_tsvector()
     VOLATILE NOT LEAKPROOF
 AS $BODY$
     BEGIN
-        NEW.ts := to_tsvector('french', NEW.label || ' ' || (
+        NEW.ts := to_tsvector('fr', NEW.label || ' ' || (
             SELECT concat(description_long, ' ' , description_short) FROM geoshop.metadata WHERE id = NEW.metadata_id
         ));
         RETURN NEW;
@@ -20,7 +25,7 @@ CREATE FUNCTION geoshop.update_metadata_tsvector()
 AS $BODY$
     BEGIN
         UPDATE geoshop.product p
-        SET ts = to_tsvector('french', label || ' ' || concat(NEW.description_long, ' ' , NEW.description_short))
+        SET ts = to_tsvector('fr', label || ' ' || concat(NEW.description_long, ' ' , NEW.description_short))
         WHERE NEW.id = p.metadata_id;
         RETURN NEW;
     END;
