@@ -104,7 +104,10 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   }
 
   get birthDay() {
-    return this.formAddress.get('birthDay');
+    if (this.formAddress.get('birthDay')?.value) {
+      return this.formAddress.get('birthDay')?.value.toISOString().slice(0, 10);
+    }
+    return null;
   }
 
   get password() {
@@ -165,7 +168,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         company_name: this.companyName?.value,
         ide_id: this.ideId?.value,
         phone: this.phone?.value,
-        birthday: this.birthDay?.value?.toISOString().slice(0,10),
+        birthday: this.birthDay,
       };
       this.apiService.register(user)
         .subscribe(async (res) => {
