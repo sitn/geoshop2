@@ -1,7 +1,7 @@
 <mat-toolbar color="primary">
 
   <div class="flex-row">
-    <a mat-button class="header-title" [routerLink]="['welcome']">GeoShop</a>
+    <a mat-button class="header-title" [routerLink]="['welcome']">GeoShop du système d'information du territoire neuchâtelois</a>
     <mat-divider *ngIf="subTitle" vertical="true" color="accent"></mat-divider>
     <span class="header-subtitle">{{subTitle}}</span>
   </div>
@@ -10,7 +10,7 @@
   <div class="right-container">
 
     <button mat-icon-button [matMenuTriggerFor]="helpOverlay">
-      <mat-icon>help</mat-icon>
+      <mat-icon>contact_support</mat-icon>
     </button>
     <mat-menu #helpOverlay="matMenu" class="overlay-menu-container">
       <gs2-help-overlay></gs2-help-overlay>
