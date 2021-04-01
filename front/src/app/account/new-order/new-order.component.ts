@@ -346,8 +346,10 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     const mandatoryContactOrders = ['Communal', 'Cantonal', 'Fédéral', 'Académique'];
     if (mandatoryContactOrders.indexOf(orderTypeValue.name) > -1) {
       // Force enable contact form because it's a public mandate
+      this.addressChoiceCtrl?.setValue('2');
       this.updateContactForm('2');
     } else {
+      this.addressChoiceCtrl?.setValue('1');
       this.updateContactForm('1');
     }
     this.orderFormGroup.get('title')?.setValue('');

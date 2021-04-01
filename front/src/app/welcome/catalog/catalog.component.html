@@ -21,7 +21,16 @@
       <img class="item-logo rounded-image" alt="Logo du produit" aria-label="Logo du produit"
            src="{{mediaUrl}}/{{product.thumbnail_link}}">
       <div class="item-label text-ellipsis-2" [matTooltip]="product.label">{{product.label}}</div>
-      <span class="item-price text-secondary">{{product.pricing}}</span>
+
+      <ng-container *ngIf="product.pricing === 'Gratuit'; then gratuit; else payant">
+      </ng-container>
+      <ng-template #gratuit>
+        <span class="item-price text-secondary">Gratuit</span>
+      </ng-template>
+      <ng-template #payant>
+        <span class="item-price text-secondary">Tarification selon le type de mandat</span>
+      </ng-template>
+
       <button class="item-help" matTooltip="Voir les meta données" aria-label="Voir les meta données"
               [disabled]="!product.metadata"
               color="primary" mat-button
