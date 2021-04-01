@@ -1,4 +1,4 @@
-<mat-card class="scrollable-content" *ngIf="user">
+<mat-card *ngIf="user">
   <mat-card-header>
     <mat-card-title>GeoShop - Modification du profil</mat-card-title>
   </mat-card-header>
@@ -127,10 +127,11 @@
                placeholder="N° IDE">
         <mat-error *ngIf="formModifyUser?.get('ideId')?.hasError('pattern')">Mauvais format du numéro IDE, accepté : CHE-012.345.678</mat-error>
       </mat-form-field>
-
-      <button class="action-button-container" color="primary" mat-raised-button type="submit" [disabled]="formModifyUser.invalid">
-        Soumettre
-      </button>
+      <div class="bottom-container">
+        <button class="action-button-container" color="primary" mat-raised-button type="submit" [disabled]="formModifyUser.invalid">
+          Soumettre
+        </button>
+      </div>
     </form>
   </mat-card-content>
 </mat-card>

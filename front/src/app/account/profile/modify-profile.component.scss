@@ -1,34 +1,26 @@
 :host {
   display: flex;
-  justify-content: center;
-  align-content: center;
-  margin: 10px;
-  height: calc(100vh - 84px);
+  height: calc(100vh - 64px);
 
   .mat-card {
-    display: flex;
-    flex-direction: column;
-    min-width: 720px;
-
-    .mat-card-content {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-    }
-  }
-
-  ul {
-    list-style-type: none;
+    margin: 10px auto;
+    flex: 1;
+    max-width: 960px;
   }
 
   form {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
+    height: calc(100vh - 64px - 60px - 30px);
+    overflow-y: auto;
   }
 
-  .action-button-container {
-    align-self: flex-end;
-    margin-top: auto;
+  .bottom-container {
+    display: flex;
+    justify-content: flex-end;
+
+    .mat-button {
+      &:only-child {
+        margin-right: auto;
+      }
+    }
   }
 }

@@ -65,19 +65,19 @@ class Command(BaseCommand):
         mma.identity.phone = '+41 32 000 00 00'
         mma.identity.save()
 
-        mka = UserModel.objects.create_user(
-            username='mka', password='mka')
-        mka.identity.email = 'mka-email@ne.ch'
-        mka.identity.first_name = 'Michaël'
-        mka.identity.last_name = 'Kalbermatten'
-        mka.identity.street = 'Rue de Tivoli 22'
-        mka.identity.postcode = '2000'
-        mka.identity.city = 'Neuchâtel'
-        mka.identity.country = 'Suisse'
-        mka.identity.company_name = 'Service du Registre Foncier et de la Géomatique - SITN'
-        mka.identity.phone = '+41 32 000 00 00'
-        mka.identity.subscribed = True
-        mka.identity.save()
+        mka2 = UserModel.objects.create_user(
+            username='mka2', password='mka2')
+        mka2.identity.email = 'mka2-email@ne.ch'
+        mka2.identity.first_name = 'Michaël'
+        mka2.identity.last_name = 'Kalbermatten'
+        mka2.identity.street = 'Rue de Tivoli 22'
+        mka2.identity.postcode = '2000'
+        mka2.identity.city = 'Neuchâtel'
+        mka2.identity.country = 'Suisse'
+        mka2.identity.company_name = 'Service du Registre Foncier et de la Géomatique - SITN'
+        mka2.identity.phone = '+41 32 000 00 00'
+        mka2.identity.subscribed = True
+        mka2.identity.save()
 
         # contacts
         contact1 = Contact.objects.create(
@@ -116,7 +116,7 @@ class Command(BaseCommand):
             belongs_to=mmi
         )
         contact3.save()
-        contact_mka = Contact.objects.create(
+        contact_mka2 = Contact.objects.create(
             first_name='Jean',
             last_name='Doe',
             email='test3@admin.com',
@@ -125,9 +125,9 @@ class Command(BaseCommand):
             country='Suisse',
             company_name='Marine de Colombier',
             phone='+41 00 787 29 16',
-            belongs_to=mka
+            belongs_to=mka2
         )
-        contact_mka.save()
+        contact_mka2.save()
 
         order_geom = Polygon((
             (
@@ -195,15 +195,15 @@ class Command(BaseCommand):
             date_ordered=timezone.now())
         order4.save()
 
-        order_mka = Order.objects.create(
+        order_mka2 = Order.objects.create(
             title='Plan de situation pour enquête',
             description='C\'est un test',
             order_type=order_type_prive,
-            client=mka,
+            client=mka2,
             geom=order_geom,
             invoice_reference='Dossier n°545454',
             date_ordered=timezone.now())
-        order_mka.save()
+        order_mka2.save()
 
         order_download = Order.objects.create(
             title='Commande prête à être téléchargée',
@@ -241,13 +241,13 @@ class Command(BaseCommand):
             OrderItem.objects.create(order=order2, product=product1),
             OrderItem.objects.create(order=order3, product=product1, data_format=data_format),
             OrderItem.objects.create(order=order4, product=product2),
-            OrderItem.objects.create(order=order_mka, product=product1, data_format=data_format)
+            OrderItem.objects.create(order=order_mka2, product=product1, data_format=data_format)
         ]
         for order_item in orderitems:
             order_item.set_price()
             order_item.save()
         order_item_deprecated = OrderItem.objects.create(
-            order=order_mka, product=product_deprecated, data_format=data_format)
+            order=order_mka2, product=product_deprecated, data_format=data_format)
         order_item_deprecated.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
         order_item_deprecated.price_status = OrderItem.PricingStatus.CALCULATED
         order_item_deprecated.save()
@@ -274,11 +274,11 @@ class Command(BaseCommand):
 
         order4.save()
 
-        order_mka.invoice_contact = contact_mka
-        order_mka.set_price()
-        order_mka.date_ordered = datetime.datetime(2018, 12, 1, 8, 20, 3, 0, tzinfo=datetime.timezone.utc)
-        order_mka.status = Order.OrderStatus.ARCHIVED
-        order_mka.save()
+        order_mka2.invoice_contact = contact_mka2
+        order_mka2.set_price()
+        order_mka2.date_ordered = datetime.datetime(2018, 12, 1, 8, 20, 3, 0, tzinfo=datetime.timezone.utc)
+        order_mka2.status = Order.OrderStatus.ARCHIVED
+        order_mka2.save()
 
         order_download.set_price()
         empty_zip_data = b'PK\x05\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
