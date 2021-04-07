@@ -49,7 +49,7 @@ class ProductPriceCalculator():
         return pricing_instance.unit_price
 
     @staticmethod
-    def _get_by_object_number_price(**kwargs):
+    def _get_by_number_objects_price(**kwargs):
         """
         The objects have all to be in PricingGeometry.
         The objects have to be completely inside of the polygon (within).
