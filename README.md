@@ -141,3 +141,5 @@ Migrate database from old geoshop. This is not covered by documentation.
 ```powershell
 .\scripts\4_deploy_prod.ps1
 ```
+
+More info on bookstack
