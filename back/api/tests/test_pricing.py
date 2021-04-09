@@ -1,3 +1,4 @@
+from itertools import islice
 from django.core import mail
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon, Point
@@ -31,8 +32,9 @@ class PricingTests(APITestCase):
                 base_fee=Money(20, 'CHF')),
             Pricing(
                 name="Par nombre d'objets", # 2
-                pricing_type="BY_OBJECT_NUMBER",
-                unit_price=self.unit_price),
+                pricing_type="BY_NUMBER_OBJECTS",
+                unit_price=Money(1, 'CHF'),
+                max_price=Money(250, 'CHF')),
             Pricing(
                 name="Par surface", # 3
                 pricing_type="BY_AREA",
@@ -74,11 +76,11 @@ class PricingTests(APITestCase):
         ])
 
         self.order_geom = Polygon((
-            (2528577.8382161376, 1193422.4003930448),
-            (2542482.6542869355, 1193422.4329014618),
-            (2542482.568523701, 1199018.36469272),
-            (2528577.807487005, 1199018.324372703),
-            (2528577.8382161376, 1193422.4003930448)
+            (2528577, 1193422),
+            (2542482, 1193422),
+            (2542482, 1199018),
+            (2528577, 1199018),
+            (2528577, 1193422)
         ))
 
         self.pricing_area1 = PricingGeometry.objects.create(
@@ -160,7 +162,7 @@ class PricingTests(APITestCase):
         by_object_price = self.products[2].pricing.get_price(self.order_geom)
         self.assertGreater(by_object_price[0], Money(0, 'CHF'))
         self.assertEqual(by_object_price[0],
-                         number_of_objects * self.unit_price)
+                         number_of_objects * Money(1, 'CHF'))
 
     def test_by_area_price(self):
         by_area_price = self.products[3].pricing.get_price(self.order_geom)
@@ -290,3 +292,19 @@ class PricingTests(APITestCase):
         self.order.set_price()
         self.assertEqual(self.order.processing_fee, Money(0, 'CHF'), 'Processing fee is free')
         self.assertEqual(self.order.total_with_vat, Money(0, 'CHF'), 'Order is free')
+
+    def test_max_price_needs_manual_quote(self):
+        number_of_objects = 251
+        bbox = self.order_geom.extent
+        objs = (
+            PricingGeometry(geom=Point(x, y), pricing=self.pricings[2]) for x, y in zip(
+                range(int(bbox[0]), int(bbox[2])), range(int(bbox[1]), int(bbox[3]))
+            )
+        )
+        while True:
+            batch = list(islice(objs, number_of_objects))
+            if not batch:
+                break
+            PricingGeometry.objects.bulk_create(batch, number_of_objects)
+        by_object_price = self.products[2].pricing.get_price(self.order_geom)
+        self.assertIsNone(by_object_price[0], 'Price is None because max_price reached')
