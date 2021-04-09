@@ -1,0 +1,22 @@
+<mat-card>
+  <mat-card-title>GeoShop - Téléchargement</mat-card-title>
+  <mat-card-content>
+    <div *ngIf="!order" class="flex">
+      <mat-spinner class="flex" diameter="48" color="accent"
+                             style="margin-right: 10px"></mat-spinner>
+    </div>
+    <div *ngIf="order?.status === 'PROCESSED'">
+      <p>Votre commande est prête à être téléchargée.</p>
+      <div class="flex">
+        <button mat-raised-button color="primary" class="action-button" (click)="downloadOrder($event)">
+          <mat-icon>download</mat-icon> Télécharger
+        </button>
+      </div>
+    </div>
+    <div *ngIf="order?.status !== 'PROCESSED'">
+      <p>Votre commande n'est plus disponible.</p>
+      <p>Les liens de téléchargement ne sont valables que pendant un mois. N'hésitez pas à nous contacter si vous souhaitez une nouvelle extraction.</p>
+    </div>
+  </mat-card-content>
+</mat-card>
+

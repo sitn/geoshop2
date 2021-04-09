@@ -1,4 +1,5 @@
 import logging
+import uuid
 from django.conf import settings
 from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
@@ -387,6 +388,7 @@ class Order(models.Model):
     date_downloaded = models.DateTimeField(_('date_downloaded'), blank=True, null=True)
     date_processed = models.DateTimeField(_('date_processed'), blank=True, null=True)
     extract_result = models.FileField(upload_to='extract', null=True, blank=True)
+    download_guid = models.UUIDField(_('download_guid'), null=True, blank=True)
 
     class Meta:
         db_table = 'order'
@@ -471,14 +473,22 @@ class Order(models.Model):
         else:
             if OrderItem.OrderItemStatus.PROCESSED in items_statuses:
                 self.status = Order.OrderStatus.PROCESSED
+                self.date_processed = timezone.now()
+                self.download_guid = uuid.uuid4()
                 send_geoshop_email(
                     _('Geoshop - Download ready'),
                     recipient=self.client.identity,
                     template_name='email_download_ready',
                     template_data={
                         'order_id': self.id,
+                        'download_guid': self.download_guid,
+                        'front_url': '{}://{}{}'.format(
+                            settings.FRONT_PROTOCOL,
+                            settings.FRONT_URL,
+                            settings.FRONT_HREF
+                            ),
                         'first_name': self.client.identity.first_name,
-                        'last_name': self.client.identity.last_name
+                        'last_name': self.client.identity.last_name,
                     }
                 )
             else:

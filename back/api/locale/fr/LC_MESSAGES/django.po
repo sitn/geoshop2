@@ -577,7 +577,7 @@ msgid ""
 "to contact us at"
 msgstr ""
 "Ceci est un email automatique, prière de ne pas y répondre. Pour toute "
-"question ou information supplémentaire, n'ésitez pas à nous contacter à"
+"question ou information supplémentaire, n'hésitez pas à nous contacter à"
 
 #: .\api\templates\email_password_reset.html:4
 #: .\api\templates\registration\password_reset_email.html:2

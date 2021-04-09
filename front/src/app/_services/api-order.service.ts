@@ -36,6 +36,22 @@ export class ApiOrderService {
         );
   }
 
+  getOrderByUUID(uuid: string): Observable<Order | null> {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    const url = new URL(`${this.apiUrl}/download/${uuid}`);
+
+    return this.http.get<IOrder>(url.toString())
+      .pipe(
+        map(iOrder => iOrder ? new Order(iOrder) : null),
+        catchError(() => {
+          return of(null);
+        })
+      );
+  }
+
   getOrderType(url: string): Observable<IOrderType | null> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
@@ -193,6 +209,21 @@ export class ApiOrderService {
 
     const orderText = isOrderItem ? 'orderitem' : 'order';
     const url = new URL(`${this.apiUrl}/${orderText}/${orderId}/download_link/`);
+
+    return this.http.get<IOrderDowloadLink | null>(url.toString())
+      .pipe(
+        catchError(() => {
+          return of(null);
+        })
+      );
+  }
+
+  public downloadOrderByUUID(uuid: string) {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config.apiUrl;
+    }
+
+    const url = new URL(`${this.apiUrl}/download/${uuid}/get_link/`);
 
     return this.http.get<IOrderDowloadLink | null>(url.toString())
       .pipe(
