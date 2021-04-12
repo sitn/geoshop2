@@ -26,6 +26,7 @@ import {DragDropModule} from '@angular/cdk/drag-drop';
 import {MatSelectModule} from '@angular/material/select';
 import {MatListModule} from '@angular/material/list';
 import {SharedModule} from '../shared/shared.module';
+import {DownloadComponent} from './download/download.component';
 
 const MODULES = [
   MatMenuModule,
@@ -49,7 +50,14 @@ const MODULES = [
 ];
 
 @NgModule({
-  declarations: [WelcomeComponent, MapComponent, CatalogComponent, DialogMetadataComponent, PageformatComponent],
+  declarations: [
+    WelcomeComponent,
+    MapComponent,
+    CatalogComponent,
+    DownloadComponent,
+    DialogMetadataComponent,
+    PageformatComponent
+  ],
   imports: [
     CommonModule,
     WelcomeRoutingModule,

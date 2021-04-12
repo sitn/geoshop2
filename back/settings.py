@@ -176,6 +176,7 @@ MEDIA_URL = os.environ.get('MEDIA_URL', FORCE_SCRIPT_NAME + '/files/')
 if os.environ.get('GDAL_IN_VENV', None) == "True":
     GDAL_LIBRARY_PATH = os.path.join(BASE_DIR, '.venv/Lib/site-packages/osgeo/gdal204.dll')
 
+FRONT_PROTOCOL = os.environ["FRONT_PROTOCOL"]
 FRONT_URL = os.environ["FRONT_URL"]
 FRONT_HREF = os.environ.get("FRONT_HREF", '')
 CSRF_COOKIE_DOMAIN = os.environ["CSRF_COOKIE_DOMAIN"]

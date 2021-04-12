@@ -304,7 +304,7 @@
       </div>
 
       <div class="flex-row">
-        <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Réinitialiser</button>
+        <button color="warn" mat-button type="button" (click)="resetForms();stepper.selectedIndex = 0">Réinitialiser</button>
         <button color="primary" mat-button matStepperPrevious>Retour</button>
         <button color="primary" mat-raised-button type="submit"
                 [disabled]="orderItemFormGroup.invalid">

@@ -6,8 +6,8 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.decorators import method_decorator
-from django.views.decorators.debug import sensitive_post_parameters
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.debug import sensitive_post_parameters
 
 from rest_framework import filters, generics, views, viewsets, permissions, status, mixins
 from rest_framework.decorators import action
@@ -498,6 +498,44 @@ class RegisterView(generics.CreateAPIView):
         )
 
         return Response({'detail': _('Your data was successfully submitted')}, status=status.HTTP_200_OK)
+
+
+class OrderByUUIDView(generics.RetrieveAPIView):
+    """
+    Returns an order based on in its UUID
+    """
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, guid):
+        queryset = self.get_queryset()
+        order = get_object_or_404(queryset, download_guid=guid)
+        serializer = OrderSerializer(order, context={'request': request})
+        return Response(serializer.data)
+
+
+class DownloadLinkView(generics.RetrieveAPIView):
+    """
+    Returns the download link based on order UUID
+    """
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, guid):
+        queryset = self.get_queryset()
+        instance = get_object_or_404(queryset, download_guid=guid)
+        if instance.extract_result:
+            instance.last_download = timezone.now()
+            instance.save()
+            if Path(settings.MEDIA_ROOT, instance.extract_result.name).is_file():
+                return Response({
+                    'download_link' : instance.extract_result.url})
+            return Response(
+                {"detail": _("Zip does not exist")},
+                status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class UserChangeView(generics.CreateAPIView):
