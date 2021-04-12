@@ -67,7 +67,9 @@ def _zip_them_all(full_zip_path, files_list_path):
             for unzipped_file in zip_file.namelist():
                 full_zip_file.writestr(unzipped_file, zip_file.open(unzipped_file).read())
         elif file_path != '':
-            full_zip_file.write('{}/{}'.format(settings.MEDIA_ROOT, file_path))
+            full_zip_file.write(
+                '{}/{}'.format(settings.MEDIA_ROOT, file_path),
+                Path(file_path).name)
 
     full_zip_file.close()
 

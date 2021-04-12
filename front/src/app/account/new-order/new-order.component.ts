@@ -352,10 +352,6 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       this.addressChoiceCtrl?.setValue('1');
       this.updateContactForm('1');
     }
-    this.orderFormGroup.get('title')?.setValue('');
-    this.orderFormGroup.get('invoice_reference')?.setValue('');
-    this.orderFormGroup.get('description')?.setValue('');
-
     this.contactFormGroup.reset();
     this.isCustomerSelected = false;
   }

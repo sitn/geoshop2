@@ -310,6 +310,8 @@ class OrderSerializer(serializers.ModelSerializer):
             'description', instance.description)
         instance.invoice_contact = validated_data.get(
             'invoice_contact', instance.invoice_contact)
+        instance.order_type = validated_data.get(
+            'order_type', instance.order_type)
         instance.save()
 
         update_products = []

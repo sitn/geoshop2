@@ -261,9 +261,11 @@ class Pricing(models.Model):
             return None, None
 
         if self.min_price and price < self.min_price:
-            return self.min_price
+            return self.min_price, self.base_fee
+
+        # if max_price is reached, will force customer ask for a quote
         if self.max_price and price > self.max_price:
-            return self.max_price
+            return None, None
 
         return price, self.base_fee
 
