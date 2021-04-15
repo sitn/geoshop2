@@ -144,19 +144,30 @@ export class ApiOrderService {
       );
   }
 
-  createOrder(jsonOrder: IOrderToPost): Observable<IOrder | null> {
+  createOrder(jsonOrder: IOrderToPost, contact: Contact | undefined, isAddressForCurrentUser: boolean): Observable<IOrder | null> {
     if (!this.apiUrl) {
       this.apiUrl = this.configService.config.apiUrl;
     }
 
     const url = new URL(`${this.apiUrl}/order/`);
 
-    return this.http.post<IOrder | null>(url.toString(), jsonOrder)
+    return this.createOrUpdateContact(contact)
       .pipe(
-        catchError(() => {
-          return of(null);
-        })
-      );
+        flatMap((newJsonContact) => {
+            if (!isAddressForCurrentUser) {
+              if (!newJsonContact) {
+                return of(null);
+              }
+              jsonOrder.invoice_contact = GeoshopUtils.ExtractIdFromUrl((newJsonContact as IContact).url);
+            }
+            return this.http.post<IOrder | null>(url.toString(), jsonOrder)
+              .pipe(
+                catchError(() => {
+                  return of(null);
+                })
+              );
+        }
+      ));
   }
 
   updateOrder(order: Order, contact: Contact | undefined, isAddressForCurrentUser: boolean): Observable<IOrder | null> {
@@ -253,6 +264,7 @@ export class ApiOrderService {
   }
 
   createOrUpdateContact(contact: Contact | undefined): Observable<IContact | null> {
+    console.log("Hello contact", contact)
     if (!contact || contact.HasId) {
       // @ts-ignore
       return of(contact);
