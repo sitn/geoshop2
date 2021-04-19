@@ -17,7 +17,6 @@ import {MatStepper} from '@angular/material/stepper';
 import {StoreService} from '../../_services/store.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Contact, IContact} from '../../_models/IContact';
-import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
 import {Router} from '@angular/router';
 import * as fromCart from '../../_store/cart/cart.action';
 import {MatDialog, MatDialogRef} from '@angular/material/dialog';
@@ -65,6 +64,10 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   get IsOrderTypePrivate() {
     return this.orderFormGroup?.get('orderType')?.value?.name === 'Privé';
+  }
+
+  get orderTypeCtrl() {
+    return this.orderFormGroup?.get('orderType');
   }
 
   get IsAddressForCurrentUser() {
@@ -184,6 +187,15 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       invoice_reference: new FormControl(''),
       description: new FormControl('', Validators.required),
     });
+    this.orderTypeCtrl?.valueChanges.subscribe(
+      (choice) => {
+        if (choice.name === 'Privé') {
+          this.addressChoiceCtrl?.setValue('1');
+        } else {
+          this.addressChoiceCtrl?.setValue('2');
+        }
+      }
+    );
 
     this.invoiceContactsFormControls = {
       first_name: new FormControl(null, Validators.required),
@@ -347,10 +359,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     if (mandatoryContactOrders.indexOf(orderTypeValue.name) > -1) {
       // Force enable contact form because it's a public mandate
       this.addressChoiceCtrl?.setValue('2');
-      this.updateContactForm('2');
     } else {
       this.addressChoiceCtrl?.setValue('1');
-      this.updateContactForm('1');
     }
     this.contactFormGroup.reset();
     this.isCustomerSelected = false;
@@ -420,7 +430,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       dialogRef.componentInstance.noButtonTitle = 'Annuler';
       dialogRef.componentInstance.yesButtonTitle = 'Continuer';
       dialogRef.componentInstance.confirmMessage =
-        `Le contact <b style='color:#26a59a;'>${this.currentSelectedContact.first_name} ${this.currentSelectedContact.last_name}</b> a été modifié. Voulez-vous continuer ?`;
+        `Le contact <b style='color:#26a59a;'>${this.currentSelectedContact.first_name} ${this.currentSelectedContact.last_name}</b> a été modifié. Voulez-vous continuer?`;
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
           this.apiOrderService.deleteContact(invoiceContact.Id).subscribe(confirmed => {
@@ -445,14 +455,16 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
     if (this.currentOrder.id === -1) {
       this.currentOrder.invoiceContact = invoiceContact;
-      this.apiOrderService.createOrder(this.currentOrder.toPostAsJson).subscribe(newOrder => {
+      this.apiOrderService.createOrder(this.currentOrder.toPostAsJson, invoiceContact, this.IsAddressForCurrentUser)
+      .subscribe(newOrder => {
         if (newOrder) {
-          this.storeService.addOrderToStore(new Order(newOrder));
+          this.storeService.addOrderToStore(new Order(newOrder as IOrder));
           this.stepper.next();
         }
       });
     } else {
-      this.apiOrderService.updateOrder(this.currentOrder, invoiceContact, this.IsAddressForCurrentUser).subscribe(newOrder => {
+      this.apiOrderService.updateOrder(this.currentOrder, invoiceContact, this.IsAddressForCurrentUser)
+      .subscribe(newOrder => {
         if (newOrder) {
           this.storeService.addOrderToStore(new Order(newOrder as IOrder));
           this.stepper.next();

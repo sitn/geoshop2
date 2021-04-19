@@ -1,12 +1,12 @@
 import {Component, ComponentFactoryResolver, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren} from '@angular/core';
-import {IOrder, IOrderDowloadLink, IOrderSummary, Order} from '../../../_models/IOrder';
+import {IOrderDowloadLink, IOrderSummary, Order} from '../../../_models/IOrder';
+import {IProduct} from '../../../_models/IProduct';
 import Map from 'ol/Map';
 import VectorSource from 'ol/source/Vector';
 import {GeoHelper} from '../../../_helpers/geoHelper';
 import {OrderItemViewComponent} from '../../../_components/order-item-view/order-item-view.component';
 import {WidgetHostDirective} from '../../../_directives/widget-host.directive';
 import {ApiOrderService} from '../../../_services/api-order.service';
-import {IApiResponseError} from '../../../_models/IApi';
 import {GeoshopUtils} from '../../../_helpers/GeoshopUtils';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {StoreService} from '../../../_services/store.service';
@@ -77,9 +77,22 @@ export class OrderComponent implements OnInit {
   }
 
   duplicateInCart() {
+    /**
+     * Copy previous order to cart by resetting ids
+     */
     if (this.selectedOrder) {
       const copy = GeoshopUtils.deepCopyOrder(this.selectedOrder.toJson);
       copy.id = -1;
+      for (const item of copy.items) {
+        if ((item.product as IProduct).label !== undefined) {
+          item.product = (item.product as IProduct).label;
+        }
+        item.id = undefined;
+        item.price = undefined;
+        item.price_status = undefined;
+        item.order = undefined;
+        item.status = undefined;
+      }
       this.storeService.addOrderToStore(new Order(copy));
     }
   }
