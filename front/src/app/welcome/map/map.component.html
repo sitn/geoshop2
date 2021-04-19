@@ -1,6 +1,6 @@
 <mat-spinner *ngIf="isMapLoading$|async" id="map-drawing-spinner" [diameter]="25"></mat-spinner>
 
-<div id="map"></div>
+<div tabindex="2" id="map"></div>
 <mat-card class="geocoder-container">
   <form [formGroup]="formGeocoder" id="geocoder-container">
     <mat-form-field color="primary">

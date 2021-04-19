@@ -22,8 +22,7 @@ export class StoreService {
     this.isLastDraftAlreadyLoadedOrChecked = isLoaded;
   }
 
-  constructor(private apiService: ApiService,
-              private store: Store<AppState>) {
+  constructor(private store: Store<AppState>) {
   }
 
   public addOrderToStore(order: Order) {
@@ -33,22 +32,6 @@ export class StoreService {
       }));
       return;
     }
-    // Creates an array of observables (GET of each product in order)
-    // const observables = order.items.map(x => this.apiService.getProduct(x.product_id));
-
-    // for every observable
-    /*
-    forkJoin(observables).subscribe(results => {
-      for (const product of results) {
-        if (product) {
-          for (const item of order.items) {
-            if (Order.getProductLabel(item) === product.label) {
-              item.product = product;
-            }
-          }
-        }
-      }
-    });*/
     this.store.dispatch(updateOrder({
       order: order.toJson
     }));

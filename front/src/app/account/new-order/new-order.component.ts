@@ -118,9 +118,9 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       debounceTime(500),
       startWith(''),
       filter(x => typeof x === 'string' && x.length > 2),
-      mergeMap(email => {
+      mergeMap(searchString => {
         this.isSearchLoading = true;
-        return this.apiService.find<IContact>(email, 'contact');
+        return this.apiService.find<IContact>(searchString, 'contact');
       }),
       map(x => {
         this.isSearchLoading = false;
@@ -458,6 +458,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       this.apiOrderService.createOrder(this.currentOrder.toPostAsJson, invoiceContact, this.IsAddressForCurrentUser)
       .subscribe(newOrder => {
         if (newOrder) {
+          this.resetCustomerForm();
           this.storeService.addOrderToStore(new Order(newOrder as IOrder));
           this.stepper.next();
         }
@@ -466,6 +467,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       this.apiOrderService.updateOrder(this.currentOrder, invoiceContact, this.IsAddressForCurrentUser)
       .subscribe(newOrder => {
         if (newOrder) {
+          this.resetCustomerForm();
           this.storeService.addOrderToStore(new Order(newOrder as IOrder));
           this.stepper.next();
         }

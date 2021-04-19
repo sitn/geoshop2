@@ -3,7 +3,7 @@ import {Observable, of, zip} from 'rxjs';
 import {IOrder, IOrderDowloadLink, IOrderItem, IOrderSummary, IOrderToPost, IOrderType, Order} from '../_models/IOrder';
 import {HttpClient} from '@angular/common/http';
 import {ConfigService} from './config.service';
-import {IApiResponse, IApiResponseError} from '../_models/IApi';
+import {IApiResponse} from '../_models/IApi';
 import {catchError, flatMap, map} from 'rxjs/operators';
 import {Contact, IContact} from '../_models/IContact';
 import {GeoshopUtils} from '../_helpers/GeoshopUtils';
@@ -264,7 +264,6 @@ export class ApiOrderService {
   }
 
   createOrUpdateContact(contact: Contact | undefined): Observable<IContact | null> {
-    console.log("Hello contact", contact)
     if (!contact || contact.HasId) {
       // @ts-ignore
       return of(contact);
