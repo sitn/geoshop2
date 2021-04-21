@@ -92,10 +92,8 @@
           </mat-form-field>
 
           <mat-form-field color="primary" *ngIf="companyName?.value?.trim().length">
-            <input formControlName="ideId" autocapitalize="off" required autofocus spellcheck="false" matInput
+            <input formControlName="ideId" autocapitalize="off" autofocus spellcheck="false" matInput
               placeholder="N° IDE">
-            <mat-error *ngIf="street?.hasError('required')">Le numéro d'dentification des entreprises est requis.
-            </mat-error>
             <mat-error *ngIf="ideId?.hasError('pattern')">Mauvais format du numéro IDE, accepté : CHE-012.345.678
             </mat-error>
           </mat-form-field>

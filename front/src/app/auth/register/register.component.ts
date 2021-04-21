@@ -141,14 +141,6 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         this.firstInput.nativeElement.focus();
       }, 50);
     }
-    this.formAddress.get('company_name')?.valueChanges
-    .subscribe(value => {
-      if (value) {
-        this.ideId?.setValidators(this.ideValidators.concat(Validators.required));
-      } else {
-        this.ideId?.setValidators(this.ideValidators);
-      }
-    });
   }
 
   submit() {
