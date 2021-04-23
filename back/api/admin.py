@@ -87,11 +87,22 @@ class OrderItemInline(admin.StackedInline):
 class OrderAdmin(admin.OSMGeoAdmin):
     change_form_template = 'admin/api/order_change_form.html'
     inlines = [OrderItemInline]
+    search_fields = ['id', 'title', 'client__identity__first_name', 'client__identity__last_name', 'client__email']
+    list_display = ['id', 'title', 'client_first_name', 'client_last_name', 'client_email', 'date_ordered']
     raw_id_fields = ['client']
     map_template = 'admin/gis/osm.html'
     ordering = ['-id']
     actions = ['quote']
-    list_filter = ['status',]
+    list_filter = ['status', 'date_ordered']
+
+    def client_first_name(self, order):
+        return order.client.identity.first_name
+
+    def client_last_name(self, order):
+        return order.client.identity.last_name
+
+    def client_email(self, order):
+        return order.client.email
 
     def response_change(self, request, obj):
         if "_quote-done" in request.POST:
@@ -131,7 +142,7 @@ class PricingAdmin(CustomModelAdmin):
 class UserAdmin(BaseUserAdmin):
     """Overrides BaseUserAdmin"""
     change_form_template = 'admin/api/user_change_form.html'
-    search_fields = ['username', 'identity__first_name', 'identity__last_name', 'identity__email']
+    search_fields = ['username', 'identity__first_name', 'identity__last_name', 'identity__email', 'identity__sap_id']
     list_display = ['username', 'identity_first_name', 'identity_last_name', 'identity_email']
     inlines = [IdentityInline]
     fieldsets = (
