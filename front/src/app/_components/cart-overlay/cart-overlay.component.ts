@@ -108,31 +108,6 @@ export class CartOverlayComponent implements OnInit, OnDestroy {
     }
   }
 
-  private tryGetLastDraft() {
-    this.apiOrderService.getLastDraft()
-      .pipe(takeUntil(this.onDestroy$))
-      .subscribe(order => {
-        if (order) {
-          let dialogRef: MatDialogRef<ConfirmDialogComponent> | null = this.dialog.open(ConfirmDialogComponent, {
-            disableClose: false,
-          });
-
-          dialogRef.componentInstance.noButtonTitle = 'Continuer';
-          dialogRef.componentInstance.yesButtonTitle = 'Recharger';
-          dialogRef.componentInstance.confirmMessage = 'Vous avez un panier sauvegardé, voulez-vous le recharger ou' +
-            ' continuer avec le panier actuel ?';
-          dialogRef.afterClosed().subscribe(result => {
-            if (result) {
-              this.storeService.addOrderToStore(order);
-            }
-            dialogRef = null;
-          });
-        }
-        this.storeService.IsLastDraftAlreadyLoadedOrChecked = true;
-        this.naviguateToNewOrder();
-      });
-  }
-
   deleteCart() {
     let dialogRef: MatDialogRef<ConfirmDialogComponent> | null = this.dialog.open(ConfirmDialogComponent, {
       disableClose: false,
@@ -149,10 +124,7 @@ export class CartOverlayComponent implements OnInit, OnDestroy {
 
   naviguateToNewOrder() {
     if (this.isUserLoggedIn) {
-      if (!this.storeService.IsLastDraftAlreadyLoadedOrChecked) {
-        this.tryGetLastDraft();
-        return;
-      }
+
       this.router.navigate(['/account/new-order'], {
         queryParams: {
           callback: '/account/new-order'
