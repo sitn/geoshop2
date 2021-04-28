@@ -556,7 +556,8 @@ export class MapService {
   }
 
   private initializeDelKey() {
-    document.addEventListener('keyup', (e) => {
+    const mapElement = this.map.getTargetElement();
+    mapElement.addEventListener('keyup', (e) => {
       if (e.key === 'Delete' && this.drawingSource && this.featureFromDrawing) {
         this.eraseDrawing();
       }

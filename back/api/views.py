@@ -312,9 +312,8 @@ class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
         """
         instance = self.get_object()
         if instance.extract_result:
-            for item in instance.items.all():
-                item.last_download = timezone.now()
-                item.save()
+            instance.date_downloaded = timezone.now()
+            instance.save()
             if Path(settings.MEDIA_ROOT, instance.extract_result.name).is_file():
                 return Response({
                     'download_link' : instance.extract_result.url})
@@ -527,7 +526,7 @@ class DownloadLinkView(generics.RetrieveAPIView):
         queryset = self.get_queryset()
         instance = get_object_or_404(queryset, download_guid=guid)
         if instance.extract_result:
-            instance.last_download = timezone.now()
+            instance.date_downloaded = timezone.now()
             instance.save()
             if Path(settings.MEDIA_ROOT, instance.extract_result.name).is_file():
                 return Response({

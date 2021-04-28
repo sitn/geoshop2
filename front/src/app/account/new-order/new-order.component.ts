@@ -70,6 +70,14 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     return this.orderFormGroup?.get('orderType');
   }
 
+  get emailDeliverCtrl() {
+    return this.orderFormGroup?.get('emailDeliver');
+  }
+
+  get emailDeliverChoiceCtrl() {
+    return this.orderFormGroup.get('emailDeliverChoice');
+  }
+
   get IsAddressForCurrentUser() {
     return this.addressChoiceCtrl?.value === '1';
   }
@@ -118,9 +126,9 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       debounceTime(500),
       startWith(''),
       filter(x => typeof x === 'string' && x.length > 2),
-      mergeMap(email => {
+      mergeMap(searchString => {
         this.isSearchLoading = true;
-        return this.apiService.find<IContact>(email, 'contact');
+        return this.apiService.find<IContact>(searchString, 'contact');
       }),
       map(x => {
         this.isSearchLoading = false;
@@ -185,6 +193,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       orderType: new FormControl(null, Validators.required),
       title: new FormControl('', Validators.required),
       invoice_reference: new FormControl(''),
+      emailDeliverChoice: new FormControl('1'),
+      emailDeliver: new FormControl('', Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$')),
       description: new FormControl('', Validators.required),
     });
     this.orderTypeCtrl?.valueChanges.subscribe(
@@ -196,7 +206,13 @@ export class NewOrderComponent implements OnInit, OnDestroy {
         }
       }
     );
-
+    this.emailDeliverChoiceCtrl?.valueChanges.subscribe(
+      (choice) => {
+        if (choice === '1') {
+          this.emailDeliverCtrl?.setValue('');
+        }
+      }
+    );
     this.invoiceContactsFormControls = {
       first_name: new FormControl(null, Validators.required),
       last_name: new FormControl(null, Validators.required),
@@ -235,6 +251,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       orderType: this.getOrderType(order.order_type),
       title: order.title,
       invoice_reference: order.invoice_reference,
+      emailDeliver: order.email_deliver,
+      emailDeliverChoice: order.email_deliver ? "2" : "1",
       description: order.description
     });
 
@@ -391,6 +409,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       orderType: this.getOrderType(this.currentOrder.order_type),
       title: this.currentOrder.title,
       invoice_reference: this.currentOrder.invoice_reference,
+      emailDeliver: this.currentOrder.email_deliver,
+      emailDeliverChoice: this.currentOrder.email_deliver ? '2' : '1',
       description: this.currentOrder.description,
     });
     this.contactFormGroup.reset({
@@ -450,6 +470,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   private _createOrUpdateDraftOrder(invoiceContact: Contact | undefined) {
     this.currentOrder.title = this.orderFormGroup.get('title')?.value;
     this.currentOrder.invoice_reference = this.orderFormGroup.get('invoice_reference')?.value;
+    this.currentOrder.email_deliver = this.orderFormGroup.get('emailDeliver')?.value;
     this.currentOrder.description = this.orderFormGroup.get('description')?.value;
     this.currentOrder.order_type = this.orderFormGroup.get('orderType')?.value.name;
 
@@ -458,6 +479,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       this.apiOrderService.createOrder(this.currentOrder.toPostAsJson, invoiceContact, this.IsAddressForCurrentUser)
       .subscribe(newOrder => {
         if (newOrder) {
+          this.resetCustomerForm();
           this.storeService.addOrderToStore(new Order(newOrder as IOrder));
           this.stepper.next();
         }
@@ -466,6 +488,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       this.apiOrderService.updateOrder(this.currentOrder, invoiceContact, this.IsAddressForCurrentUser)
       .subscribe(newOrder => {
         if (newOrder) {
+          this.resetCustomerForm();
           this.storeService.addOrderToStore(new Order(newOrder as IOrder));
           this.stepper.next();
         }

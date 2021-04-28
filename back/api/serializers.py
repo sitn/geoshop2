@@ -310,6 +310,10 @@ class OrderSerializer(serializers.ModelSerializer):
             'description', instance.description)
         instance.invoice_contact = validated_data.get(
             'invoice_contact', instance.invoice_contact)
+        instance.invoice_reference = validated_data.get(
+            'invoice_reference', instance.invoice_reference)
+        instance.email_deliver = validated_data.get(
+            'email_deliver', instance.email_deliver)
         instance.order_type = validated_data.get(
             'order_type', instance.order_type)
         instance.save()

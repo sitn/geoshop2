@@ -37,6 +37,7 @@ export class GeoshopUtils {
       part_vat: '',
       order_type: '',
       invoice_reference: '',
+      email_deliver: '',
       invoice_contact: -1,
       description: '',
       date_processed: undefined,

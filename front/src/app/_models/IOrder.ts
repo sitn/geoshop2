@@ -49,6 +49,7 @@ export interface IOrderToPost {
   description: string;
   geom: string | undefined;
   invoice_reference?: string;
+  email_deliver?: string;
   invoice_contact?: number | null;
   items: IOrderItem[];
 }
@@ -67,6 +68,7 @@ export interface IOrderSummary {
   total_with_vat_currency: string;
   total_with_vat: string;
   invoice_reference: string;
+  email_deliver: string;
   status: OrderStatus;
   date_ordered: string | undefined;
   date_processed: string | undefined;
@@ -101,6 +103,7 @@ export interface IOrder {
   total_with_vat: string;
   geom: string | undefined;
   invoice_reference: string;
+  email_deliver: string;
   status: OrderStatus;
   date_ordered: string | undefined;
   date_processed: string | undefined;
@@ -123,6 +126,7 @@ export class Order {
   total_with_vat: string;
   geom: Polygon;
   invoice_reference: string;
+  email_deliver: string;
   status: OrderStatus;
   date_ordered: Date | undefined;
   date_processed: Date | undefined;
@@ -162,6 +166,7 @@ export class Order {
       geom: this.geometryAsGeoJson,
       invoice_contact: this.invoice_contact,
       invoice_reference: this.invoice_reference,
+      email_deliver: this.email_deliver,
       order_type: this.order_type,
       title: this.title,
       items: this.items.map(x => {
@@ -189,6 +194,7 @@ export class Order {
       description: this.description,
       geom: this.geometryAsGeoJson,
       invoice_reference: this.invoice_reference,
+      email_deliver: this.email_deliver,
       items: this.items,
       order_type: this.order_type,
       part_vat: this.part_vat,
