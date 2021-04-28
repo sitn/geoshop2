@@ -381,6 +381,7 @@ class Order(models.Model):
         blank=True,
         null=True)
     invoice_reference = models.CharField(_('invoice_reference'), max_length=255, blank=True)
+    email_deliver = models.EmailField(_('email_deliver'), max_length=254, blank=True, null=True)
     order_type = models.ForeignKey(OrderType, models.PROTECT, verbose_name=_('order_type'))
     status = models.CharField(
         _('status'), max_length=20, choices=OrderStatus.choices, default=OrderStatus.DRAFT)
@@ -431,7 +432,7 @@ class Order(models.Model):
             self.save()
             send_geoshop_email(
                 _('Geoshop - Quote has been done'),
-                recipient=self.client.identity,
+                recipient=self.email_deliver or self.client.identity,
                 template_name='email_quote_done',
                 template_data={
                     'order_id': self.id,
@@ -477,7 +478,7 @@ class Order(models.Model):
                 self.download_guid = uuid.uuid4()
                 send_geoshop_email(
                     _('Geoshop - Download ready'),
-                    recipient=self.client.identity,
+                    recipient=self.email_deliver or self.client.identity,
                     template_name='email_download_ready',
                     template_data={
                         'order_id': self.id,

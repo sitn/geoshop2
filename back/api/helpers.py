@@ -37,12 +37,33 @@ def _render_email_templates(template_name, template_data):
 
 
 def send_geoshop_email(subject, message='', recipient=None, template_name=None, template_data=None):
+    """
+    Emailer for the geoshop. Will send email to admin or identities or raw email address.
+
+    Parameters
+    ----------
+    subject : str
+        The subject of email
+    message : str
+        The email message, also the body if template_name is None
+    recipient : str or Identity or None
+        If None, email is sent to admins
+        If str, email is expected to be a valid email address
+        If Identity, email will be sent to email property of the Identity instance
+    template_name : str or None
+        Any valid template as found in ./templates folder
+    template_data : Dict or None
+        A Dict containing data for the provided template name. Ignored if template_name
+        is not given.
+    """
     if template_name:
         if template_data is None:
             template_data = {'messages': [message]}
         (message, html_message) = _render_email_templates(template_name, template_data)
     if recipient is None:
         recipient_list = [settings.ADMIN_EMAIL_LIST]
+    elif isinstance(recipient, str):
+        recipient_list = [recipient]
     else:
         recipient_list = [recipient.email]
     send_mail(

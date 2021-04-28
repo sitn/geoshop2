@@ -36,6 +36,21 @@
         <input matInput type="text" formControlName="invoice_reference"/>
       </mat-form-field>
 
+      <!-- Email for delivery -->
+      <mat-radio-group class="flex-column"
+                      formControlName="emailDeliverChoice"
+                      aria-label="Choisir l'email de livraison">
+      <mat-radio-button value="1">Les données seront envoyées à l'adresse email de
+        l'utilisateur courant: {{(currentUser$|async)?.email}}</mat-radio-button>
+      <mat-radio-button value="2">Adresse de livraison des données différente</mat-radio-button>
+      </mat-radio-group>
+
+      <mat-form-field *ngIf="orderFormGroup?.get('emailDeliverChoice')?.value == '2'">
+        <mat-label>Saisir l'adresse email de livraison</mat-label>
+        <input matInput type="email" formControlName="emailDeliver" autocomplete="on"/>
+        <mat-error *ngIf="orderFormGroup?.get('emailDeliver')?.hasError('pattern')">Adresse email non valide</mat-error>
+      </mat-form-field>
+      
       <div class="bottom-container flex-row">
         <button color="warn" mat-button (click)="resetForms();stepper.selectedIndex = 0">Réinitialiser</button>
         <button color="primary" matStepperNext mat-raised-button>Suivant</button>
