@@ -7,6 +7,8 @@ import {IApiResponse} from '../_models/IApi';
 import {catchError, flatMap, map} from 'rxjs/operators';
 import {Contact, IContact} from '../_models/IContact';
 import {GeoshopUtils} from '../_helpers/GeoshopUtils';
+import {MatSnackBar} from '@angular/material/snack-bar';
+
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +20,7 @@ export class ApiOrderService {
   constructor(
     private http: HttpClient,
     private configService: ConfigService,
+    private snackBar: MatSnackBar,
   ) {
   }
 
@@ -208,7 +211,14 @@ export class ApiOrderService {
 
     return this.http.get<boolean>(url.toString())
       .pipe(
-        map(() => true),
+        map(() => {
+          this.snackBar.open(
+            'Commande passée avec succès! Vous recevrez un email lorsque tous les téléchargements seront prêts.', 'Ok', {
+              panelClass: 'notification-info'
+            }
+          );
+          return true
+        }),
         catchError(() => of(false))
       );
   }

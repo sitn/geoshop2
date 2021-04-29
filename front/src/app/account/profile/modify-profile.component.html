@@ -1,7 +1,5 @@
 <mat-card *ngIf="user">
-  <mat-card-header>
-    <mat-card-title>GeoShop - Modification du profil</mat-card-title>
-  </mat-card-header>
+  <mat-card-title>GeoShop - Modification du profil</mat-card-title>
   <mat-card-content>
     <form [formGroup]="formModifyUser" class="flex-column" (ngSubmit)="onModifyUserSubmit()">
       <mat-form-field color="primary">
@@ -40,7 +38,7 @@
                matInput
                placeholder="Courriel">
         <mat-error *ngIf="formModifyUser.get('email')?.hasError('required')">Requis</mat-error>
-        <mat-error *ngIf="formModifyUser.get('email')?.hasError('email')">Format de courriel incorrect</mat-error>
+        <mat-error *ngIf="formModifyUser.get('email')?.hasError('pattern')">Format de courriel incorrect</mat-error>
       </mat-form-field>
       <mat-form-field color="primary">
         <input formControlName="phone"
@@ -52,14 +50,13 @@
                placeholder="Téléphone">
         <mat-error *ngIf="formModifyUser.get('phone')?.hasError('required')">Requis</mat-error>
         <mat-error *ngIf="formModifyUser.get('phone')?.hasError('pattern')">
-          <ul>Mauvais format de téléphone, accepté :
-            <li>+41225252356</li>
-            <li>+41 22 225 25 23</li>
-            <li>0041222252523</li>
-            <li>0041 22 225 25 23</li>
-            <li>0225232523</li>
-            <li>02 25 25 25 23</li>
-          </ul>
+          Mauvais format de téléphone, accepté :
+            +41225252356, 
+            +41 22 225 25 23, 
+            0041222252523, 
+            0041 22 225 25 23, 
+            0225232523, 
+            02 25 25 25 23
         </mat-error>
       </mat-form-field>
       <mat-form-field color="primary">
@@ -128,7 +125,7 @@
         <mat-error *ngIf="formModifyUser?.get('ideId')?.hasError('pattern')">Mauvais format du numéro IDE, accepté : CHE-012.345.678</mat-error>
       </mat-form-field>
       <div class="bottom-container">
-        <button class="action-button-container" color="primary" mat-raised-button type="submit" [disabled]="formModifyUser.invalid">
+        <button class="action-button-container" color="primary" mat-raised-button type="submit" [disabled]="formModifyUser.pristine || formModifyUser.invalid">
           Soumettre
         </button>
       </div>

@@ -94,6 +94,13 @@ export class OrderComponent implements OnInit {
         item.status = undefined;
       }
       this.storeService.addOrderToStore(new Order(copy));
+      this.snackBar.open(
+        'La commande a été dupliquée dans votre panier.', 'Ok', {
+          panelClass: 'notification-info',
+          duration: 5000,
+        }
+      );
+      this.router.navigate(['']);
     }
   }
 
