@@ -2,24 +2,26 @@ version: '3'
 
 services:
   api:
-    image: api
+    image: ${DOCKER_BASE}-api
     build:
       context: ./back/
       args:
         ENV_FILE: ${ENV_FILE}
     env_file: ./back/${ENV_FILE}
     command: "gunicorn wsgi -b :8000"
+    restart: unless-stopped
     ports:
       - "${DOCKER_BACK_PORT}:8000"
     volumes:
       - "${GEOSHOP_DATA}:/mnt/geoshop_data"
 
   front:
-    image: front
+    image: ${DOCKER_BASE}-front
     build:
       context: ./front/
       args:
         FRONT_HREF: ${FRONT_HREF}
+    restart: unless-stopped
     ports:
       - "${DOCKER_FRONT_PORT}:80"
 
