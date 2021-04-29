@@ -30,7 +30,7 @@
             [matMenuTriggerFor]="cartOverlay">
       <mat-icon
         [matBadge]="(numberOfItemInTheCart$|async)  ? (numberOfItemInTheCart$|async)?.toString() : undefined"
-        matBadgePosition="before" matBadgeColor="accent"
+        matBadgePosition="before" matBadgeColor="warn"
         matBadgeSize="small">shopping_cart
       </mat-icon>
     </button>

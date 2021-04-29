@@ -78,6 +78,22 @@ class MetadataAdmin(CustomModelAdmin):
         return form
 
 
+class MetadataContactAdmin(CustomModelAdmin):
+    list_display = ['id', 'metadata', 'contact_person', 'metadata_role']
+    search_fields = [
+        'contact_person__first_name',
+        'contact_person__last_name',
+        'contact_person__company_name',
+        'metadata_role']
+    model = MetadataContact
+
+    def metadata(self, metadata_contact):
+        return metadata_contact.metadata.id_name
+
+    def contact_person(self, metadata_contact):
+        return metadata_contact.contact_person
+
+
 class OrderItemInline(admin.StackedInline):
     raw_id_fields = ['product']
     model = OrderItem
@@ -197,7 +213,7 @@ admin.site.register(DataFormat)
 admin.site.register(Identity, AbstractIdentityAdmin)
 admin.site.register(Contact, AbstractIdentityAdmin)
 admin.site.register(Metadata, MetadataAdmin)
-admin.site.register(MetadataContact)
+admin.site.register(MetadataContact, MetadataContactAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(OrderItem)
 admin.site.register(Pricing, PricingAdmin)

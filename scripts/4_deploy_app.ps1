@@ -1,5 +1,5 @@
 . "$PSScriptRoot\replace-with-env.ps1"
-$destConfig = Read-Host -Prompt 'Input "prod" or "prepub"'
+$destConfig = Read-Host -Prompt 'Input "prod", "prepub" or "dev"'
 $envFile = ("{0}\..\back\.env.{1}" -f $PSScriptRoot, $destConfig)
 # Read .env
 foreach ($line in Get-Content $envFile) {
@@ -19,7 +19,7 @@ if ($destConfig -eq "prod") {
 }
 
 $env:ENV_FILE = (".env.{0}" -f $destConfig)
-$env:COMPOSE_PROJECT_NAME = ("geoshop2_{0}" -f $destConfig)
+Write-Output ("{0} - COMPOSE_PROJECT_NAME IS {1}" -f $(Get-Date -Format g), $env:COMPOSE_PROJECT_NAME)
 
 Replace-With-Env -InFile "$PSScriptRoot\..\front\src\assets\configs\config.json.tmpl" -OutFile "$PSScriptRoot\..\front\src\assets\configs\config.json"
 Replace-With-Env -InFile "$PSScriptRoot\..\front\httpd.conf.tmpl" -OutFile "$PSScriptRoot\..\front\httpd.conf"
@@ -30,5 +30,17 @@ docker-compose build api
 docker-compose build front
 docker-compose down
 docker-compose up -d
+
+foreach ($line in Get-Content $envFile) {
+    $args = $line -split "="
+    If ($args[0] -And !$args[0].StartsWith("#")) {
+        $cmd = '$env:' + $args[0].Trim('"') + '=""'
+        Invoke-Expression $cmd
+    }
+}
+$env:API_URL = ""
+$env:MEDIA_URL = ""
+$env:GEOSHOP_DATA = ""
+$env:ENV_FILE = ""
 
 Write-Output ("{0} - END" -f $(Get-Date -Format g))

@@ -1,7 +1,7 @@
 <mat-expansion-panel #panel
                      *ngIf="order"
                      (afterExpand)="displayMiniMap()">
-  <mat-expansion-panel-header>
+  <mat-expansion-panel-header [collapsedHeight]="'auto'" [expandedHeight]="'auto'">
     <mat-panel-title class="main-title">
       <gs2-icon-text [text]="order?.statusAsReadableIconText?.text"
                      [matIconName]="order?.statusAsReadableIconText?.iconName"

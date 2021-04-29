@@ -3,6 +3,9 @@
 
   .mat-expansion-panel-header-title {
     align-items: center;
+    margin-top: 0.35em;
+    margin-bottom: 0.35em;
+    min-height: 2.25em;
 
     gs2-icon-text {
       margin-right: 16px;
@@ -23,9 +26,15 @@
 
   .mat-expansion-panel-header-description {
     align-items: center;
+    flex: 0 0 30%;
 
     .download-button {
       margin-left: auto;
+    }
+
+    button {
+      margin-top: 0.35em;
+      margin-bottom: 0.35em;
     }
   }
 
@@ -39,7 +48,4 @@
     }
   }
 
-  .main-title {
-    min-width: 50%;
-  }
 }
