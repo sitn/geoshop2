@@ -1,0 +1,43 @@
+<html>
+
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <style>
+    .max-width-img img {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>{{ name }}</h2>
+    <div class="row">
+      <div class="col-sm">
+        <table class="table table-responsive">
+          <tbody>
+            <tr>
+              <td>
+                Description du contenu des données
+              </td>
+              <td>
+                <p>
+                  {{ description_short }}
+                </p>
+                <p>
+                  {% autoescape off %}
+                  {{ description_long }}
+                  {% endautoescape %}
+                </p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
