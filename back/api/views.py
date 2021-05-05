@@ -136,12 +136,22 @@ class MetadataViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Metadata.objects.all()
     serializer_class = MetadataSerializer
-    template_name = "metadata.html"
     lookup_field = 'id_name'
 
     @action(detail=True, renderer_classes=[TemplateHTMLRenderer])
     def html(self, request, *args, **kwargs):
-        response = super(MetadataViewSet, self).retrieve(request, *args, **kwargs)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        response = Response(serializer.data, template_name="metadata.html")
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Content-Security-Policy'] = 'frame-ancestors *'
+        return response
+
+    @action(detail=True, renderer_classes=[TemplateHTMLRenderer])
+    def html_simple(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        response = Response(serializer.data, template_name="metadata_simple.html")
         response['Access-Control-Allow-Origin'] = '*'
         response['Content-Security-Policy'] = 'frame-ancestors *'
         return response
