@@ -1,7 +1,7 @@
 import {Component, HostBinding, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {ApiService} from '../../_services/api.service';
-import {PHONE_REGEX, IDE_REGEX} from '../../_helpers/regex';
+import {PHONE_REGEX, IDE_REGEX, EMAIL_REGEX} from '../../_helpers/regex';
 import {Observable, Subject} from 'rxjs';
 import {IIdentity} from '../../_models/IIdentity';
 import {debounceTime, filter, map, mergeMap, startWith, switchMap, takeUntil} from 'rxjs/operators';
@@ -194,7 +194,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       title: new FormControl('', Validators.required),
       invoice_reference: new FormControl(''),
       emailDeliverChoice: new FormControl('1'),
-      emailDeliver: new FormControl('', Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$')),
+      emailDeliver: new FormControl('', Validators.pattern(EMAIL_REGEX)),
       description: new FormControl('', Validators.required),
     });
     this.orderTypeCtrl?.valueChanges.subscribe(
@@ -217,7 +217,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       first_name: new FormControl(null, Validators.required),
       last_name: new FormControl(null, Validators.required),
       email: new FormControl(null, Validators.compose(
-        [Validators.required, Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$')])),
+        [Validators.required, Validators.pattern(EMAIL_REGEX)])),
       company_name: new FormControl(),
       ide_id: new FormControl(null, Validators.compose(
         [Validators.pattern(IDE_REGEX)])),

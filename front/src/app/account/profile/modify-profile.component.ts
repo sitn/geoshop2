@@ -1,6 +1,6 @@
 import {Component, HostBinding, OnInit} from '@angular/core';
 import {FormControl, FormGroup, FormBuilder, Validators} from '@angular/forms';
-import {PHONE_REGEX} from '../../_helpers/regex';
+import {EMAIL_REGEX, PHONE_REGEX} from '../../_helpers/regex';
 import {ApiService} from '../../_services/api.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Router} from '@angular/router';
@@ -40,7 +40,7 @@ export class ModifyProfileComponent implements OnInit {
       firstName: new FormControl(this.user.first_name, Validators.required),
       lastName: new FormControl(this.user.last_name, Validators.required),
       email: new FormControl(this.user.email, Validators.compose(
-        [Validators.required, Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$')])),
+        [Validators.required, Validators.pattern(EMAIL_REGEX)])),
       phone: new FormControl(this.user.phone, Validators.pattern(PHONE_REGEX)),
       street: new FormControl(this.user.street, Validators.required),
       street2: new FormControl(this.user.street2),
