@@ -28,7 +28,7 @@ def generate_fake_order():
 
     order_type_prive = OrderType.objects.filter(name='Privé').first()
     order1 = Order.objects.create(
-        title='Plan de situation pour enquête',
+        title='Plan de situation',
         description='C\'est un test',
         order_type=order_type_prive,
         client=rincevent,
@@ -36,7 +36,7 @@ def generate_fake_order():
         invoice_reference='Dossier n°545454',
         date_ordered=timezone.now())
     order2 = Order.objects.create(
-        title='Rendu 3D',
+        title='Plan souterrain',
         description='C\'est un aussi test',
         order_type=order_type_prive,
         client=mmi,
@@ -46,9 +46,9 @@ def generate_fake_order():
         date_ordered=timezone.now())
     orders = [order1, order2]
     product1 = Product.objects.filter(label='MO - Cadastre complet').first()
-    product2 = Product.objects.filter(label='Bâtiment 3D').first()
-    data_format1 = DataFormat.objects.filter(name='Geobat NE complet (DXF)').first()
-    data_format2 = DataFormat.objects.filter(name='3dm (Fichier Rhino)').first()
+    product2 = Product.objects.create(label='Conduites').first()
+    data_format1 = DataFormat.objects.filter(name='Geobat NE complet - DXF').first()
+    data_format2 = DataFormat.objects.filter(name='DXF').first()
     orderitems = [
         OrderItem.objects.create(order=order1, product=product1, data_format=data_format1),
         OrderItem.objects.create(order=order2, product=product1, data_format=data_format1),
