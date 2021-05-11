@@ -47,7 +47,7 @@
         Confirmer la commande
       </button>
       <button *ngIf="order?.status === 'DRAFT'" mat-raised-button color="primary" (click)="pushBackToCart()">Remettre au panier</button>
-      <button *ngIf="order?.status !== 'DRAFT'" mat-raised-button color="primary" (click)="duplicateInCart()">Dupliquer dans le panier</button>
+      <button *ngIf="order?.status !== 'DRAFT' && order?.status !== 'ARCHIVED'" mat-raised-button color="primary" (click)="duplicateInCart()">Dupliquer dans le panier</button>
     </div>
   </div>
 
