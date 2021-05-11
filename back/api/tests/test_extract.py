@@ -152,8 +152,8 @@ class OrderTests(APITestCase):
         self.assertIsNotNone(response.data['download_link'], 'Check file is visible for user')
 
         # check if second file has been downloaded
-        order_item2 = OrderItem.objects.get(pk=order_item_id2)
-        self.assertIsNotNone(order_item2.last_download, 'Check if there\'s a last_download date')
+        order = Order.objects.get(pk=order_id)
+        self.assertIsNotNone(order.date_downloaded, 'Check if there\'s a last_download date')
 
 
     def test_cancel_order_item(self):

@@ -19,10 +19,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'd^^+o7tg+z3uz)ar^m%xu+^0h-_sj$#ots1*d5kitdu71363x('
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', False)
+DEBUG = False
 
 ALLOWED_HOSTS = os.environ["ALLOWED_HOST"].split(",")
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
@@ -167,6 +167,8 @@ REST_FRAMEWORK = {
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 FORCE_SCRIPT_NAME = os.environ.get('ROOTURL', '')
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 STATIC_URL = FORCE_SCRIPT_NAME + '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')

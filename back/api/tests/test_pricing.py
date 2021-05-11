@@ -131,17 +131,18 @@ class PricingTests(APITestCase):
             )
         ])
 
-        self.order = Order.objects.create(
-            client=self.user_private,
-            title="Test pricing order",
-            geom=self.order_geom
-        )
-
         self.orderTypePrivate = OrderType.objects.create(
             name="Privé",
         )
         self.orderTypePublic = OrderType.objects.create(
             name="Communal",
+        )
+
+        self.order = Order.objects.create(
+            client=self.user_private,
+            order_type=self.orderTypePrivate,
+            title="Test pricing order",
+            geom=self.order_geom
         )
 
         for geom in self.building_pricing_geometry:
