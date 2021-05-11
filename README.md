@@ -30,7 +30,7 @@ CREATE SCHEMA geoshop AUTHORIZATION geoshop;
 
 ### Backend
 
-Install the app. If you want your `venv` to be inside your project directory, you need to set `PIPENV_VENV_IN_PROJECT` environment variable, otherwise it'll go to your profile:
+Install the app. If you want your `venv` to be inside your project directory, you need to set `PIPENV_VENV_IN_PROJECT` environment variable, otherwise it'll go to your profile, if you want `DEBUG` to be enabled, change it in `settings.py` file but never commit it with debug enabled:
 
 ```powershell
 cd back
