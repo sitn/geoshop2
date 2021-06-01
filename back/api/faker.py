@@ -46,7 +46,7 @@ def generate_fake_order():
         date_ordered=timezone.now())
     orders = [order1, order2]
     product1 = Product.objects.filter(label='MO - Cadastre complet').first()
-    product2 = Product.objects.create(label='Conduites').first()
+    product2 = Product.objects.filter(label='Conduites').first()
     data_format1 = DataFormat.objects.filter(name='Geobat NE complet - DXF').first()
     data_format2 = DataFormat.objects.filter(name='DXF').first()
     orderitems = [
