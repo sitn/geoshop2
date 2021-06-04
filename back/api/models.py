@@ -320,7 +320,11 @@ class Product(models.Model):
         _('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     group = models.ForeignKey(
         'self', models.SET_NULL, verbose_name=_('group'), blank=True, null=True)
-    provider = models.CharField(_('provider'), max_length=30, default='SITN')
+    provider = models.ForeignKey(
+        UserModel, models.PROTECT, verbose_name=_('provider'), null=True,
+        limit_choices_to={
+            'groups__name': 'extract'
+        })
     pricing = models.ForeignKey(Pricing, models.PROTECT, verbose_name=_('pricing'))
     free_when_subscribed = models.BooleanField(_('free_when_subscribed'), default=False)
     order = models.BigIntegerField(_('order_index'), blank=True, null=True)
@@ -450,6 +454,8 @@ class Order(models.Model):
             if item.price_status == OrderItem.PricingStatus.PENDING:
                 item.ask_price()
                 has_all_prices_calculated = has_all_prices_calculated and False
+            else:
+                item.status = OrderItem.OrderItemStatus.IN_EXTRACT
         if has_all_prices_calculated:
             self.date_ordered = timezone.now()
             self.status = Order.OrderStatus.READY
@@ -457,20 +463,21 @@ class Order(models.Model):
             self.status = Order.OrderStatus.PENDING
 
     def next_status_on_extract_input(self):
-        """Controls status when extract uploads a file or cancel an order item"""
+        """Controls status when Extract uploads a file or cancel an order item"""
         previous_accepted_status = [
+            Order.OrderStatus.READY,
             Order.OrderStatus.IN_EXTRACT,
             Order.OrderStatus.PARTIALLY_DELIVERED
         ]
         if self.status not in previous_accepted_status:
-            raise Exception("Order has an inappropriate status for this operation")
+            raise Exception("Order has an inappropriate status after input")
         items_statuses = set(self.items.all().values_list('status', flat=True))
 
-        if OrderItem.OrderItemStatus.PENDING in items_statuses:
+        if OrderItem.OrderItemStatus.IN_EXTRACT in items_statuses:
             if OrderItem.OrderItemStatus.PROCESSED in items_statuses:
                 self.status = Order.OrderStatus.PARTIALLY_DELIVERED
             else:
-                self.status = Order.OrderStatus.IN_EXTRACT
+                self.status = Order.OrderStatus.READY
         else:
             if OrderItem.OrderItemStatus.PROCESSED in items_statuses:
                 self.status = Order.OrderStatus.PROCESSED
@@ -520,6 +527,7 @@ class OrderItem(models.Model):
 
     class OrderItemStatus(models.TextChoices):
         PENDING = 'PENDING', _('Pending')
+        IN_EXTRACT = 'IN_EXTRACT', _('In extract')
         PROCESSED = 'PROCESSED', _('Processed')
         ARCHIVED = 'ARCHIVED', _('Archived')
         REJECTED = 'REJECTED', _('Rejected')
