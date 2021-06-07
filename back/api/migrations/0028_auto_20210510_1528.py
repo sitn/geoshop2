@@ -2,7 +2,6 @@
 
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
@@ -17,19 +16,5 @@ class Migration(migrations.Migration):
             model_name='product',
             name='provider',
             field=models.CharField(max_length=30, verbose_name='provider', null=True),
-        ),
-        migrations.AlterField(
-            model_name='orderitem',
-            name='status',
-            field=models.CharField(choices=[('PENDING', 'Pending'), ('IN_EXTRACT', 'In extract'), ('PROCESSED', 'Processed'), ('ARCHIVED', 'Archived'), ('REJECTED', 'Rejected')], default='PENDING', max_length=20, verbose_name='status'),
-        ),
-        migrations.AlterField(
-            model_name='product',
-            name='provider',
-            field=models.ForeignKey(limit_choices_to={'groups__name': 'extract'}, null=True, on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL, verbose_name='provider'),
-        ),
-        migrations.RunSQL(
-            sql=[("UPDATE product SET provider_id = (SELECT id FROM auth_user WHERE username=%s);", ['sitn_extract'])],
-            reverse_sql=[("SELECT 1;")],
-        ),
+        )
     ]
