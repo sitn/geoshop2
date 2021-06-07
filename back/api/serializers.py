@@ -361,10 +361,13 @@ class ProductSerializer(serializers.ModelSerializer):
 
     pricing = serializers.StringRelatedField(
         read_only=True)
+    provider = serializers.CharField(
+        source='provider.identity.company_name',
+        read_only=True)
 
     class Meta:
         model = Product
-        read_only_fields = ['pricing', 'label', 'provider', 'group']
+        read_only_fields = ['pricing', 'label', 'group']
         exclude = ['order', 'thumbnail_link', 'ts', 'metadata']
 
 
@@ -404,7 +407,7 @@ class ExtractOrderItemSerializer(OrderItemSerializer):
 
 class ExtractOrderSerializer(serializers.ModelSerializer):
     """
-    Order serializer for extract.
+    Order serializer for Extract.
     """
     order_type = serializers.SlugRelatedField(
         queryset=OrderType.objects.all(),
@@ -539,6 +542,9 @@ class ProductDigestSerializer(serializers.ModelSerializer):
         queryset=DataFormat.objects.all(),
         slug_field='name'
     )
+    provider = serializers.CharField(
+        source='provider.identity.company_name',
+        read_only=True)
 
     class Meta:
         model = Product

@@ -350,24 +350,37 @@ class ExtractOrderFake(views.APIView):
 
 
 
-class ExtractOrderView(generics.ListAPIView):
+class ExtractOrderView(views.APIView):
     """
-    API endpoint that allows Orders to be fetched by Extract
+    API endpoint that allows Orders to be fetched by Extract.
+    This endpoint searches for orderitems belonging to current Extract user and 
+    rebuilds Order context around the order item for each matched order item.
     """
-    serializer_class = ExtractOrderSerializer
     permission_classes = [ExtractGroupPermission]
-    queryset = Order.objects.filter(status=Order.OrderStatus.READY).all()
-    pagination_class = None
 
     def get(self, request, *args, **kwargs):
-        """
-        Once fetched by extract, status changes
-        """
-        response = self.list(request, *args, **kwargs)
-        if response.data == []:
+        # Start by getting orderitems that are PENDING and that will be extracted by current user
+        order_items = OrderItem.objects.filter(
+            Q(product__provider=request.user) &
+            Q(status=OrderItem.OrderItemStatus.PENDING)
+        ).all()
+        response_data = []
+        for item in order_items:
+            # Serialize order to get order informations
+            order_serializer = ExtractOrderSerializer(item.order)
+            order_data = order_serializer.data
+            # Serialize order item
+            item_serializer = ExtractOrderItemSerializer(item)
+            item_data = item_serializer.data
+            # Replace items in the order by the only concerned item
+            order_data['items'] = [item_data]
+            response_data.append(order_data)
+            # Once fetched by extract, status of item changes
+            item.status = OrderItem.OrderItemStatus.IN_EXTRACT
+            item.save()
+        if len(response_data) == 0:
             return Response(status=status.HTTP_204_NO_CONTENT)
-        self.queryset.update(status=Order.OrderStatus.IN_EXTRACT)
-        return response
+        return Response(response_data)
 
 
 class ExtractOrderItemView(generics.UpdateAPIView):
