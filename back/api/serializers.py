@@ -6,7 +6,6 @@ from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.gis.gdal import GDALException, gdal_version
 from django.contrib.gis.geos import Polygon, GEOSException, GEOSGeometry, WKTWriter
-from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
