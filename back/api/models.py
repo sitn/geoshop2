@@ -365,7 +365,12 @@ class Order(models.Model):
         ARCHIVED = 'ARCHIVED', _('Archived')
         REJECTED = 'REJECTED', _('Rejected')
 
-    title = models.CharField(_('title'), max_length=255)
+    title = models.CharField(_('title'), max_length=255, validators=[
+        RegexValidator(
+            regex=r'^[^<>%$"\(\)\n\r]*$',
+            message=_('Title contains forbidden characters'),
+        ),
+    ])
     description = models.TextField(_('description'), blank=True)
     processing_fee = MoneyField(
         _('processing_fee'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)

@@ -19,6 +19,8 @@
         <mat-label>Titre du mandat</mat-label>
         <textarea matInput required formControlName="title"></textarea>
         <mat-error *ngIf="orderFormGroup.get('title')?.hasError('required')">Requis</mat-error>
+        <mat-error *ngIf="orderFormGroup.get('title')?.hasError('pattern')">
+          Le titre contient des caractères non supportés (parenthèses, guillemets, etc.)</mat-error>
       </mat-form-field>
 
       <!-- Description -->

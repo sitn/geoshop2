@@ -1,7 +1,7 @@
 import {Component, HostBinding, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {ApiService} from '../../_services/api.service';
-import {PHONE_REGEX, IDE_REGEX, EMAIL_REGEX} from '../../_helpers/regex';
+import {PHONE_REGEX, IDE_REGEX, EMAIL_REGEX, EXTRACT_FORBIDDEN_REGEX} from '../../_helpers/regex';
 import {Observable, Subject} from 'rxjs';
 import {IIdentity} from '../../_models/IIdentity';
 import {debounceTime, filter, map, mergeMap, startWith, switchMap, takeUntil} from 'rxjs/operators';
@@ -191,7 +191,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   private createForms() {
     this.orderFormGroup = this.formBuilder.group({
       orderType: new FormControl(null, Validators.required),
-      title: new FormControl('', Validators.required),
+      title: new FormControl('', Validators.compose(
+        [Validators.pattern(EXTRACT_FORBIDDEN_REGEX), Validators.required])),
       invoice_reference: new FormControl(''),
       emailDeliverChoice: new FormControl('1'),
       emailDeliver: new FormControl('', Validators.pattern(EMAIL_REGEX)),
