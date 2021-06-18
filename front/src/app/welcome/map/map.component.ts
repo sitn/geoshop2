@@ -53,8 +53,8 @@ export class MapComponent implements OnInit {
   pageformats: Array<IPageFormat>;
   isMapLoading$ = this.mapService.isMapLoading$;
   selectedPageFormat: IPageFormat;
-  selectedPageFormatScale: number;
-  rotationPageFormat: number;
+  selectedPageFormatScale = 500;
+  rotationPageFormat = 0;
   pageFormatScales: Array<number> = [500, 1000, 2000, 5000];
 
   // Geocoder
@@ -84,6 +84,7 @@ export class MapComponent implements OnInit {
     this.mapService.isDrawing$.subscribe((isDrawing) => this.isDrawing = isDrawing);
     this.basemaps = this.mapService.Basemaps;
     this.pageformats = this.mapService.PageFormats;
+    this.selectedPageFormat = this.configService.config.pageformats[0];
 
     if (this.searchCtrl) {
       this.searchCtrl.valueChanges
@@ -167,6 +168,7 @@ export class MapComponent implements OnInit {
         pageFormatScales: this.pageFormatScales,
         pageFormats: this.pageformats,
         selectedPageFormat: this.selectedPageFormat,
+        selectedPageFormatScale: this.selectedPageFormatScale,
         rotationPageFormat: this.rotationPageFormat
       }
     });
