@@ -100,12 +100,32 @@ class OrderItemInline(admin.StackedInline):
     extra = 0
 
 
+class OrderAdminForm(forms.ModelForm):
+    """
+    Custom model form for Order for custom validation
+    """
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+    def clean(self):
+        invoice_contact = self.cleaned_data['invoice_contact']
+        if not hasattr(invoice_contact, 'belongs_to'):
+            return self.cleaned_data
+        if invoice_contact.belongs_to == self.cleaned_data['client']:
+            return self.cleaned_data
+        raise forms.ValidationError(
+            _("Invoice contact does not belong to the client of this order!")
+        )
+
+
 class OrderAdmin(admin.OSMGeoAdmin):
+    form = OrderAdminForm
     change_form_template = 'admin/api/order_change_form.html'
     inlines = [OrderItemInline]
     search_fields = ['id', 'title', 'client__identity__first_name', 'client__identity__last_name', 'client__email']
     list_display = ['id', 'title', 'client_first_name', 'client_last_name', 'client_email', 'date_ordered']
-    raw_id_fields = ['client']
+    raw_id_fields = ['client', 'invoice_contact']
     map_template = 'admin/gis/osm.html'
     ordering = ['-id']
     actions = ['quote']
@@ -149,6 +169,15 @@ class ProductAdmin(CustomModelAdmin):
 class AbstractIdentityAdmin(CustomModelAdmin):
     list_display = ['last_name', 'first_name', 'company_name', 'email']
     search_fields = ['first_name', 'last_name', 'company_name', 'email']
+
+
+class ContactAdmin(AbstractIdentityAdmin):
+    search_fields = [
+        'first_name', 'last_name', 'company_name', 'email',
+        'belongs_to__username'
+    ]
+    list_display = ['last_name', 'first_name', 'company_name', 'email', 'belongs_to']
+    raw_id_fields = ['belongs_to']
 
 
 class PricingAdmin(CustomModelAdmin):
@@ -211,7 +240,7 @@ admin.site.register(Copyright)
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(DataFormat)
 admin.site.register(Identity, AbstractIdentityAdmin)
-admin.site.register(Contact, AbstractIdentityAdmin)
+admin.site.register(Contact, ContactAdmin)
 admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(MetadataContact, MetadataContactAdmin)
 admin.site.register(Order, OrderAdmin)
