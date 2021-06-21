@@ -47,6 +47,7 @@ import { updateGeometry } from '../_store/cart/cart.action';
 import { DragAndDropEvent } from 'ol/interaction/DragAndDrop';
 import { shiftKeyOnly } from 'ol/events/condition';
 import { createBox } from 'ol/interaction/Draw';
+import { CoordinateSearchService } from './coordinate-search.service';
 
 @Injectable({
   providedIn: 'root'
@@ -117,10 +118,12 @@ export class MapService {
     return this.basemapLayers.length > 0 ? this.basemapLayers[0] : null;
   }
 
-  constructor(private configService: ConfigService,
-              private store: Store<AppState>,
-              private snackBar: MatSnackBar,
-              private httpClient: HttpClient) {
+  constructor(
+    private configService: ConfigService,
+    private coordinateSearchService: CoordinateSearchService,
+    private store: Store<AppState>,
+    private snackBar: MatSnackBar,
+    private httpClient: HttpClient) {
   }
 
   public initialize() {
@@ -258,11 +261,18 @@ export class MapService {
     if (!inputText || inputText.length === 0 || typeof inputText !== 'string') {
       return of([]);
     }
+    const coordinateResult = this.coordinateSearchService.stringCoordinatesToFeature(inputText);
     const url = new URL(this.configService.config.geocoderUrl);
     url.searchParams.append('partitionlimit', '10');
     url.searchParams.append('query', inputText);
     return this.httpClient.get(url.toString()).pipe(
-      map(featureCollection => this.geoJsonFormatter.readFeatures(featureCollection))
+      map((featureCollectionData) => {
+        const featureCollection = this.geoJsonFormatter.readFeatures(featureCollectionData);
+        if (coordinateResult) {
+          featureCollection.push(coordinateResult);
+        }
+        return featureCollection;
+      })
     );
   }
 
