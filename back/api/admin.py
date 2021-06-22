@@ -66,6 +66,7 @@ class DataFormatAdmin(CustomModelAdmin):
     model = DataFormat
 
 class MetadataAdmin(CustomModelAdmin):
+    save_as = True
     inlines = [MetadataContactInline]
     raw_id_fields = ['modified_user', 'documents']
     search_fields = ['name', 'id_name']
@@ -158,6 +159,7 @@ class OrderAdmin(admin.OSMGeoAdmin):
 
 
 class ProductAdmin(CustomModelAdmin):
+    save_as = True
     inlines = [ProductFormatInline]
     raw_id_fields = ('metadata', 'group')
     exclude = ('ts',)
