@@ -55,7 +55,7 @@ class Contact(AbstractIdentity):
         UserModel, on_delete=models.CASCADE, verbose_name=_('belongs_to'))
     sap_id = models.BigIntegerField(_('sap_id'), null=True, blank=True)
     subscribed = models.BooleanField(_('subscribed'), default=False)
-    is_active = models.BooleanField(_('subscribed'), default=True)
+    is_active = models.BooleanField(_('is_active'), default=True)
 
     class Meta:
         db_table = 'contact'
@@ -365,7 +365,12 @@ class Order(models.Model):
         ARCHIVED = 'ARCHIVED', _('Archived')
         REJECTED = 'REJECTED', _('Rejected')
 
-    title = models.CharField(_('title'), max_length=255)
+    title = models.CharField(_('title'), max_length=255, validators=[
+        RegexValidator(
+            regex=r'^[^<>%$"\(\)\n\r]*$',
+            message=_('Title contains forbidden characters'),
+        ),
+    ])
     description = models.TextField(_('description'), blank=True)
     processing_fee = MoneyField(
         _('processing_fee'), max_digits=14, decimal_places=2, default_currency='CHF', blank=True, null=True)
@@ -383,7 +388,8 @@ class Order(models.Model):
         verbose_name=_('invoice_contact'),
         related_name='invoice_contact',
         blank=True,
-        null=True)
+        null=True
+    )
     invoice_reference = models.CharField(_('invoice_reference'), max_length=255, blank=True)
     email_deliver = models.EmailField(_('email_deliver'), max_length=254, blank=True, null=True)
     order_type = models.ForeignKey(OrderType, models.PROTECT, verbose_name=_('order_type'))
