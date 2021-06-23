@@ -4,3 +4,4 @@ export const PHONE_REGEX =
 export const IDE_REGEX =
   new RegExp(/^CHE-([0-9]{3}\.){2}[0-9]{3}$/);
 export const EXTRACT_FORBIDDEN_REGEX = new RegExp(/^[^<>%$"\(\)\n\r]*$/);
+export const EPSG2056_COORD_REGEX = new RegExp(/(2[\d\.']{6,13})[\s,\/;]+(1[\d\.']{6,13})/);

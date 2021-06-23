@@ -132,14 +132,12 @@ npm start
 
 Create an `env.prod` file base on `env.sample`.
 
-### Database setup
-
-Migrate database from old geoshop. This is not covered by documentation.
-
 ### Application deployment
 
 ```powershell
 .\scripts\4_deploy_prod.ps1
 ```
+
+Create a scheduled task that runs `scripts/geoshop_clean_orders.ps1` every month.
 
 More info on bookstack

@@ -28,6 +28,7 @@ export const nameOfCategoryForGeocoder: { [prop: string]: string; } = {
   search_fo_administrations: 'Administrations forestières',
   search_uap_publique: 'Unité d\'aménagement publique',
   adresses_sitn: 'Adresses',
+  recenter_to: 'Recentrer sur',
   localite: 'Localité',
   search_fo09: 'Secours en forêt',
   search_conc_hydr: 'Concessions hydrauliques',
