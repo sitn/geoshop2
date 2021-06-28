@@ -29,6 +29,12 @@ export type OrderStatus = 'DRAFT' |
   'REJECTED' |
   'CONFIRM_REQUIRED';
 
+export type OrderItemStatus = 'PENDING' |
+  'IN_EXTRACT' |
+  'PROCESSED' |
+  'ARCHIVED' |
+  'REJECTED';
+
 export interface IOrderItem {
   product: IProduct | string;
   product_id: number;
@@ -40,7 +46,7 @@ export interface IOrderItem {
   price_status?: PricingStatus;
   /** id of the order   */
   order?: number;
-  status?: OrderStatus;
+  status?: OrderItemStatus;
 }
 
 export interface IOrderToPost {
