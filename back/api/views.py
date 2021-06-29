@@ -361,6 +361,7 @@ class ExtractOrderView(views.APIView):
     def get(self, request, *args, **kwargs):
         # Start by getting orderitems that are PENDING and that will be extracted by current user
         order_items = OrderItem.objects.filter(
+            Q(order__status=Order.OrderStatus.READY) &
             Q(product__provider=request.user) &
             Q(status=OrderItem.OrderItemStatus.PENDING)
         ).all()
