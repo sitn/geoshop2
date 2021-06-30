@@ -155,6 +155,8 @@ class OrderTests(APITestCase):
         url = reverse('orderitem-detail', kwargs={'pk':order_item_id})
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(response.data['status'], OrderItem.OrderItemStatus.PENDING, 'status is PENDING')
+
 
         # Confirm order with format should work
         url = reverse('order-confirm', kwargs={'pk':order_id})
@@ -264,6 +266,7 @@ class OrderTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         response = self.client.post(url, self.order_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(response.data['status'], Order.OrderStatus.DRAFT, 'status is DRAFT')
         order_id = response.data['id']
         # PATCH order with a product
         data1 = {
@@ -276,6 +279,7 @@ class OrderTests(APITestCase):
         url = reverse('order-detail', kwargs={'pk':order_id})
         response = self.client.patch(url, data1, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(response.data['status'], Order.OrderStatus.DRAFT, 'status is DRAFT')
         self.assertEqual(len(response.data['items']), 1, 'One product is present')
         data2 = {
             "items": [
