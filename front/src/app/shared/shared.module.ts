@@ -1,7 +1,6 @@
 import {NgModule} from '@angular/core';
 import {IconTextComponent} from './icon-text/icon-text.component';
 import {MatIconModule} from '@angular/material/icon';
-import {OrderViewComponent} from '../_components/order-view/order-view.component';
 import {MatCardModule} from '@angular/material/card';
 import {CommonModule} from '@angular/common';
 import {MatButtonModule} from '@angular/material/button';
@@ -23,7 +22,6 @@ const MODULES = [
 
 const COMPONENTS = [
   IconTextComponent,
-  OrderViewComponent,
   ConfirmDialogComponent,
   OrderItemViewComponent,
   WidgetHostDirective,
