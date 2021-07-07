@@ -11,15 +11,19 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 })
 export class OrderItemViewComponent implements OnInit {
 
-  displayedColumns: string[] = ['product', 'format', 'price', 'download'];
+  displayedColumns: string[] = ['product', 'format', 'price'];
   @Input() dataSource: IOrderItem[];
   @Input() order: Order;
+  @Input() showAction = true;
 
   constructor(private apiOrderService: ApiOrderService,
               private snackBar: MatSnackBar) {
   }
 
   ngOnInit(): void {
+    if (this.showAction) {
+      this.displayedColumns.push('download');
+    }
   }
 
   getProductLabel(orderItem: IOrderItem) {

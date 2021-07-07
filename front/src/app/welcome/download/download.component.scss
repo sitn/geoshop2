@@ -1,10 +1,26 @@
 :host {
   display: flex;
   justify-content: center;
-  align-items: center;
+  padding-top: 2em;
+  overflow-y: auto;
+  height: calc(100vh - 6.55em);
+  
+  .mat-card {
+    height: max-content;
+    margin-bottom: 2em;
+  }
 
   .flex {
     display: flex;
     justify-content: center;
+  }
+
+  .mini-map {
+    width: auto;
+    height: 400px;
+  }
+
+  .mb-2 {
+    margin-bottom: 2em;
   }
 }

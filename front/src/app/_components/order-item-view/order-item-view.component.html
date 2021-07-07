@@ -43,17 +43,19 @@
   </ng-container>
 
   <!-- Action Column -->
-  <ng-container matColumnDef="download">
-    <th mat-header-cell *matHeaderCellDef> Téléchargement</th>
-    <td mat-cell *matCellDef="let element">
-      <button class="download-button" mat-raised-button color="primary"
-              *ngIf="element.status === 'PROCESSED'"
-              (click)="downloadOrder($event, element.id)">Télécharger
-      </button>
-      <span *ngIf="element.status !== 'PROCESSED'">Indisponible</span>
-    </td>
-    <td mat-footer-cell *matFooterCellDef class="text-primary"></td>
-  </ng-container>
+  <div *ngIf="showAction">
+    <ng-container matColumnDef="download">
+      <th mat-header-cell *matHeaderCellDef> Téléchargement</th>
+      <td mat-cell *matCellDef="let element">
+        <button class="download-button" mat-raised-button color="primary"
+                *ngIf="element.status === 'PROCESSED'"
+                (click)="downloadOrder($event, element.id)">Télécharger
+        </button>
+        <span *ngIf="element.status !== 'PROCESSED'">Indisponible</span>
+      </td>
+      <td mat-footer-cell *matFooterCellDef class="text-primary"></td>
+    </ng-container>
+  </div>
 
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
