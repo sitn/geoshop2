@@ -125,12 +125,22 @@ class OrderAdmin(admin.OSMGeoAdmin):
     change_form_template = 'admin/api/order_change_form.html'
     inlines = [OrderItemInline]
     search_fields = ['id', 'title', 'client__identity__first_name', 'client__identity__last_name', 'client__email']
-    list_display = ['id', 'title', 'client_first_name', 'client_last_name', 'client_email', 'date_ordered']
+    list_display = [
+        'id', 'title_small', 'order_type_name', 'client_first_name', 'client_last_name', 'client_email', 'date_ordered']
     raw_id_fields = ['client', 'invoice_contact']
     map_template = 'admin/gis/osm.html'
     ordering = ['-id']
     actions = ['quote']
     list_filter = ['status', 'date_ordered']
+
+    def title_small(self, order):
+        title = order.title
+        if len(order.title) > 50:
+            title = order.title[:50] + '...'
+        return title
+
+    def order_type_name(self, order):
+        return order.order_type.name
 
     def client_first_name(self, order):
         return order.client.identity.first_name
