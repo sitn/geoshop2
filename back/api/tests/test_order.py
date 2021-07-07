@@ -316,3 +316,20 @@ class OrderTests(APITestCase):
         url = reverse('order-detail', kwargs={'pk':order.id})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.content)
+
+
+    def test_order_geom_is_valid(self):
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        self.order_data['geom'] = {
+            'type': 'Polygon',
+            'coordinates': [
+                [[2545488, 1203070],
+                 [2545605, 1211390],
+                 [2557441, 1202601],
+                 [2557089, 1210921],
+                 [2545488, 1203070]]
+            ]}
+        response = self.client.post(url, self.order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(len(mail.outbox), 1, 'An email has been sent to admins')
