@@ -232,6 +232,7 @@ class Pricing(models.Model):
         BY_NUMBER_OBJECTS = 'BY_NUMBER_OBJECTS', _('By number of objects')
         BY_AREA = 'BY_AREA', _('By area')
         FROM_PRICING_LAYER = 'FROM_PRICING_LAYER', _('From a pricing layer')
+        FROM_CHILDREN_OF_GROUP = 'FROM_CHILDREN_OF_GROUP', _('From children products of this group')
         MANUAL = 'MANUAL', _('Manual')
 
     name = models.CharField(_('name'), max_length=100, null=True, blank=True)
@@ -633,7 +634,18 @@ class OrderItem(models.Model):
             return
 
         if self.product.pricing.pricing_type != Pricing.PricingType.MANUAL:
-            self._price, self._base_fee = self.product.pricing.get_price(self.order.geom)
+            if self.product.pricing.pricing_type == Pricing.PricingType.FROM_CHILDREN_OF_GROUP:
+                self._price = Money(0, 'CHF')
+                self._base_fee = Money(0, 'CHF')
+                for product in self.product.products.all():
+                    if product.geom.intersects(self.order.geom):
+                        price, base_fee = product.pricing.get_price(self.order.geom)
+                        if price:
+                            self._price += price
+                        if base_fee:
+                            self._base_fee = base_fee if base_fee > self._base_fee else self._base_fee
+            else:
+                self._price, self._base_fee = self.product.pricing.get_price(self.order.geom)
             if self._price is not None:
                 self.price_status = OrderItem.PricingStatus.CALCULATED
                 return
