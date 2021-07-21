@@ -25,7 +25,7 @@ from .models import (
 
 UserModel = get_user_model()
 
-class CustomModelAdmin(admin.ModelAdmin):
+class CustomModelAdmin(admin.GeoModelAdmin):
     """
     This is just a cosmetic class adding custom CSS and Replacing CharField Widget by
     a TextField widget when Charfields are longer than 300 characters.
@@ -44,7 +44,7 @@ class CustomModelAdmin(admin.ModelAdmin):
         return formfield
 
 
-class CustomGeoModelAdmin(admin.GeoModelAdmin):
+class CustomGeoModelAdmin(CustomModelAdmin):
     map_template = 'gis/admin/sitn.html'
     map_srid = 2056
 
@@ -171,7 +171,7 @@ class OrderAdmin(CustomGeoModelAdmin):
         return super().response_change(request, obj)
 
 
-class ProductAdmin(CustomModelAdmin):
+class ProductAdmin(CustomGeoModelAdmin):
     save_as = True
     inlines = [ProductFormatInline]
     raw_id_fields = ('metadata', 'group')
