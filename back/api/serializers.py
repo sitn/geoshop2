@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import copy
 from django.conf import settings
@@ -16,7 +17,7 @@ from rest_framework.exceptions import ValidationError
 
 from allauth.account.adapter import get_adapter
 
-from .helpers import zip_all_orderitems
+from .helpers import send_geoshop_email, zip_all_orderitems
 from .models import (
     Copyright, Contact, Document, DataFormat, Identity,
     Metadata, MetadataContact, Order, OrderItem, OrderType,
@@ -282,6 +283,17 @@ class OrderSerializer(serializers.ModelSerializer):
             srid=settings.DEFAULT_SRID
         )
         order.save()
+        if not order.geom.valid:
+            send_geoshop_email(
+                _('Geoshop - Invalid geometry'),
+                template_name='email_admin',
+                template_data={
+                    'messages': [_('A new order has been submitted and its geometry is invalid:')],
+                    'details': {
+                        _('order'): order.id,
+                    }
+                }
+            )
         for item_data in items_data:
             item = OrderItem.objects.create(order=order, **item_data)
             item.set_price()

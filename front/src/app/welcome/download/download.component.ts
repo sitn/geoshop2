@@ -1,11 +1,19 @@
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
-import { ApiOrderService } from '../../_services/api-order.service';
-import { GeoshopUtils } from '../../_helpers/GeoshopUtils';
-import { takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Order, IOrderDowloadLink } from 'src/app/_models/IOrder';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
+import Map from 'ol/Map';
+import VectorSource from 'ol/source/Vector';
+
+import { GeoHelper } from '../../_helpers/geoHelper';
+import { GeoshopUtils } from '../../_helpers/GeoshopUtils';
+import { Order, IOrderDowloadLink } from '../../_models/IOrder';
+import { ApiOrderService } from '../../_services/api-order.service';
+import { ConfigService} from '../../_services/config.service';
+import { MapService} from '../../_services/map.service';
+
 
 @Component({
   selector: 'gs2-download',
@@ -19,9 +27,15 @@ export class DownloadComponent implements OnInit, OnDestroy {
   private onDestroy$ = new Subject<void>();
   private uuid: string;
   order: Order;
+  minimap: Map;
+  vectorSource: VectorSource;
 
-  constructor(private apiOrderService: ApiOrderService, private snackBar: MatSnackBar,
-              private router: Router, private route: ActivatedRoute) {
+  constructor(
+    private apiOrderService: ApiOrderService,
+    private snackBar: MatSnackBar,
+    private route: ActivatedRoute,
+    private configService: ConfigService,
+    private mapService: MapService) {
     this.route.params
       .pipe(takeUntil(this.onDestroy$))
       .subscribe(params => this.uuid = params.uuid);
@@ -33,6 +47,11 @@ export class DownloadComponent implements OnInit, OnDestroy {
       .subscribe(order => {
         if (order) {
           this.order = order;
+          GeoHelper.generateMiniMap(this.configService, this.mapService).then(result => {
+            this.minimap = result.minimap;
+            this.vectorSource = result.vectorSource;
+            GeoHelper.displayMiniMap(this.order, [this.minimap], [this.vectorSource], 0);
+          });
         }
       });
   }

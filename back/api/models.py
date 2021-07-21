@@ -315,7 +315,7 @@ class Product(models.Model):
 
     metadata = models.ForeignKey(
         Metadata, models.SET_NULL, verbose_name=_('metadata'), blank=True, null=True)
-    label = models.CharField(_('label'), max_length=250, blank=True)
+    label = models.CharField(_('label'), max_length=250, unique=True)
     status = models.CharField(
         _('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     group = models.ForeignKey(
@@ -464,6 +464,7 @@ class Order(models.Model):
                 item.status = OrderItem.OrderItemStatus.IN_EXTRACT
         if has_all_prices_calculated:
             self.date_ordered = timezone.now()
+            self.download_guid = uuid.uuid4()
             self.status = Order.OrderStatus.READY
         else:
             self.status = Order.OrderStatus.PENDING
@@ -488,7 +489,6 @@ class Order(models.Model):
             if OrderItem.OrderItemStatus.PROCESSED in items_statuses:
                 self.status = Order.OrderStatus.PROCESSED
                 self.date_processed = timezone.now()
-                self.download_guid = uuid.uuid4()
                 send_geoshop_email(
                     _('Geoshop - Download ready'),
                     recipient=self.email_deliver or self.client.identity,
