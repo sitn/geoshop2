@@ -3,6 +3,7 @@ import uuid
 from django.conf import settings
 from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
+from django.contrib.gis.geos import Polygon
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex, BTreeIndex
@@ -319,7 +320,7 @@ class Product(models.Model):
     status = models.CharField(
         _('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     group = models.ForeignKey(
-        'self', models.SET_NULL, verbose_name=_('group'), blank=True, null=True)
+        'self', models.SET_NULL, verbose_name=_('group'), blank=True, null=True, related_name='products')
     provider = models.ForeignKey(
         UserModel, models.PROTECT, verbose_name=_('provider'), null=True,
         limit_choices_to={
@@ -331,6 +332,9 @@ class Product(models.Model):
     thumbnail_link = models.CharField(
         _('thumbnail_link'), max_length=250, default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL)
     ts = SearchVectorField(null=True)
+    geom = models.PolygonField(_('geom'), srid=settings.DEFAULT_SRID, default=Polygon.from_bbox(
+        (2479000, 1076000, 2853000, 1305000)
+    ))
 
     class Meta:
         db_table = 'product'
@@ -452,8 +456,30 @@ class Order(models.Model):
             )
         return price_is_set
 
+    def _expand_product_groups(self):
+        """
+        When a product is a group of products, the group is deleted from cart and
+        is replaced with one OrderItem for each product inside the group.
+        """
+        items = self.items.all()
+        for item in items:
+            # if product is a group (if product has children)
+            if item.product.products.exists():
+                for product in item.product.products.all():
+                    # only pick products that intersect current order geom
+                    if product.geom.intersects(self.geom):
+                        new_item = OrderItem(
+                            order=self,
+                            product=product,
+                            data_format=item.data_format
+                        )
+                        new_item.set_price()
+                        new_item.save()
+                item.delete()
+
     def confirm(self):
         """Customer's confirmations he wants to proceed with the order"""
+        self._expand_product_groups()
         items = self.items.all()
         has_all_prices_calculated = True
         for item in items:
