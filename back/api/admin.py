@@ -44,6 +44,10 @@ class CustomModelAdmin(admin.ModelAdmin):
         return formfield
 
 
+class CustomGeoModelAdmin(admin.GeoModelAdmin):
+    map_template = 'gis/admin/sitn.html'
+    map_srid = 2056
+
 class DocumentAdmin(CustomModelAdmin):
     search_fields = ['name', 'link']
     model = Document
@@ -120,7 +124,7 @@ class OrderAdminForm(forms.ModelForm):
         )
 
 
-class OrderAdmin(admin.OSMGeoAdmin):
+class OrderAdmin(CustomGeoModelAdmin):
     form = OrderAdminForm
     change_form_template = 'admin/api/order_change_form.html'
     inlines = [OrderItemInline]
@@ -128,7 +132,6 @@ class OrderAdmin(admin.OSMGeoAdmin):
     list_display = [
         'id', 'title_small', 'order_type_name', 'client_first_name', 'client_last_name', 'client_email', 'date_ordered']
     raw_id_fields = ['client', 'invoice_contact']
-    map_template = 'admin/gis/osm.html'
     ordering = ['-id']
     actions = ['quote']
     list_filter = ['status', 'date_ordered']
