@@ -278,7 +278,7 @@ msgstr "selon couche de tarification"
 
 #: .\api\models.py:235
 msgid "From children products of this group"
-msgstr "Selon les produits enfants de ce groupe"
+msgstr "selon les produits enfants de ce groupe"
 
 #: .\api\models.py:236
 msgid "Manual"
