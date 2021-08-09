@@ -48,7 +48,10 @@ class PricingTests(APITestCase):
                 pricing_type="MANUAL"),
             Pricing(
                 name="Style de prix non connu de l'application", #6
-                pricing_type="YET_UNKNOWN_PRICING")
+                pricing_type="YET_UNKNOWN_PRICING"),
+            Pricing(
+                name="Prix selon ce qu'il y a dans le groupe", #7
+                pricing_type="FROM_CHILDREN_OF_GROUP")
         ])
 
         self.products = Product.objects.bulk_create([
@@ -107,6 +110,8 @@ class PricingTests(APITestCase):
             ))
         )
 
+        # 4 points are located in order geom
+        self.number_of_objects = 4
         self.building_pricing_geometry = PricingGeometry.objects.bulk_create([
             PricingGeometry(
                 geom=Point(2559661.132097245, 1205773.4376192095)
@@ -159,11 +164,10 @@ class PricingTests(APITestCase):
         self.assertEqual(single_price[0], self.unit_price)
 
     def test_by_object_price(self):
-        number_of_objects = 4
         by_object_price = self.products[2].pricing.get_price(self.order_geom)
         self.assertGreater(by_object_price[0], Money(0, 'CHF'))
         self.assertEqual(by_object_price[0],
-                         number_of_objects * Money(1, 'CHF'))
+                         self.number_of_objects * Money(1, 'CHF'))
 
     def test_by_area_price(self):
         by_area_price = self.products[3].pricing.get_price(self.order_geom)
@@ -309,3 +313,27 @@ class PricingTests(APITestCase):
             PricingGeometry.objects.bulk_create(batch, number_of_objects)
         by_object_price = self.products[2].pricing.get_price(self.order_geom)
         self.assertIsNone(by_object_price[0], 'Price is None because max_price reached')
+
+    def test_from_children_of_group_price(self):
+        group_product = Product.objects.create(
+            label="Réseau d'eau",
+            pricing=self.pricings[7],
+        )
+        self.products[0].group = group_product
+        self.products[1].group = group_product
+        self.products[2].group = group_product
+        self.products[0].save()
+        self.products[1].save()
+        self.products[2].save()
+        orderitem1 = OrderItem.objects.create(
+            order=self.order,
+            product=group_product
+        )
+        self.order.order_type = self.orderTypePrivate
+        self.order.save()
+        orderitem1.set_price()
+        orderitem1.save()
+        self.order.set_price()
+        self.assertEqual(self.order.processing_fee, Money(20, 'CHF'), 'Base fee is correct')
+        self.assertEqual(self.order.total_without_vat,
+                         self.number_of_objects * Money(1, 'CHF') + Money(150, 'CHF') + Money(20, 'CHF'))

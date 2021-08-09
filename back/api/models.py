@@ -3,6 +3,7 @@ import uuid
 from django.conf import settings
 from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
+from django.contrib.gis.geos import Polygon
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex, BTreeIndex
@@ -231,6 +232,7 @@ class Pricing(models.Model):
         BY_NUMBER_OBJECTS = 'BY_NUMBER_OBJECTS', _('By number of objects')
         BY_AREA = 'BY_AREA', _('By area')
         FROM_PRICING_LAYER = 'FROM_PRICING_LAYER', _('From a pricing layer')
+        FROM_CHILDREN_OF_GROUP = 'FROM_CHILDREN_OF_GROUP', _('From children products of this group')
         MANUAL = 'MANUAL', _('Manual')
 
     name = models.CharField(_('name'), max_length=100, null=True, blank=True)
@@ -319,7 +321,7 @@ class Product(models.Model):
     status = models.CharField(
         _('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     group = models.ForeignKey(
-        'self', models.SET_NULL, verbose_name=_('group'), blank=True, null=True)
+        'self', models.SET_NULL, verbose_name=_('group'), blank=True, null=True, related_name='products')
     provider = models.ForeignKey(
         UserModel, models.PROTECT, verbose_name=_('provider'), null=True,
         limit_choices_to={
@@ -331,6 +333,9 @@ class Product(models.Model):
     thumbnail_link = models.CharField(
         _('thumbnail_link'), max_length=250, default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL)
     ts = SearchVectorField(null=True)
+    geom = models.PolygonField(_('geom'), srid=settings.DEFAULT_SRID, default=Polygon.from_bbox(
+        (2519900, 1186430, 2578200, 1227030)
+    ))
 
     class Meta:
         db_table = 'product'
@@ -452,8 +457,30 @@ class Order(models.Model):
             )
         return price_is_set
 
+    def _expand_product_groups(self):
+        """
+        When a product is a group of products, the group is deleted from cart and
+        is replaced with one OrderItem for each product inside the group.
+        """
+        items = self.items.all()
+        for item in items:
+            # if product is a group (if product has children)
+            if item.product.products.exists():
+                for product in item.product.products.all():
+                    # only pick products that intersect current order geom
+                    if product.geom.intersects(self.geom):
+                        new_item = OrderItem(
+                            order=self,
+                            product=product,
+                            data_format=item.data_format
+                        )
+                        new_item.set_price()
+                        new_item.save()
+                item.delete()
+
     def confirm(self):
         """Customer's confirmations he wants to proceed with the order"""
+        self._expand_product_groups()
         items = self.items.all()
         has_all_prices_calculated = True
         for item in items:
@@ -607,7 +634,18 @@ class OrderItem(models.Model):
             return
 
         if self.product.pricing.pricing_type != Pricing.PricingType.MANUAL:
-            self._price, self._base_fee = self.product.pricing.get_price(self.order.geom)
+            if self.product.pricing.pricing_type == Pricing.PricingType.FROM_CHILDREN_OF_GROUP:
+                self._price = Money(0, 'CHF')
+                self._base_fee = Money(0, 'CHF')
+                for product in self.product.products.all():
+                    if product.geom.intersects(self.order.geom):
+                        price, base_fee = product.pricing.get_price(self.order.geom)
+                        if price:
+                            self._price += price
+                        if base_fee:
+                            self._base_fee = base_fee if base_fee > self._base_fee else self._base_fee
+            else:
+                self._price, self._base_fee = self.product.pricing.get_price(self.order.geom)
             if self._price is not None:
                 self.price_status = OrderItem.PricingStatus.CALCULATED
                 return

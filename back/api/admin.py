@@ -25,7 +25,7 @@ from .models import (
 
 UserModel = get_user_model()
 
-class CustomModelAdmin(admin.ModelAdmin):
+class CustomModelAdmin(admin.GeoModelAdmin):
     """
     This is just a cosmetic class adding custom CSS and Replacing CharField Widget by
     a TextField widget when Charfields are longer than 300 characters.
@@ -43,6 +43,10 @@ class CustomModelAdmin(admin.ModelAdmin):
                 formfield.widget = forms.Textarea(attrs=formfield.widget.attrs)
         return formfield
 
+
+class CustomGeoModelAdmin(CustomModelAdmin):
+    map_template = 'gis/admin/sitn.html'
+    map_srid = 2056
 
 class DocumentAdmin(CustomModelAdmin):
     search_fields = ['name', 'link']
@@ -120,7 +124,7 @@ class OrderAdminForm(forms.ModelForm):
         )
 
 
-class OrderAdmin(admin.OSMGeoAdmin):
+class OrderAdmin(CustomGeoModelAdmin):
     form = OrderAdminForm
     change_form_template = 'admin/api/order_change_form.html'
     inlines = [OrderItemInline]
@@ -128,7 +132,6 @@ class OrderAdmin(admin.OSMGeoAdmin):
     list_display = [
         'id', 'title_small', 'order_type_name', 'client_first_name', 'client_last_name', 'client_email', 'date_ordered']
     raw_id_fields = ['client', 'invoice_contact']
-    map_template = 'admin/gis/osm.html'
     ordering = ['-id']
     actions = ['quote']
     list_filter = ['status', 'date_ordered']
@@ -168,7 +171,7 @@ class OrderAdmin(admin.OSMGeoAdmin):
         return super().response_change(request, obj)
 
 
-class ProductAdmin(CustomModelAdmin):
+class ProductAdmin(CustomGeoModelAdmin):
     save_as = True
     inlines = [ProductFormatInline]
     raw_id_fields = ('metadata', 'group')
