@@ -20,7 +20,9 @@ cd..
 
 ### Database
 
-User geoshop is assumed to be already created. Set up a database manually or with the provided script in `scripts/create_db.ps1` (psql binary must be on PATH) :
+The best is to backup and restore a production db. Otherwise, to start from scratch follow this:
+
+Postrgres user `geoshop` is assumed to be already created. Set up a database manually or with the provided script in `scripts/create_db.ps1` (psql binary must be on PATH) :
 
 ```sql
 CREATE DATABASE geoshop;
@@ -39,7 +41,7 @@ pipenv install --dev           # installs everything needed
 pipenv shell                   # activates venv and reads .env file
 ```
 
-#### Installing GDAL on Windows
+#### Installing GDAL on Windows, only once per machine
 Download the GDAL 2.4 wheel (3.X isn't supported yet by Django) on this page: https://www.lfd.uci.edu/~gohlke/pythonlibs/#gdal. For example, if you have Python 3.6 64bit, choose `GDAL‑2.4.1‑cp36‑cp36m‑win_amd64.whl`.
 Then install it weather system wide or in your venv (the example below will show the venv variant and expects you have your venv activated):
 
@@ -85,6 +87,14 @@ Translations can be generated with:
 ```powershell
 python manage.py compilemessages --locale=fr
 ```
+
+Then, set `DEBUG` to `True` in `back/settings.py` and you can finally run the server:
+
+```powershell
+python manage.py runserver
+```
+
+> :warning: **DO NOT COMMIT settings.py with `DEBUG` set to `True` !**
 
 ### Run tests
 

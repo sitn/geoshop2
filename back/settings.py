@@ -169,6 +169,8 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 FORCE_SCRIPT_NAME = os.environ.get('ROOTURL', '')
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+# For large admin fields like order with order items
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 5000
 
 STATIC_URL = FORCE_SCRIPT_NAME + '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
@@ -193,5 +195,5 @@ INTRA_LEGEND_URL = os.environ.get('INTRA_LEGEND_URL', '')
 
 # Geometries settings
 DEFAULT_SRID = 2056
-EXTRACT = 2056
-DEFAULT_SRID = 2056
+# How many items are given each time Extract asks
+EXTRACT_ORDERITEMS_LIMIT = 15

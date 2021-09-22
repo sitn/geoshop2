@@ -8,7 +8,7 @@ services:
       args:
         ENV_FILE: ${ENV_FILE}
     env_file: ./back/${ENV_FILE}
-    command: "gunicorn wsgi -b :8000"
+    command: "gunicorn wsgi -b :8000 --timeout 90"
     restart: unless-stopped
     ports:
       - "${DOCKER_BACK_PORT}:8000"
