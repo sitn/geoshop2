@@ -383,12 +383,23 @@ class ProductSerializer(serializers.ModelSerializer):
         exclude = ['order', 'thumbnail_link', 'ts', 'metadata']
 
 
+class ProductDigestSerializer(ProductSerializer):
+    """
+    Product serializer without geom
+    """
+
+    class Meta:
+        model = Product
+        read_only_fields = ['pricing', 'label', 'group']
+        exclude = ['order', 'thumbnail_link', 'ts', 'metadata', 'geom']
+
+
 class ExtractOrderItemSerializer(OrderItemSerializer):
     """
     Orderitem serializer for extract. Allows to upload file of orderitem.
     """
     extract_result = serializers.FileField(required=False)
-    product = ProductSerializer(read_only=True)
+    product = ProductDigestSerializer(read_only=True)
     data_format = serializers.StringRelatedField(read_only=True)
     is_rejected = serializers.BooleanField(required=False)
 

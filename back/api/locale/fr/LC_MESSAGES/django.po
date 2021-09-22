@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-07-22 08:41+0200\n"
+"POT-Creation-Date: 2021-09-21 14:50+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,37 +23,41 @@ msgstr ""
 "Le contact pour la facturation n'est pas dans le carnet d'adresses du client "
 "à qui appartient cette commande."
 
-#: .\api\admin.py:164
+#: .\api\admin.py:169
+msgid "All the items have been submitted to Extract again."
+msgstr "Tous les produits commandés de cette commande ont été renvoyés à Extract."
+
+#: .\api\admin.py:179
 msgid "Quote has been successfully done and an email has been sent to client"
 msgstr "Le devis de la commande a été calculé et le client a été notifié"
 
-#: .\api\admin.py:168
+#: .\api\admin.py:183
 msgid "Order prices cannot be calculated! Client will not be notified!"
 msgstr ""
 "Le devis de la commande ne peut pas être calculé, le client ne sera pas "
 "notifié"
 
-#: .\api\admin.py:210
+#: .\api\admin.py:225
 msgid "Permissions"
 msgstr "Permissions"
 
-#: .\api\admin.py:213
+#: .\api\admin.py:228
 msgid "Important dates"
 msgstr "Dates importantes"
 
-#: .\api\admin.py:231
+#: .\api\admin.py:246
 msgid "Registration confirmation"
 msgstr "Confirmation d'inscription"
 
-#: .\api\admin.py:235
+#: .\api\admin.py:250
 msgid "Your account has been registered successfully."
 msgstr "Votre compte est désormais actif."
 
-#: .\api\admin.py:242
+#: .\api\admin.py:257
 msgid "User is registered and an email has been sent to client"
 msgstr "Le client est actif et un email lui a été envoyé."
 
-#: .\api\admin.py:246
+#: .\api\admin.py:261
 msgid "User is not active yet! Client will not be notified!"
 msgstr ""
 "Le client n'est pas encore actif, aucun email ne lui a été envoyé pour "
@@ -591,6 +595,10 @@ msgid "The two password fields didn't match."
 msgstr "Les deux mots de passe ne correspondent pas"
 
 #: .\api\templates\admin\api\order_change_form.html:7
+msgid "Reset order for Extract"
+msgstr "Renvoyer l'entier de la commande à Extract"
+
+#: .\api\templates\admin\api\order_change_form.html:8
 msgid "Send quote to client"
 msgstr "Envoyer le devis au client"
 

@@ -155,6 +155,21 @@ class OrderAdmin(CustomGeoModelAdmin):
         return order.client.email
 
     def response_change(self, request, obj):
+        """
+        This is the way to add custom buttons to admin
+        """
+        if "_reset-extract" in request.POST:
+            for item in obj.items.all():
+                item.status = OrderItem.OrderItemStatus.PENDING
+                item.save()
+            obj.status = Order.OrderStatus.READY
+            obj.save()
+            self.message_user(
+                request,
+                _("All the items have been submitted to Extract again."))
+            redirect_url = request.path
+            return HttpResponseRedirect(redirect_url)
+
         if "_quote-done" in request.POST:
             obj.save()
             is_quote_ok = obj.quote_done()
