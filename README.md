@@ -82,10 +82,11 @@ Your database should be ready, now you can run the backend:
 python manage.py runserver
 ```
 
-Translations can be generated with:
+Translations can be generated, static files collected with:
 
 ```powershell
 python manage.py compilemessages --locale=fr
+python .\manage.py collectstatic
 ```
 
 Then, set `DEBUG` to `True` in `back/settings.py` and you can finally run the server:
