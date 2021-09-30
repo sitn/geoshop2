@@ -188,7 +188,7 @@ export class MapComponent implements OnInit {
           this.rotationPageFormat = result.rotationPageFormat;
           this.mapService.setPageFormat(this.selectedPageFormat, this.selectedPageFormatScale, this.rotationPageFormat);
         } else {
-          this.activeTab = 0
+          this.activeTab = 0;
           this.mapService.setBbox(
             result.xMin,
             result.yMin,
