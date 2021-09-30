@@ -27,9 +27,11 @@ import {MatSelectModule} from '@angular/material/select';
 import {MatListModule} from '@angular/material/list';
 import {SharedModule} from '../shared/shared.module';
 import {DownloadComponent} from './download/download.component';
+import {MatTabsModule} from '@angular/material/tabs';
 
 const MODULES = [
   MatMenuModule,
+  MatTabsModule,
   MatIconModule,
   MatTooltipModule,
   MatInputModule,
