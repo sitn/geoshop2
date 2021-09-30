@@ -9,7 +9,7 @@ import Geometry from 'ol/geom/Geometry';
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
 import Feature from 'ol/Feature';
 import {MatDialog} from '@angular/material/dialog';
-import {PageformatComponent} from './pageformat/pageformat.component';
+import {ManualentryComponent} from './manualentry/manualentry.component';
 
 export const nameOfCategoryForGeocoder: { [prop: string]: string; } = {
   neophytes: 'Plantes invasives',
@@ -166,8 +166,8 @@ export class MapComponent implements OnInit {
     fileUpload.click();
   }
 
-  togglePageformat(): void {
-    const dialogRef = this.dialog.open(PageformatComponent, {
+  toggleManualentry(): void {
+    const dialogRef = this.dialog.open(ManualentryComponent, {
       minWidth: 250,
       autoFocus: true,
       data: {

@@ -1,6 +1,6 @@
-import {IPageFormat} from '../_models/IConfig';
+import {IPageFormat} from './IConfig';
 
-export interface IPageFormatDialogData {
+export interface IManualEntryDialogData {
   selectedPageFormatScale: number;
   pageFormatScales: Array<number>;
   selectedPageFormat: IPageFormat;
