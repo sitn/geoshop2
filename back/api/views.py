@@ -367,18 +367,22 @@ class ExtractOrderView(views.APIView):
             ) &
             Q(product__provider=request.user) &
             Q(status=OrderItem.OrderItemStatus.PENDING)
-        )[:settings.EXTRACT_ORDERITEMS_LIMIT].all()
+        ).order_by('order_id')[:settings.EXTRACT_ORDERITEMS_LIMIT].all()
         response_data = []
+        order_data = { 'id': None }
         for item in order_items:
-            # Serialize order to get order informations
-            order_serializer = ExtractOrderSerializer(item.order)
-            order_data = order_serializer.data
+            if order_data['id'] != item.order_id:
+                # Serialize order to get order informations
+                order_serializer = ExtractOrderSerializer(item.order)
+                order_data = order_serializer.data
+                order_data['items'] = []
+                response_data.append(order_data)
+
             # Serialize order item
             item_serializer = ExtractOrderItemSerializer(item)
             item_data = item_serializer.data
             # Replace items in the order by the only concerned item
-            order_data['items'] = [item_data]
-            response_data.append(order_data)
+            order_data['items'].append(item_data)
             # Once fetched by extract, status of item changes
             item.status = OrderItem.OrderItemStatus.IN_EXTRACT
             item.save()
