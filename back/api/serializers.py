@@ -383,7 +383,7 @@ class ProductSerializer(serializers.ModelSerializer):
         exclude = ['order', 'thumbnail_link', 'ts', 'metadata']
 
 
-class ProductDigestSerializer(ProductSerializer):
+class ProductExtractSerializer(ProductSerializer):
     """
     Product serializer without geom
     """
@@ -399,15 +399,18 @@ class ExtractOrderItemSerializer(OrderItemSerializer):
     Orderitem serializer for extract. Allows to upload file of orderitem.
     """
     extract_result = serializers.FileField(required=False)
-    product = ProductDigestSerializer(read_only=True)
+    product = ProductExtractSerializer(read_only=True)
     data_format = serializers.StringRelatedField(read_only=True)
     is_rejected = serializers.BooleanField(required=False)
+    price = None
+    available_formats = None
 
     class Meta(OrderItemSerializer.Meta):
         exclude = ['_price_currency', '_base_fee_currency',
-                   '_price', '_base_fee', 'order', 'status']
+                   '_price', '_base_fee', 'order', 'status',
+                   'last_download', 'price_status']
         read_only_fields = [
-            'id', 'price', 'data_format', 'product', 'srid', 'last_download', 'price_status']
+            'id', 'data_format', 'product', 'srid']
 
     def update(self, instance, validated_data):
         if instance.extract_result:
@@ -436,7 +439,6 @@ class ExtractOrderSerializer(serializers.ModelSerializer):
         queryset=OrderType.objects.all(),
         slug_field='name',
         help_text='Input the translated string value, for example "Privé"')
-    items = ExtractOrderItemSerializer(many=True)
     client = UserIdentitySerializer()
     invoice_contact = IdentitySerializer()
     geom = WKTPolygonField()

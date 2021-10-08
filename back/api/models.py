@@ -474,6 +474,10 @@ class Order(models.Model):
                             product=product,
                             data_format=item.data_format
                         )
+                        # If the data format for the group is not available for the item,
+                        # pick the first possible
+                        if item.data_format not in item.available_formats:
+                            new_item.data_format = product.product_formats.all().first().data_format
                         new_item.set_price()
                         new_item.save()
                 item.delete()

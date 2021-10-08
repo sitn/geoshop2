@@ -40,8 +40,9 @@ class UserContacts(APITestCase):
         self.token = resp.data['access']
 
     def test_post_contact(self):
+        first_name = self.contact['first_name']
         data = {
-            'first_name': self.contact['first_name'],
+            'first_name': first_name,
             'last_name': self.contact['last_name']
         }
         url = reverse('contact-list')
@@ -52,12 +53,12 @@ class UserContacts(APITestCase):
 
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
-        self.assertEqual(response.data['first_name'], self.contact['first_name'], 'Check contact first name')
+        self.assertEqual(response.data['first_name'], first_name, 'Check contact first name')
 
-        response = self.client.get(url, format='json')
+        response = self.client.get(f'{url}?search={first_name}', format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertEqual(
-            response.data['results'][0]['first_name'], self.contact['first_name'], 'Check contact first name')
+            len(response.data['results']), 1, 'Check contacts exists')
 
     def test_delete_contact(self):
         url = '{}?search=Marc'.format(reverse('contact-list'))

@@ -7,7 +7,7 @@ from django.contrib.auth.models import Group
 from django.contrib.gis.geos import Polygon
 from rest_framework import status
 from rest_framework.test import APITestCase
-from api.models import OrderType, DataFormat, Pricing, Product, OrderItem, Order
+from api.models import OrderType, DataFormat, Pricing, Product, ProductFormat, OrderItem, Order
 
 UserModel = get_user_model()
 
@@ -45,6 +45,10 @@ class ProductGroupTests(APITestCase):
             provider=self.user_extract,
             status=Product.ProductStatus.PUBLISHED
         )
+        self.formats = DataFormat.objects.bulk_create([
+            DataFormat(name="DXF"),
+            DataFormat(name="DWG"),
+        ])
         self.products = Product.objects.bulk_create([
             Product(
                 label="Réseau d'eau de la commune d'Ankh",
@@ -82,6 +86,11 @@ class ProductGroupTests(APITestCase):
                 geom=Polygon.from_bbox((2564000, 1212000, 2570000, 1207000)),
                 status=Product.ProductStatus.PUBLISHED_ONLY_IN_GROUP
             )
+        ])
+        ProductFormat.objects.bulk_create([
+            ProductFormat(product=self.products[0], data_format=self.formats[0]),
+            ProductFormat(product=self.products[1], data_format=self.formats[1]),
+            ProductFormat(product=self.products[2], data_format=self.formats[0]),
         ])
         self.order = Order.objects.create(
             title='Test 1734',

@@ -104,7 +104,7 @@ class OrderTests(APITestCase):
         self.assertEqual(response.data[0]['title'], 'Test 1734', 'Check that previous confirmed order is available')
         order_id = response.data[0]['id']
         order_item_id1 = response.data[0]['items'][0]['id']
-        order_item_id2 = response.data[1]['items'][0]['id']
+        order_item_id2 = response.data[0]['items'][1]['id']
 
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.content)
@@ -166,7 +166,7 @@ class OrderTests(APITestCase):
         url = reverse('extract_order')
         response = self.client.get(url, format='json')
         order_item_id1 = response.data[0]['items'][0]['id']
-        order_item_id2 = response.data[1]['items'][0]['id']
+        order_item_id2 = response.data[0]['items'][1]['id']
         url = reverse('extract_orderitem', kwargs={'pk': order_item_id1})
 
         response = self.client.put(url, {'is_rejected': True, 'comment': 'Interdit de commander ces données'})
@@ -193,7 +193,7 @@ class OrderTests(APITestCase):
         url = reverse('extract_order')
         response = self.client.get(url, format='json')
         order_item_id1 = response.data[0]['items'][0]['id']
-        order_item_id2 = response.data[1]['items'][0]['id']
+        order_item_id2 = response.data[0]['items'][1]['id']
         url = reverse('extract_orderitem', kwargs={'pk': order_item_id1})
 
         response = self.client.put(url, {'is_rejected': True, 'comment': 'Interdit de commander ces données'})
