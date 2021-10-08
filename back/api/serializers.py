@@ -383,7 +383,7 @@ class ProductSerializer(serializers.ModelSerializer):
         exclude = ['order', 'thumbnail_link', 'ts', 'metadata']
 
 
-class ProductDigestSerializer(ProductSerializer):
+class ProductExtractSerializer(ProductSerializer):
     """
     Product serializer without geom
     """
@@ -399,7 +399,7 @@ class ExtractOrderItemSerializer(OrderItemSerializer):
     Orderitem serializer for extract. Allows to upload file of orderitem.
     """
     extract_result = serializers.FileField(required=False)
-    product = ProductDigestSerializer(read_only=True)
+    product = ProductExtractSerializer(read_only=True)
     data_format = serializers.StringRelatedField(read_only=True)
     is_rejected = serializers.BooleanField(required=False)
     price = None
