@@ -646,4 +646,23 @@ export class MapService {
     this.drawingSource.addFeature(feature);
     this.featureFromDrawing?.set('area', poly);
   }
+
+  public setBbox(xmin: number, ymin: number, xmax: number, ymax: number) {
+    this.eraseDrawing();
+    this.transformInteraction.setActive(true);
+    const coordinates: Array<Array<Coordinate>> = [[
+      [xmin, ymin],
+      [xmin, ymax],
+      [xmax, ymax],
+      [xmax, ymin],
+      [xmin, ymin],
+    ]];
+    const poly = new Polygon(coordinates);
+    const feature = new Feature();
+    feature.setGeometry(poly);
+    this.map.getView().fit(poly, { nearest: true });
+    this.drawingSource.addFeature(feature);
+    this.featureFromDrawing?.set('area', poly);
+  }
+
 }

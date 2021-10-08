@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PageformatComponent } from './pageformat.component';
+import { ManualentryComponent } from './manualentry.component';
 
-describe('PageformatComponent', () => {
-  let component: PageformatComponent;
-  let fixture: ComponentFixture<PageformatComponent>;
+describe('ManualentryComponent', () => {
+  let component: ManualentryComponent;
+  let fixture: ComponentFixture<ManualentryComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ PageformatComponent ]
+      declarations: [ ManualentryComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(PageformatComponent);
+    fixture = TestBed.createComponent(ManualentryComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -3,8 +3,16 @@
     display: flex;
     flex-direction: column;
     user-select: none;
+    margin-top: 5px;
   }
   .mat-dialog-actions {
     justify-content: space-between;
+  }
+  .cdk-drag-handle {
+    cursor: grab;
+  }
+  .cdk-drag-handle:active {
+    pointer-events: auto;
+    cursor: grabbing;
   }
 }

@@ -21,15 +21,17 @@ import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
-import {PageformatComponent} from './map/pageformat/pageformat.component';
+import {ManualentryComponent} from './map/manualentry/manualentry.component';
 import {DragDropModule} from '@angular/cdk/drag-drop';
 import {MatSelectModule} from '@angular/material/select';
 import {MatListModule} from '@angular/material/list';
 import {SharedModule} from '../shared/shared.module';
 import {DownloadComponent} from './download/download.component';
+import {MatTabsModule} from '@angular/material/tabs';
 
 const MODULES = [
   MatMenuModule,
+  MatTabsModule,
   MatIconModule,
   MatTooltipModule,
   MatInputModule,
@@ -56,7 +58,7 @@ const MODULES = [
     CatalogComponent,
     DownloadComponent,
     DialogMetadataComponent,
-    PageformatComponent
+    ManualentryComponent
   ],
   imports: [
     CommonModule,

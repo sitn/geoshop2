@@ -9,7 +9,7 @@ import Geometry from 'ol/geom/Geometry';
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
 import Feature from 'ol/Feature';
 import {MatDialog} from '@angular/material/dialog';
-import {PageformatComponent} from './pageformat/pageformat.component';
+import {ManualentryComponent} from './manualentry/manualentry.component';
 
 export const nameOfCategoryForGeocoder: { [prop: string]: string; } = {
   neophytes: 'Plantes invasives',
@@ -57,6 +57,11 @@ export class MapComponent implements OnInit {
   selectedPageFormatScale = 500;
   rotationPageFormat = 0;
   pageFormatScales: Array<number> = [500, 1000, 2000, 5000];
+  xMin = null;
+  yMin = null;
+  xMax = null;
+  yMax = null;
+  activeTab = 0;
 
   // Geocoder
   formGeocoder = new FormGroup({
@@ -161,8 +166,8 @@ export class MapComponent implements OnInit {
     fileUpload.click();
   }
 
-  togglePageformat(): void {
-    const dialogRef = this.dialog.open(PageformatComponent, {
+  toggleManualentry(): void {
+    const dialogRef = this.dialog.open(ManualentryComponent, {
       minWidth: 250,
       autoFocus: true,
       data: {
@@ -170,16 +175,27 @@ export class MapComponent implements OnInit {
         pageFormats: this.pageformats,
         selectedPageFormat: this.selectedPageFormat,
         selectedPageFormatScale: this.selectedPageFormatScale,
-        rotationPageFormat: this.rotationPageFormat
+        rotationPageFormat: this.rotationPageFormat,
+        activeTab: this.activeTab
       }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.selectedPageFormat = result.selectedPageFormat;
-        this.selectedPageFormatScale = result.selectedPageFormatScale;
-        this.rotationPageFormat = result.rotationPageFormat;
-        this.mapService.setPageFormat(this.selectedPageFormat, this.selectedPageFormatScale, this.rotationPageFormat);
+        if (result.activeTab === 0) {
+          this.selectedPageFormat = result.selectedPageFormat;
+          this.selectedPageFormatScale = result.selectedPageFormatScale;
+          this.rotationPageFormat = result.rotationPageFormat;
+          this.mapService.setPageFormat(this.selectedPageFormat, this.selectedPageFormatScale, this.rotationPageFormat);
+        } else {
+          this.activeTab = 0;
+          this.mapService.setBbox(
+            result.xMin,
+            result.yMin,
+            result.xMax,
+            result.yMax,
+          );
+        }
       }
     });
   }
