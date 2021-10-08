@@ -657,7 +657,6 @@ export class MapService {
       [xmax, ymin],
       [xmin, ymin],
     ]];
-    console.log(coordinates)
     const poly = new Polygon(coordinates);
     const feature = new Feature();
     feature.setGeometry(poly);
