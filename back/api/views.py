@@ -367,7 +367,7 @@ class ExtractOrderView(views.APIView):
             ) &
             Q(product__provider=request.user) &
             Q(status=OrderItem.OrderItemStatus.PENDING)
-        ).order_by('order_id')[:settings.EXTRACT_ORDERITEMS_LIMIT].all()
+        ).order_by('order_id').all()
         response_data = []
         order_data = { 'id': None }
         for item in order_items:
