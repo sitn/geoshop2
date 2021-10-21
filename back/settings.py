@@ -195,5 +195,3 @@ INTRA_LEGEND_URL = os.environ.get('INTRA_LEGEND_URL', '')
 
 # Geometries settings
 DEFAULT_SRID = 2056
-# How many items are given each time Extract asks
-EXTRACT_ORDERITEMS_LIMIT = 15
