@@ -151,9 +151,6 @@ class OrderTests(APITestCase):
         url = reverse('order-download-link', kwargs={'pk': order_id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertIsNotNone(response.data['detail'], 'response has detail')
-        time.sleep(0.5)
-        response = self.client.get(url)
         self.assertIsNotNone(response.data['download_link'], 'Check file is visible for user')
 
         # check if second file has been downloaded

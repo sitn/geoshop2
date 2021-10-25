@@ -47,14 +47,6 @@ class WKTPolygonField(serializers.Field):
         # number of decimals
         wkt_w.precision = 6
 
-        major_gdal_version = int(gdal_version().decode("utf-8")[0])
-        if major_gdal_version > 2:
-            new_geom = []
-            # transform Long/Lat to Lat/Long for GDAL version 3.* and later
-            for point in range(len(new_value.coords[0])):
-                new_geom.append(new_value.coords[0][point][::-1])
-            new_value = Polygon(new_geom)
-
         if new_value.area > 0:
             return wkt_w.write(new_value).decode()
         return 'POLYGON EMPTY'
