@@ -9,14 +9,14 @@ autopep8 = "*"
 pylint-django = "*"
 
 [packages]
-django = {version = "<3.0.9"}
-djangorestframework = {version = "==3.11.0"}
+django = "==3.2.8"
+djangorestframework = "==3.12.4"
 markdown = "*"
 django-filter = "*"
 djangorestframework-gis = "*"
-psycopg2 = "*"
+psycopg2 = "==2.8.6"
 django-money = "*"
-djangorestframework-simplejwt = "*"
+djangorestframework-simplejwt = "==5.0.0"
 django-allauth = "*"
 django-cors-headers = "*"
 python-dotenv = "*"

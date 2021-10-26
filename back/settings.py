@@ -88,7 +88,7 @@ WSGI_APPLICATION = 'wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
-
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
@@ -176,9 +176,6 @@ STATIC_URL = FORCE_SCRIPT_NAME + '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.environ.get('MEDIA_ROOT', os.path.join(BASE_DIR, 'files'))
 MEDIA_URL = os.environ.get('MEDIA_URL', FORCE_SCRIPT_NAME + '/files/')
-
-if os.environ.get('GDAL_IN_VENV', None) == "True":
-    GDAL_LIBRARY_PATH = os.path.join(BASE_DIR, '.venv/Lib/site-packages/osgeo/gdal204.dll')
 
 FRONT_PROTOCOL = os.environ["FRONT_PROTOCOL"]
 FRONT_URL = os.environ["FRONT_URL"]

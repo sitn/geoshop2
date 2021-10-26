@@ -30,7 +30,41 @@ CREATE EXTENSION postgis;
 CREATE SCHEMA geoshop AUTHORIZATION geoshop;
 ```
 
-### Backend
+### Backend with docker
+
+Create an .env.local based on .env.sample, then build:
+
+```powershell
+cd back
+docker build -t geoshop_api --build-arg ENV_FILE=.env.local .
+```
+
+Now you can run it with:
+
+```powershell
+docker run -d --rm --name geoshop --env-file=.env.local -p 8000:8000 -v ${PWD}:/app/geoshop_back geoshop_api gunicorn --reload wsgi -b :8000
+```
+
+Run tests:
+
+```powershell
+docker run --rm --env-file=.env.local -v ${PWD}:/app/geoshop_back geoshop_api python manage.py test api
+```
+
+Make messages for translation:
+
+```powershell
+docker run --rm --env-file=.env.local -v ${PWD}:/app/geoshop_back:rw geoshop_api python manage.py makemessages -l fr
+```
+
+Stop the server:
+```powershell
+docker stop geoshop
+```
+
+### Backend without docker on windows
+
+> :warning: **No longer maintained**: Installing GDAL in windows is really painfull, use docker for backend.
 
 Install the app. If you want your `venv` to be inside your project directory, you need to set `PIPENV_VENV_IN_PROJECT` environment variable, otherwise it'll go to your profile, if you want `DEBUG` to be enabled, change it in `settings.py` file but never commit it with debug enabled:
 
