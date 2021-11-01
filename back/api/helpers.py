@@ -75,22 +75,42 @@ def send_geoshop_email(subject, message='', recipient=None, template_name=None, 
         fail_silently=False,
     )
 
+def _rename_duplicate_file(filenames_dict, filename):
+    """
+    Keeps track of filenames in a filenames_dict and counts number of
+    occurences for duplicate filenames returning
+    the up-to-date filename_dict and an unique filename.
+    """
+    final_name = filename
+    if filename in filenames_dict:
+        occurrences = filenames_dict[filename] + 1
+        final_name = Path(filename)
+        final_name = f'{final_name.stem}_{occurrences}{final_name.suffix}'
+        filenames_dict[filename] = occurrences
+    else:
+        filenames_dict[filename] = 0
+    return filenames_dict, final_name
+
 
 def _zip_them_all(full_zip_path, files_list_path):
     """
-    Takes a list of zip paths and brings the content together in a single zip
+    Takes a list of zip paths and brings the content together in a single zip.
+    If duplicate names are detected, it will rename the files.
     """
     full_zip_file = zipfile.ZipFile(full_zip_path, 'w', zipfile.ZIP_DEFLATED)
-
+    filenames_dict = {}
     for file_path in files_list_path:
         if file_path.endswith(".zip"):
             zip_file = zipfile.ZipFile('{}/{}'.format(settings.MEDIA_ROOT, file_path), 'r')
             for unzipped_file in zip_file.namelist():
-                full_zip_file.writestr(unzipped_file, zip_file.open(unzipped_file).read())
+                filenames_dict, final_name = _rename_duplicate_file(filenames_dict, unzipped_file)
+                full_zip_file.writestr(final_name, zip_file.open(unzipped_file).read())
+
         elif file_path != '':
+            filenames_dict, final_name = _rename_duplicate_file(filenames_dict, Path(file_path).name)
             full_zip_file.write(
                 '{}/{}'.format(settings.MEDIA_ROOT, file_path),
-                Path(file_path).name)
+                final_name)
 
     full_zip_file.close()
 
