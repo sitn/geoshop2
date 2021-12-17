@@ -24,7 +24,7 @@
     "@ngrx/effects": "^13.0.2",
     "@ngrx/entity": "^13.0.2",
     "@ngrx/store": "^13.0.2",
-    "angular-split": "^3.0.3",
+    "angular-split": "^13.1.0",
     "lodash-es": "^4.17.15",
     "ol": "^6.2.1",
     "ol-ext": "^3.1.16",
