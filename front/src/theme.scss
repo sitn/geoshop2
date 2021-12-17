@@ -2,6 +2,7 @@
 * Generated theme by Material Theme Generator
 * https://materialtheme.arcsine.dev
 */
+@use '~@angular/material' as mat;
 
 @import '~@angular/material/theming';
 // Include the common styles for Angular Material. We include this here so that you only
@@ -12,19 +13,19 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500');
 
 $fontConfig: (
-  display-4: mat-typography-level(112px, 112px, 300, 'Roboto', -0.0134em),
-  display-3: mat-typography-level(56px, 56px, 400, 'Roboto', -0.0089em),
-  display-2: mat-typography-level(45px, 48px, 400, 'Roboto', 0.0000em),
-  display-1: mat-typography-level(34px, 40px, 400, 'Roboto', 0.0074em),
-  headline: mat-typography-level(24px, 32px, 400, 'Roboto', 0.0000em),
-  title: mat-typography-level(20px, 32px, 500, 'Roboto', 0.0075em),
-  subheading-2: mat-typography-level(16px, 28px, 400, 'Roboto', 0.0094em),
-  subheading-1: mat-typography-level(15px, 24px, 500, 'Roboto', 0.0067em),
-  body-2: mat-typography-level(14px, 24px, 500, 'Roboto', 0.0179em),
-  body-1: mat-typography-level(14px, 20px, 400, 'Roboto', 0.0179em),
-  button: mat-typography-level(14px, 14px, 500, 'Roboto', 0.0893em),
-  caption: mat-typography-level(12px, 20px, 400, 'Roboto', 0.0333em),
-  input: mat-typography-level(inherit, 1.125, 400, 'Roboto', 1.5px)
+  display-4: mat.define-typography-level(112px, 112px, 300, 'Roboto', -0.0134em),
+  display-3: mat.define-typography-level(56px, 56px, 400, 'Roboto', -0.0089em),
+  display-2: mat.define-typography-level(45px, 48px, 400, 'Roboto', 0.0000em),
+  display-1: mat.define-typography-level(34px, 40px, 400, 'Roboto', 0.0074em),
+  headline: mat.define-typography-level(24px, 32px, 400, 'Roboto', 0.0000em),
+  title: mat.define-typography-level(20px, 32px, 500, 'Roboto', 0.0075em),
+  subheading-2: mat.define-typography-level(16px, 28px, 400, 'Roboto', 0.0094em),
+  subheading-1: mat.define-typography-level(15px, 24px, 500, 'Roboto', 0.0067em),
+  body-2: mat.define-typography-level(14px, 24px, 500, 'Roboto', 0.0179em),
+  body-1: mat.define-typography-level(14px, 20px, 400, 'Roboto', 0.0179em),
+  button: mat.define-typography-level(14px, 14px, 500, 'Roboto', 0.0893em),
+  caption: mat.define-typography-level(12px, 20px, 400, 'Roboto', 0.0333em),
+  input: mat.define-typography-level(inherit, 1.125, 400, 'Roboto', 1.5px)
 );
 
 // Foreground Elements
@@ -37,7 +38,7 @@ $dark-disabled-text: rgba($dark-primary-text, 0.38);
 $dark-dividers: rgba($dark-primary-text, 0.12);
 $dark-focused: rgba($dark-primary-text, 0.12);
 
-$mat-light-theme-foreground: (
+$light-theme-foreground-palette: mat.$light-theme-foreground-palette (
   base: black,
   divider: $dark-dividers,
   dividers: $dark-dividers,
@@ -64,7 +65,7 @@ $light-disabled-text: rgba($light-primary-text, 0.5);
 $light-dividers: rgba($light-primary-text, 0.12);
 $light-focused: rgba($light-primary-text, 0.12);
 
-$mat-dark-theme-foreground: (
+$dark-theme-foreground-palette: mat.$dark-theme-foreground-palette (
   base: $light-text,
   divider: $light-dividers,
   dividers: $light-dividers,
@@ -95,7 +96,7 @@ $dark-bg-tooltip: lighten(#2c2c2c, 20%);
 $dark-bg-alpha-4: rgba(#2c2c2c, 0.04);
 $dark-bg-alpha-12: rgba(#2c2c2c, 0.12);
 
-$mat-light-theme-background: (
+$light-theme-background-palette: mat.$light-theme-background-palette (
   background: $light-background,
   status-bar: $light-bg-darker-20,
   app-bar: $light-bg-darker-5,
@@ -123,7 +124,7 @@ $light-bg-alpha-4: rgba(#fafafa, 0.04);
 $light-bg-alpha-12: rgba(#fafafa, 0.12);
 
 // Background palette for dark themes.
-$mat-dark-theme-background: (
+$dark-theme-background-palette: mat.$dark-theme-background-palette (
   background: $dark-background,
   status-bar: $dark-bg-lighter-20,
   app-bar: $dark-bg-lighter-5,
@@ -142,7 +143,7 @@ $mat-dark-theme-background: (
 );
 
 // Compute font config
-@include mat-core($fontConfig);
+@include mat.core($fontConfig);
 
 // Theme Config
 
@@ -166,7 +167,7 @@ $mat-primary: (
     darker: $light-primary-text,
   )
 );
-$theme-primary: mat-palette($mat-primary, main, lighter, darker);
+$theme-primary: mat.define-palette($mat-primary, main, lighter, darker);
 
 body {
   --accent-color: #146056;
@@ -188,7 +189,7 @@ $mat-accent: (
     darker: $light-primary-text,
   )
 );
-$theme-accent: mat-palette($mat-accent, main, lighter, darker);
+$theme-accent: mat.define-palette($mat-accent, main, lighter, darker);
 
 body {
   --warn-color: #e24848;
@@ -210,13 +211,13 @@ $mat-warn: (
     darker: $light-primary-text,
   )
 );
-$theme-warn: mat-palette($mat-warn, main, lighter, darker);
+$theme-warn: mat.define-palette($mat-warn, main, lighter, darker);
 
-$theme: mat-light-theme($theme-primary, $theme-accent, $theme-warn);
-$altTheme: mat-dark-theme($theme-primary, $theme-accent, $theme-warn);
+$theme: mat.define-light-theme($theme-primary, $theme-accent, $theme-warn);
+$altTheme: mat.define-dark-theme($theme-primary, $theme-accent, $theme-warn);
 
 // Theme Init
-@include angular-material-theme($theme);
+@include mat.all-component-themes($theme);
 $primary: map-get($theme, primary);
 $accent: map-get($theme, accent);
 $warning: map-get($theme, warn);
@@ -224,7 +225,7 @@ $dark: #393939;
 $info: #4177F6;
 
 .theme-alternate {
-  @include angular-material-theme($altTheme);
+  @include mat.all-component-themes($altTheme);
 
   #geocoder-container {
     background-color: $dark;
@@ -245,7 +246,7 @@ $info: #4177F6;
   .list-group-item,
   .items-container {
     .item-price {
-      color: mat-color($primary);
+      color: mat.get-color-from-palette($primary);
     }
 
     &:nth-child(even) {
@@ -274,11 +275,11 @@ $info: #4177F6;
 }
 
 .text-primary {
-  color: mat-color($primary);
+  color: mat.get-color-from-palette($primary);
 }
 
 .text-accent {
-  color: mat-color($accent);
+  color: mat.get-color-from-palette($accent);
 }
 
 .text-secondary {
@@ -286,11 +287,11 @@ $info: #4177F6;
 }
 
 .text-error {
-  color: mat-color($warning);
+  color: mat.get-color-from-palette($warning);
 
   &:visited,
   &:focus {
-    color: mat-color($warning);
+    color: mat.get-color-from-palette($warning);
   }
 }
 
@@ -300,17 +301,17 @@ $info: #4177F6;
 }
 
 .primary-container {
-  background-color: mat-color($primary);
+  background-color: mat.get-color-from-palette($primary);
   color: black;
 }
 
 .warning-container {
   margin: 10px;
   padding: 5px;
-  border: solid 1px mat-color($warning);
+  border: solid 1px mat.get-color-from-palette($warning);
 
   mat-icon {
-    color: mat-color($warning);
+    color: mat.get-color-from-palette($warning);
     margin-right: 10px;
   }
 }
@@ -326,7 +327,7 @@ $info: #4177F6;
 }
 
 .as-split-gutter {
-  background-color: mat-color($primary) !important;
+  background-color: mat.get-color-from-palette($primary) !important;
 }
 
 #geocoder-container {
@@ -334,23 +335,23 @@ $info: #4177F6;
 }
 
 .scale-line {
-  background-color: mat-color($primary);
+  background-color: mat.get-color-from-palette($primary);
 }
 
 .notification-success {
   &.mat-snack-bar-container {
-    background: mat-color($primary);
+    background: mat.get-color-from-palette($primary);
     color: white;
   }
 }
 
 .notification-info {
   &.mat-snack-bar-container {
-    background: mat-color($accent);
+    background: mat.get-color-from-palette($accent);
     color: white;
 
     .mat-button {
-      background: mat-color($accent, darker);
+      background: mat.get-color-from-palette($accent, darker);
       color: white;
     }
   }
@@ -358,11 +359,11 @@ $info: #4177F6;
 
 .notification-error {
   &.mat-snack-bar-container {
-    background: mat-color($warning);
+    background: mat.get-color-from-palette($warning);
     color: white;
 
     .mat-button {
-      background: mat-color($warning, darker);
+      background: mat.get-color-from-palette($warning, darker);
       color: white;
     }
   }
