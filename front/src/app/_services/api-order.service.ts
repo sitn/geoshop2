@@ -15,19 +15,22 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 })
 export class ApiOrderService {
 
-  private apiUrl: string;
+  private apiUrl: string | undefined;
 
   constructor(
     private http: HttpClient,
     private configService: ConfigService,
     private snackBar: MatSnackBar,
-  ) {
+  ) { }
+
+  private _getApiUrl() {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config?.apiUrl;
+    }
   }
 
   getOrder(url: string): Observable<IOrder | null> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     return !url ?
       of(null) :
@@ -40,9 +43,7 @@ export class ApiOrderService {
   }
 
   getOrderByUUID(uuid: string): Observable<Order | null> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/download/${uuid}`);
 
@@ -56,9 +57,7 @@ export class ApiOrderService {
   }
 
   getOrderType(url: string): Observable<IOrderType | null> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     return !url ?
       of(null) :
@@ -71,9 +70,7 @@ export class ApiOrderService {
   }
 
   getOrderTypes() {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/ordertype/`);
 
@@ -87,9 +84,7 @@ export class ApiOrderService {
   }
 
   getOrders(offset?: number, limit?: number, ordering?: string): Observable<IApiResponse<IOrderSummary> | null> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/order/`);
     if (limit) {
@@ -132,9 +127,7 @@ export class ApiOrderService {
   }
 
   getLastDraft(): Observable<Order | null> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/order/last_draft/`);
 
@@ -148,9 +141,7 @@ export class ApiOrderService {
   }
 
   createOrder(jsonOrder: IOrderToPost, contact: Contact | undefined, isAddressForCurrentUser: boolean): Observable<IOrder | null> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/order/`);
 
@@ -174,9 +165,7 @@ export class ApiOrderService {
   }
 
   updateOrder(order: Order, contact: Contact | undefined, isAddressForCurrentUser: boolean): Observable<IOrder | null> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/order/`);
 
@@ -203,9 +192,7 @@ export class ApiOrderService {
   }
 
   confirmOrder(orderId: number) {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/order/${orderId}/confirm/`);
 
@@ -224,9 +211,7 @@ export class ApiOrderService {
   }
 
   public downloadOrder(orderId: number, isOrderItem = false) {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const orderText = isOrderItem ? 'orderitem' : 'order';
     const url = new URL(`${this.apiUrl}/${orderText}/${orderId}/download_link/`);
@@ -240,9 +225,7 @@ export class ApiOrderService {
   }
 
   public downloadOrderByUUID(uuid: string) {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/download/${uuid}/get_link/`);
 
@@ -255,14 +238,11 @@ export class ApiOrderService {
   }
 
   getContact(contactId: number | string) {
+    this._getApiUrl();
+
     if (contactId < 0 || typeof contactId !== 'number') {
       return of(null);
     }
-
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
-
     const url = new URL(`${this.apiUrl}/contact/${contactId}/`);
 
     return this.http.get<IContact | null>(url.toString())
@@ -274,13 +254,11 @@ export class ApiOrderService {
   }
 
   createOrUpdateContact(contact: Contact | undefined): Observable<IContact | null> {
+    this._getApiUrl();
+
     if (!contact || contact.HasId) {
       // @ts-ignore
       return of(contact);
-    }
-
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
     }
 
     const url = new URL(`${this.apiUrl}/contact/`);
@@ -294,9 +272,7 @@ export class ApiOrderService {
   }
 
   updateOrderItemDataFormat(dataFormat: string, orderItemId: number): Observable<IOrderItem | null> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/orderitem/${orderItemId}/`);
 
@@ -309,9 +285,7 @@ export class ApiOrderService {
   }
 
   updateOrderItemsDataFormats(order: Order): Observable<IOrder | null> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/order/${order.id}/`);
 
@@ -332,9 +306,7 @@ export class ApiOrderService {
   }
 
   delete(orderId: number) {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/order/${orderId}/`);
 
@@ -347,9 +319,7 @@ export class ApiOrderService {
   }
 
   deleteOrderItem(orderItemId: number) {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/orderitem/${orderItemId}/`);
 
@@ -362,9 +332,7 @@ export class ApiOrderService {
   }
 
   deleteContact(contactId: number) {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/contact/${contactId}/`);
 

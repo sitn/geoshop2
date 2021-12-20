@@ -25,11 +25,13 @@ import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
 import Point from 'ol/geom/Point';
 import GeoJSON from 'ol/format/GeoJSON';
 import Projection from 'ol/proj/Projection';
-import { boundingExtent, buffer, Extent, getArea } from 'ol/extent';
+import { boundingExtent, buffer, getArea } from 'ol/extent';
 import MultiPoint from 'ol/geom/MultiPoint';
 import { fromLonLat } from 'ol/proj';
 import KML from 'ol/format/KML';
 import { Coordinate } from 'ol/coordinate';
+import Geometry from 'ol/geom/Geometry';
+import TileSource from 'ol/source/Tile';
 
 // ol-ext
 // @ts-ignore
@@ -64,12 +66,12 @@ export class MapService {
   // Drawing
   private transformInteraction: Transform;
   private isDrawModeActivated = false;
-  private drawingSource: VectorSource;
-  private geocoderSource: VectorSource;
-  private drawingLayer: VectorLayer;
+  private drawingSource: VectorSource<Geometry>;
+  private geocoderSource: VectorSource<Geometry>;
+  private drawingLayer: VectorLayer<VectorSource<Geometry>>;
   private modifyInteraction: Modify;
   private drawInteraction: Draw;
-  private featureFromDrawing: Feature | null;
+  private featureFromDrawing: Feature<Geometry> | null;
   public readonly drawingStyle = [
     new Style({
       stroke: new Stroke({
@@ -107,11 +109,11 @@ export class MapService {
   public isDrawing$ = new BehaviorSubject<boolean>(false);
 
   public get Basemaps() {
-    return this.configService.config.basemaps;
+    return this.configService.config?.basemaps;
   }
 
   public get PageFormats() {
-    return this.configService.config.pageformats;
+    return this.configService.config?.pageformats;
   }
 
   public get FirstBaseMapLayer() {
@@ -228,7 +230,7 @@ export class MapService {
     this.map.updateSize();
   }
 
-  public async createTileLayer(baseMapConfig: IBasemap, isVisible: boolean): Promise<TileLayer> {
+  public async createTileLayer(baseMapConfig: IBasemap, isVisible: boolean): Promise<TileLayer<TileSource> | undefined> {
     if (!this.capabilities) {
       await this.loadCapabilities();
     }
@@ -237,6 +239,9 @@ export class MapService {
       layer: baseMapConfig.id,
       matrixSet: baseMapConfig.matrixSet,
     });
+    if (options == null) {
+      return undefined;
+    }
     const source = new WMTS(options);
     const tileLayer = new TileLayer({
       source,
@@ -250,8 +255,9 @@ export class MapService {
   }
 
   private async loadCapabilities() {
-    if (!this.capabilities) {
-      const response = await fetch(this.configService.config.baseMapCapabilitiesUrl);
+    const url = this.configService.config?.baseMapCapabilitiesUrl;
+    if (!this.capabilities && url) {
+      const response = await fetch(url);
       const parser = new WMTSCapabilities();
       this.capabilities = parser.read(await response.text());
     }
@@ -262,7 +268,11 @@ export class MapService {
       return of([]);
     }
     const coordinateResult = this.coordinateSearchService.stringCoordinatesToFeature(inputText);
-    const url = new URL(this.configService.config.geocoderUrl);
+    const urlText = this.configService.config?.geocoderUrl;
+    if (!urlText) {
+      return of([]);
+    }
+    const url = new URL(urlText);
     url.searchParams.append('partitionlimit', '10');
     url.searchParams.append('query', inputText);
     return this.httpClient.get(url.toString()).pipe(
@@ -286,7 +296,7 @@ export class MapService {
    *
    * @param feature - The feature returned by the geocoder
    */
-  public addFeatureFromGeocoderToDrawing(feature: Feature) {
+  public addFeatureFromGeocoderToDrawing(feature: Feature<Geometry>) {
     this.geocoderSource.clear();
     if (this.featureFromDrawing) {
       this.drawingSource.removeFeature(this.featureFromDrawing);
@@ -300,34 +310,36 @@ export class MapService {
       const bv = 50;
       poly = fromExtent(buffer(text, bv));
     } else {
-      const originalExtent = feature.getGeometry().getExtent();
-      const area = getArea(originalExtent);
-      if (geometry instanceof Polygon && area > 1000000) {
-        poly = geometry;
-      } else {
-        const bufferValue = area * 0.001;
-        poly = fromExtent(buffer(originalExtent, bufferValue));
+      const originalExtent = feature.getGeometry()?.getExtent();
+      if (originalExtent) {
+        const area = getArea(originalExtent);
+        if (geometry instanceof Polygon && area > 1000000) {
+          poly = geometry;
+        } else {
+          const bufferValue = area * 0.001;
+          poly = fromExtent(buffer(originalExtent, bufferValue));
+        }
+        feature.setGeometry(poly);
+        this.drawingSource.addFeature(feature);
+        this.modifyInteraction.setActive(true);
+
+        this.map.getView().fit(poly, {
+          padding: [100, 100, 100, 100]
+        });
       }
     }
-
-    feature.setGeometry(poly);
-    this.drawingSource.addFeature(feature);
-    this.modifyInteraction.setActive(true);
-
-    this.map.getView().fit(poly, {
-      padding: [100, 100, 100, 100]
-    });
   }
 
   private async initializeMap() {
-    proj4.defs(this.configService.config.epsg,
+    const EPSG = this.configService.config?.epsg || 'EPSG2056'
+    proj4.defs(EPSG,
       '+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333'
       + ' +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel '
       + '+towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs');
     register(proj4);
 
     const projection = new Projection({
-      code: this.configService.config.epsg,
+      code: EPSG,
       // @ts-ignore
       extent: this.configService.config.initialExtent,
     });
@@ -365,12 +377,17 @@ export class MapService {
   /* Base Map Managment */
   public async generateBasemapLayersFromConfig() {
     let isVisible = true;  // -> display the first one
-
+    let basemaps: IBasemap[] = [];
+    if (this.configService.config?.basemaps) {
+      basemaps = this.configService.config?.basemaps;
+    }
     try {
-      for (const baseMapConfig of this.configService.config.basemaps) {
+      for (const baseMapConfig of basemaps) {
         const tileLayer = await this.createTileLayer(baseMapConfig, isVisible);
-        this.basemapLayers.push(tileLayer);
-        isVisible = false;
+        if (tileLayer) {
+          this.basemapLayers.push(tileLayer);
+          isVisible = false;
+        }
       }
     } catch (error) {
       console.error(error);
@@ -400,11 +417,14 @@ export class MapService {
     }
 
     for (const [i, featureLike] of features.entries()) {
-      if (featureLike.getGeometry().getType() !== 'Polygon') {
+      if (featureLike.getGeometry()?.getType() !== 'Polygon') {
         continue;
       }
       const feature = new Feature(featureLike.getGeometry());
-      this.map.getView().fit(feature.getGeometry().getExtent(), { nearest: true });
+      const geom = feature.getGeometry();
+      if (geom) {
+        this.map.getView().fit(geom.getExtent(), { nearest: true });
+      }
       if (this.featureFromDrawing) {
         this.drawingSource.removeFeature(this.featureFromDrawing);
       }
@@ -428,14 +448,15 @@ export class MapService {
     });
 
     dragAndDropInteraction.on('addfeatures', (event: DragAndDropEvent) => {
-      const isDataOk = this.addSingleFeatureToDrawingSource(event.features, event.file.name);
-
+      let isDataOk = false;
+      if (event.features) {
+        isDataOk = this.addSingleFeatureToDrawingSource(event.features, event.file.name);
+      }
       if (!isDataOk) {
         event.preventDefault();
         event.stopPropagation();
         return;
       }
-
     });
 
     return dragAndDropInteraction;
@@ -473,7 +494,7 @@ export class MapService {
     if (this.featureFromDrawing) {
       this.drawingSource.addFeature(this.featureFromDrawing);
     }
-    this.drawingSource.on('addfeature', (evt) => {
+    this.drawingSource.on('addfeature', (evt: { feature: any; }) => {
       this.featureFromDrawing = evt.feature;
       this.setAreaToCurrentFeature();
 
@@ -512,7 +533,8 @@ export class MapService {
       this.transformInteraction.setActive(false);
     });
     this.modifyInteraction.on('modifyend', (evt) => {
-      this.featureFromDrawing = evt.features.item(0);
+      const firstFeature = new Feature(evt.features.item(0))
+      this.featureFromDrawing = firstFeature;
       setTimeout(() => {
         this.transformInteraction.setActive(true);
       }, 500);
@@ -530,11 +552,18 @@ export class MapService {
 
   private setAreaToCurrentFeature() {
     if (this.featureFromDrawing) {
-      const area = GeoHelper.formatArea(this.featureFromDrawing.getGeometry() as Polygon);
+      const polygon = this.featureFromDrawing.getGeometry() as Polygon;
+      const area = GeoHelper.formatArea(polygon);
       this.featureFromDrawing.set('area', area);
-      this.store.dispatch(updateGeometry({ geom: this.geoJsonFormatter.writeGeometry(this.featureFromDrawing.getGeometry()) }));
+      this.store.dispatch(
+        updateGeometry(
+          {
+            geom: this.geoJsonFormatter.writeGeometry(polygon)
+          }
+        )
+      );
 
-      const extent = this.featureFromDrawing.getGeometry().getExtent();
+      const extent = this.featureFromDrawing.getGeometry()?.getExtent() || [];
       this.map.getView().fit(extent, {
         padding: [100, 100, 100, 100]
       });
@@ -612,7 +641,7 @@ export class MapService {
       if (fileContent) {
         const kmlFeatures = kmlFormat.readFeatures(fileContent, {
           dataProjection: 'EPSG:4326',
-          featureProjection: this.configService.config.epsg
+          featureProjection: this.configService.config?.epsg
         });
         this.addSingleFeatureToDrawingSource(kmlFeatures, fileName);
       }
@@ -629,22 +658,25 @@ export class MapService {
 
     const w = format.width * scale / 2000;
     const h = format.height * scale / 2000;
-    const coordinates: Array<Array<Coordinate>> = [[
-      [center[0] - w, center[1] - h],
-      [center[0] - w, center[1] + h],
-      [center[0] + w, center[1] + h],
-      [center[0] + w, center[1] - h],
-      [center[0] - w, center[1] - h],
-    ]];
-    const poly = new Polygon(coordinates);
-    poly.rotate(rotation * Math.PI / 180, center);
+    let coordinates: Array<Array<Coordinate>>;
+    if (center && center.length > 0) {
+      coordinates = [[
+        [center[0] - w, center[1] - h],
+        [center[0] - w, center[1] + h],
+        [center[0] + w, center[1] + h],
+        [center[0] + w, center[1] - h],
+        [center[0] - w, center[1] - h],
+      ]];
+      const poly = new Polygon(coordinates);
+      poly.rotate(rotation * Math.PI / 180, center);
 
-    const feature = new Feature();
-    feature.setGeometry(poly);
+      const feature = new Feature();
+      feature.setGeometry(poly);
 
-    this.map.getView().fit(poly, { nearest: true });
-    this.drawingSource.addFeature(feature);
-    this.featureFromDrawing?.set('area', poly);
+      this.map.getView().fit(poly, { nearest: true });
+      this.drawingSource.addFeature(feature);
+      this.featureFromDrawing?.set('area', poly);
+    }
   }
 
   public setBbox(xmin: number, ymin: number, xmax: number, ymax: number) {

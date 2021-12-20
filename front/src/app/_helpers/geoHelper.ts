@@ -33,8 +33,9 @@ export class GeoHelper {
   }
 
   public static async generateMiniMap(configService: ConfigService, mapService: MapService) {
+    const EPSG = configService.config?.epsg || 'EPSG:2056';
     if (!mapService.FirstBaseMapLayer) {
-      proj4.defs(configService.config.epsg,
+      proj4.defs(EPSG,
         '+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333'
         + ' +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel '
         + '+towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs');
@@ -51,7 +52,7 @@ export class GeoHelper {
     });
 
     const projection = new Projection({
-      code: configService.config.epsg,
+      code: EPSG,
       // @ts-ignore
       extent: configService.config.initialExtent,
     });
@@ -61,11 +62,16 @@ export class GeoHelper {
       zoom: 4,
     });
 
-    const baseMapConfig = configService.config.basemaps[0];
-    const tileLayer = await mapService.createTileLayer(baseMapConfig, true);
-
+    const baseMapConfig = configService.config?.basemaps[0];
+    
+    let layers;
+    if (baseMapConfig) {
+      const tileLayer = await mapService.createTileLayer(baseMapConfig, true);
+      const groupLayers = tileLayer ? [tileLayer] : []
+      layers = new LayerGroup( {layers: groupLayers })
+    }
     const minimap = new Map({
-      layers: new LayerGroup({layers: [tileLayer]}),
+      layers,
       view,
       interactions: defaults({
         keyboard: false,

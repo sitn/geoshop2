@@ -10,7 +10,6 @@ import {debounceTime, map, mergeMap, scan, switchMap, tap, throttleTime} from 'r
 import {CdkVirtualScrollViewport} from '@angular/cdk/scrolling';
 import {AppState, selectOrder} from '../../_store';
 import {Store} from '@ngrx/store';
-import * as fromCart from '../../_store/cart/cart.action';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
 import {IOrder} from '../../_models/IOrder';
@@ -27,7 +26,7 @@ export class CatalogComponent implements OnInit {
   @ViewChild(CdkVirtualScrollViewport) viewport: CdkVirtualScrollViewport;
   batch = 20;
   offset = new BehaviorSubject<number | null>(null);
-  infinite: Observable<IProduct[]>;
+  infinite: Observable<IProduct[] | unknown[]>;
   total = 0;
   stepToLoadData = 0;
   readonly catalogItemHeight = 64;
@@ -36,7 +35,7 @@ export class CatalogComponent implements OnInit {
   // Filtering
   catalogInputControl = new FormControl('');
 
-  mediaUrl = '';
+  mediaUrl: String | undefined;
   order: IOrder;
 
   constructor(private apiService: ApiService,
@@ -56,7 +55,7 @@ export class CatalogComponent implements OnInit {
       }, {})
     );
 
-    this.mediaUrl = this.configService.config.mediaUrl;
+    this.mediaUrl = this.configService.config?.mediaUrl;
 
     this.infinite = merge(
       batchMap.pipe(map(v => Object.values(v))),

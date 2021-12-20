@@ -186,3 +186,29 @@ Create an `env.prod` file base on `env.sample`.
 Create a scheduled task that runs `scripts/geoshop_clean_orders.ps1` every month.
 
 More info on bookstack
+
+
+## Upgading front-end packages
+
+Go to https://update.angular.io/?v=13.0-14.0 and check there are not manual steps to be done.
+
+Then follow instructions. After upgrading, some packages will need to be upgraded according to angular version
+you will be using. For instance, if you'll upgrade to version 14, you need to target version 14 for these packages:
+
+```powershell
+ng update @ngrx/store@14 angular-split@14
+```
+
+After, you can update other packages:
+
+```powershell
+ng update lodash-es rxjs tslib zone.js
+```
+
+Finally, update those related to OpenLayers:
+
+```powershell
+ng update ol ol-ext ol-geocoder proj4
+```
+
+Then all the front-end tests should be done.

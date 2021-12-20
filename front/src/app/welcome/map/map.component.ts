@@ -53,7 +53,7 @@ export class MapComponent implements OnInit {
   basemaps: Array<IBasemap>;
   pageformats: Array<IPageFormat>;
   isMapLoading$ = this.mapService.isMapLoading$;
-  selectedPageFormat: IPageFormat;
+  selectedPageFormat: IPageFormat | undefined;
   selectedPageFormatScale = 500;
   rotationPageFormat = 0;
   pageFormatScales: Array<number> = [500, 1000, 2000, 5000];
@@ -88,9 +88,9 @@ export class MapComponent implements OnInit {
   ngOnInit(): void {
     this.mapService.initialize();
     this.mapService.isDrawing$.subscribe((isDrawing) => this.isDrawing = isDrawing);
-    this.basemaps = this.mapService.Basemaps;
-    this.pageformats = this.mapService.PageFormats;
-    this.selectedPageFormat = this.configService.config.pageformats[0];
+    this.basemaps = this.mapService.Basemaps || [];
+    this.pageformats = this.mapService.PageFormats || [];
+    this.selectedPageFormat = this.configService.config?.pageformats[0];
 
     if (this.searchCtrl) {
       this.searchCtrl.valueChanges
@@ -111,8 +111,10 @@ export class MapComponent implements OnInit {
 
           for (const feature of features) {
             const categoryId = feature.get('layer_name');
-            if (this.configService.config.geocoderLayers.indexOf(categoryId) < 0) {
-              continue;
+            if (this.configService.config?.geocoderLayers) {
+              if (this.configService.config.geocoderLayers.indexOf(categoryId) < 0) {
+                continue;
+              }
             }
 
             let currentCategory = this.geocoderGroupOptions.find(x => x.id === categoryId);
@@ -186,7 +188,13 @@ export class MapComponent implements OnInit {
           this.selectedPageFormat = result.selectedPageFormat;
           this.selectedPageFormatScale = result.selectedPageFormatScale;
           this.rotationPageFormat = result.rotationPageFormat;
-          this.mapService.setPageFormat(this.selectedPageFormat, this.selectedPageFormatScale, this.rotationPageFormat);
+          if (this.selectedPageFormat) {
+            this.mapService.setPageFormat(
+              this.selectedPageFormat,
+              this.selectedPageFormatScale,
+              this.rotationPageFormat
+            );
+          }
         } else {
           this.activeTab = 0;
           this.mapService.setBbox(

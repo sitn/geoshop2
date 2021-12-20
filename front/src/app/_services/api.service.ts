@@ -2,8 +2,8 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {IProduct} from '../_models/IProduct';
 import {ConfigService} from './config.service';
-import {Observable, of, zip} from 'rxjs';
-import {IApiResponse, IApiResponseError} from '../_models/IApi';
+import {Observable, of} from 'rxjs';
+import {IApiResponse} from '../_models/IApi';
 import {ICredentials, IIdentity} from '../_models/IIdentity';
 import {catchError, map, switchMap} from 'rxjs/operators';
 import {IMetadata} from '../_models/IMetadata';
@@ -14,15 +14,18 @@ import {IUser, IUserChangeResponse, IUserToPost} from '../_models/IUser';
 })
 export class ApiService {
 
-  private apiUrl: string;
+  private apiUrl: string | undefined;
 
-  constructor(private http: HttpClient, private configService: ConfigService) {
+  constructor(private http: HttpClient, private configService: ConfigService) { }
+
+  private _getApiUrl() {
+    if (!this.apiUrl) {
+      this.apiUrl = this.configService.config?.apiUrl;
+    }
   }
 
   find<T>(inputText: string, endpoint: string): Observable<IApiResponse<T> | null> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = `${this.apiUrl}/${endpoint}/`;
 
@@ -36,9 +39,7 @@ export class ApiService {
   }
 
   getProducts(offset?: number, limit?: number) {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/product/`);
     if (limit) {
@@ -57,9 +58,7 @@ export class ApiService {
   }
 
   getProduct(productid: number) {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/product/${productid}/`);
 
@@ -89,9 +88,7 @@ export class ApiService {
   }
 
   login(authenticate: ICredentials, callbackUrl: string): Observable<{ identity: Partial<IIdentity>; callbackUrl: string; }> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/token/`);
 
@@ -111,9 +108,7 @@ export class ApiService {
   }
 
   getProfile(token?: string) {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     const headers = {
       Authorization: `Bearer ${token}`
@@ -125,9 +120,7 @@ export class ApiService {
   }
 
   change(user: IUserToPost) {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     return this.http.post<IUserChangeResponse | null>(this.apiUrl + '/auth/change/', user)
       .pipe(
@@ -138,9 +131,7 @@ export class ApiService {
   }
 
   register(user: IIdentity) {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     return this.http.post(this.apiUrl + '/auth/register/', user)
       .pipe(
@@ -151,17 +142,14 @@ export class ApiService {
   }
 
   refreshToken(token: string): Observable<{ access: string; }> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
 
     return this.http.post<{ access: string; }>(this.apiUrl + `/token/refresh/`, {refresh: token});
   }
 
   checkLoginNotTaken(login: string): Observable<{ result: boolean } | null> {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
+
     return this.http.post<{ result: boolean }>(this.apiUrl + `/user/existsLogin/`, {login})
       .pipe(
         catchError(() => {
@@ -171,9 +159,8 @@ export class ApiService {
   }
 
   forget(email: string) {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
+
     return this.http.post<{ result: boolean }>(this.apiUrl + '/auth/password/', {email})
       .pipe(
         catchError(() => {
@@ -183,9 +170,8 @@ export class ApiService {
   }
 
   resetPassword(password1: string, password2: string, uid: string, token: string) {
-    if (!this.apiUrl) {
-      this.apiUrl = this.configService.config.apiUrl;
-    }
+    this._getApiUrl();
+
     return this.http.post(this.apiUrl + '/auth/password/confirm', {
       new_password1: password1,
       new_password2: password2,
