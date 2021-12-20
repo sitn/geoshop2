@@ -188,7 +188,7 @@ Create a scheduled task that runs `scripts/geoshop_clean_orders.ps1` every month
 More info on bookstack
 
 
-## Upgading front-end packages
+## Upgrading front-end packages
 
 Go to https://update.angular.io/?v=13.0-14.0 and check there are not manual steps to be done.
 
