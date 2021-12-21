@@ -51,7 +51,10 @@
                 *ngIf="element.status === 'PROCESSED'"
                 (click)="downloadOrder($event, element.id)">Télécharger
         </button>
-        <span *ngIf="element.status !== 'PROCESSED'">Indisponible</span>
+        <span *ngIf="element.status === 'PENDING'">En attente</span>
+        <span *ngIf="element.status === 'IN_EXTRACT'">Extraction en cours</span>
+        <span *ngIf="element.status === 'ARCHIVED'">Archivé</span>
+        <span *ngIf="element.status === 'REJECTED'">Rejeté</span>
       </td>
       <td mat-footer-cell *matFooterCellDef class="text-primary"></td>
     </ng-container>
