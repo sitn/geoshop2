@@ -1,6 +1,6 @@
 import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, merge, of, Subject, Subscription} from 'rxjs';
-import {IOrder, IOrderSummary, Order} from '../../_models/IOrder';
+import {IOrderSummary, Order} from '../../_models/IOrder';
 import {debounceTime, filter, map, mergeMap, scan, skip, switchMap, takeUntil, tap} from 'rxjs/operators';
 import {MapService} from '../../_services/map.service';
 import Map from 'ol/Map';
@@ -15,6 +15,7 @@ import {GeoshopUtils} from '../../_helpers/GeoshopUtils';
 import {select, Store} from '@ngrx/store';
 import {selectOrder} from '../../_store';
 import {deleteOrder} from '../../_store/cart/cart.action';
+import Geometry from 'ol/geom/Geometry';
 
 
 @Component({
@@ -41,7 +42,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
 
   // Map
   minimap: Map;
-  vectorSource: VectorSource;
+  vectorSource: VectorSource<Geometry>;
 
   // Filtering
   orderFilterControl = new FormControl('');

@@ -13,6 +13,7 @@ import { Order, IOrderDowloadLink } from '../../_models/IOrder';
 import { ApiOrderService } from '../../_services/api-order.service';
 import { ConfigService} from '../../_services/config.service';
 import { MapService} from '../../_services/map.service';
+import Geometry from 'ol/geom/Geometry';
 
 
 @Component({
@@ -28,7 +29,7 @@ export class DownloadComponent implements OnInit, OnDestroy {
   private uuid: string;
   order: Order;
   minimap: Map;
-  vectorSource: VectorSource;
+  vectorSource: VectorSource<Geometry>;
 
   constructor(
     private apiOrderService: ApiOrderService,

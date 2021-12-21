@@ -13,6 +13,7 @@ import {StoreService} from '../../../_services/store.service';
 import {Router} from '@angular/router';
 import {MatDialog, MatDialogRef} from '@angular/material/dialog';
 import {ConfirmDialogComponent} from '../../../_components/confirm-dialog/confirm-dialog.component';
+import Geometry from 'ol/geom/Geometry';
 
 @Component({
   selector: 'gs2-order',
@@ -25,7 +26,7 @@ export class OrderComponent implements OnInit {
 
   // Map
   @Input() minimap: Map;
-  @Input() vectorSource: VectorSource;
+  @Input() vectorSource: VectorSource<Geometry>;
 
   // Order items
   @ViewChild(WidgetHostDirective) orderItemTemplate: WidgetHostDirective;

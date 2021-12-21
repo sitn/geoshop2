@@ -52,24 +52,21 @@ const MODULES = [
 ];
 
 @NgModule({
-  declarations: [
-    WelcomeComponent,
-    MapComponent,
-    CatalogComponent,
-    DownloadComponent,
-    DialogMetadataComponent,
-    ManualentryComponent
-  ],
-  imports: [
-    CommonModule,
-    WelcomeRoutingModule,
-    ReactiveFormsModule,
-    MODULES,
-    SharedModule
-  ],
-  entryComponents: [
-    DialogMetadataComponent
-  ]
+    declarations: [
+        WelcomeComponent,
+        MapComponent,
+        CatalogComponent,
+        DownloadComponent,
+        DialogMetadataComponent,
+        ManualentryComponent
+    ],
+    imports: [
+        CommonModule,
+        WelcomeRoutingModule,
+        ReactiveFormsModule,
+        MODULES,
+        SharedModule
+    ]
 })
 export class WelcomeModule {
 }

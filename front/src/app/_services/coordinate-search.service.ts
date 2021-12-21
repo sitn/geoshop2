@@ -20,7 +20,7 @@ export class CoordinateSearchService {
      * @param inputText the string to parse.
      * @return A coordinate or null if the format is not valid.
      */
-    stringCoordinatesToFeature(inputText: string): Feature | null {
+    stringCoordinatesToFeature(inputText: string): Feature<Point> | null {
         const coords = inputText.match(EPSG2056_COORD_REGEX);
         if (coords) {
             const est = parseFloat(coords[1].replace(/'/g, ''));
