@@ -316,7 +316,12 @@ class Product(models.Model):
 
     metadata = models.ForeignKey(
         Metadata, models.SET_NULL, verbose_name=_('metadata'), blank=True, null=True)
-    label = models.CharField(_('label'), max_length=250, unique=True)
+    label = models.CharField(_('label'), max_length=250, unique=True, validators=[
+        RegexValidator(
+            regex=r'^[^<>%$"\(\)\n\r]*$',
+            message=_('Label contains forbidden characters'),
+        ),
+    ])
     status = models.CharField(
         _('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     group = models.ForeignKey(
