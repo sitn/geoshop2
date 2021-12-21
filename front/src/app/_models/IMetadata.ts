@@ -22,7 +22,6 @@ export interface IMetadata {
   modified_user: string;
   id_name: string;
   name: string;
-  description_short: string;
   description_long: string;
   scale: string;
   geocat_link: string;

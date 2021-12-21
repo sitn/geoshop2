@@ -48,12 +48,10 @@
 
 
     <mat-accordion>
-      <mat-expansion-panel expanded="true" *ngIf="data.description_short || data.description_long">
+      <mat-expansion-panel expanded="true" *ngIf="data.description_long">
         <mat-expansion-panel-header>
           <mat-panel-title>Description</mat-panel-title>
-          <mat-panel-description class="truncate-content">
-            <span [matTooltip]="data.description_short" class="truncate">{{data.description_short}}</span>
-          </mat-panel-description>
+          <mat-panel-description></mat-panel-description>
         </mat-expansion-panel-header>
 
         <p class="long-description" [innerHTML]="data.description_long | safeHtml"></p>

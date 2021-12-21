@@ -146,7 +146,6 @@ class Metadata(models.Model):
     """
     id_name = models.CharField(_('id_name'), max_length=50, unique=True)
     name = models.CharField(_('name'), max_length=300, blank=True)
-    description_short = models.CharField(_('description_short'), max_length=500, blank=True)
     description_long = models.TextField(_('description_long'), blank=True)
     datasource = models.CharField(_('datasource'), max_length=260, blank=True, null=True)
     scale = models.CharField(_('scale'), max_length=500, blank=True)
