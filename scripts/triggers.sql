@@ -11,7 +11,7 @@ CREATE FUNCTION geoshop.update_product_tsvector()
 AS $BODY$
     BEGIN
         NEW.ts := to_tsvector('fr', NEW.label || ' ' || (
-            SELECT concat(description_long, ' ' , description_short) FROM geoshop.metadata WHERE id = NEW.metadata_id
+            SELECT description_long FROM geoshop.metadata WHERE id = NEW.metadata_id
         ));
         RETURN NEW;
     END;
@@ -25,7 +25,7 @@ CREATE FUNCTION geoshop.update_metadata_tsvector()
 AS $BODY$
     BEGIN
         UPDATE geoshop.product p
-        SET ts = to_tsvector('fr', label || ' ' || concat(NEW.description_long, ' ' , NEW.description_short))
+        SET ts = to_tsvector('fr', label || ' ' || NEW.description_long)
         WHERE NEW.id = p.metadata_id;
         RETURN NEW;
     END;
@@ -38,7 +38,7 @@ CREATE TRIGGER update_product_tsvector_trigger
     EXECUTE PROCEDURE geoshop.update_product_tsvector();
 
 CREATE TRIGGER update_metadata_tsvector_trigger
-    BEFORE INSERT OR UPDATE OF description_short, description_long
+    BEFORE INSERT OR UPDATE OF description_long
     ON geoshop.metadata
     FOR EACH ROW
     EXECUTE PROCEDURE geoshop.update_metadata_tsvector();

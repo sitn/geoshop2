@@ -146,7 +146,6 @@ class Metadata(models.Model):
     """
     id_name = models.CharField(_('id_name'), max_length=50, unique=True)
     name = models.CharField(_('name'), max_length=300, blank=True)
-    description_short = models.CharField(_('description_short'), max_length=500, blank=True)
     description_long = models.TextField(_('description_long'), blank=True)
     datasource = models.CharField(_('datasource'), max_length=260, blank=True, null=True)
     scale = models.CharField(_('scale'), max_length=500, blank=True)
@@ -317,7 +316,12 @@ class Product(models.Model):
 
     metadata = models.ForeignKey(
         Metadata, models.SET_NULL, verbose_name=_('metadata'), blank=True, null=True)
-    label = models.CharField(_('label'), max_length=250, unique=True)
+    label = models.CharField(_('label'), max_length=250, unique=True, validators=[
+        RegexValidator(
+            regex=r'^[^<>%$"\(\)\n\r]*$',
+            message=_('Label contains forbidden characters'),
+        ),
+    ])
     status = models.CharField(
         _('status'), max_length=30, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     group = models.ForeignKey(
