@@ -495,8 +495,6 @@ class Order(models.Model):
             if item.price_status == OrderItem.PricingStatus.PENDING:
                 item.ask_price()
                 has_all_prices_calculated = has_all_prices_calculated and False
-            else:
-                item.status = OrderItem.OrderItemStatus.IN_EXTRACT
         if has_all_prices_calculated:
             self.date_ordered = timezone.now()
             self.download_guid = uuid.uuid4()
@@ -626,13 +624,17 @@ class OrderItem(models.Model):
         self.price_status = OrderItem.PricingStatus.PENDING
 
         # prices are 0 when user or invoice_contact is subscribed to the product
-        if self.product.free_when_subscribed:
-            if self.order.client.identity.subscribed or (
-                    self.order.invoice_contact is not None and self.order.invoice_contact.subscribed):
-                self._price = Money(0, 'CHF')
-                self._base_fee = Money(0, 'CHF')
-                self.price_status = OrderItem.PricingStatus.CALCULATED
-                return
+        if self.order.order_type.name == 'Utilisateur permanent':
+            if self.product.free_when_subscribed:
+                if self.order.client.identity.subscribed or (
+                        self.order.invoice_contact is not None and self.order.invoice_contact.subscribed):
+                    self._price = Money(0, 'CHF')
+                    self._base_fee = Money(0, 'CHF')
+                    self.price_status = OrderItem.PricingStatus.CALCULATED
+                    return
+            # if user adds other products than the ones he's subscribed, quote needs to be done
+            self.price_status = OrderItem.PricingStatus.PENDING
+            return
 
         # prices are 0 when order is for public authorities or academic purposes
         if self.order.order_type.name in ( 'Communal', 'Cantonal', 'Fédéral', 'Académique'):
@@ -667,19 +669,18 @@ class OrderItem(models.Model):
         return
 
     def ask_price(self):
-        if self.product.pricing.pricing_type == Pricing.PricingType.MANUAL:
-            send_geoshop_email(
-                _('Geoshop - Quote requested'),
-                template_name='email_admin',
-                template_data={
-                    'messages': [_('A new quote has been requested:')],
-                    'details': {
-                        _('order'): self.order.id,
-                        _('product'): self.product.label,
-                        _('link'): reverse("admin:api_order_change", args=[self.order.id])
-                    }
+        send_geoshop_email(
+            _('Geoshop - Quote requested'),
+            template_name='email_admin',
+            template_data={
+                'messages': [_('A new quote has been requested:')],
+                'details': {
+                    _('order'): self.order.id,
+                    _('product'): self.product.label,
+                    _('link'): reverse("admin:api_order_change", args=[self.order.id])
                 }
-            )
+            }
+        )
 
 
 class ProductField(models.Model):

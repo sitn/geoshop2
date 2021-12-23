@@ -57,6 +57,9 @@ class OrderTests(APITestCase):
         self.orderTypePrivate = OrderType.objects.create(
             name="Privé",
         )
+        self.orderTypeSubscribed = OrderType.objects.create(
+            name="Utilisateur permanent",
+        )
         self.formats = DataFormat.objects.bulk_create([
             DataFormat(name="Geobat NE complet (DXF)"),
             DataFormat(name="Rhino 3DM"),
@@ -234,6 +237,7 @@ class OrderTests(APITestCase):
         sub_user = UserModel.objects.get(username='private_user_order')
         sub_user.identity.subscribed = True
         sub_user.identity.save()
+        self.order_data['order_type'] = 'Utilisateur permanent'
 
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)

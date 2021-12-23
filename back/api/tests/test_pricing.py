@@ -142,6 +142,9 @@ class PricingTests(APITestCase):
         self.orderTypePublic = OrderType.objects.create(
             name="Communal",
         )
+        self.orderTypeSubscribed = OrderType.objects.create(
+            name="Utilisateur permanent",
+        )
 
         self.order = Order.objects.create(
             client=self.user_private,
@@ -196,7 +199,7 @@ class PricingTests(APITestCase):
         self.order.order_type = self.orderTypePrivate
         self.order.save()
         self.assertEqual(self.order.status, Order.OrderStatus.DRAFT)
-        self.assertEqual(order_item.price_status, OrderItem.PricingStatus.PENDING, 'princing status stays pending')
+        self.assertEqual(order_item.price_status, OrderItem.PricingStatus.PENDING, 'pricing status stays pending')
 
         # Client asks for a quote bescause order item pricing status is PENDING
         self.order.confirm()
@@ -250,13 +253,37 @@ class PricingTests(APITestCase):
             order=self.order,
             product=self.products[3]
         )
-        self.order.order_type = self.orderTypePrivate
+        self.order.order_type = self.orderTypeSubscribed
         self.order.save()
         orderitem2.set_price()
         orderitem2.save()
         self.order.set_price()
         self.assertEqual(self.order.processing_fee, Money(0, 'CHF'), 'Processing fee is free')
         self.assertEqual(self.order.total_with_vat, Money(0, 'CHF'), 'Order is free')
+
+    def test_user_not_subscribed_to_product(self):
+        self.user_private.identity.subscribed = True
+        self.user_private.identity.save()
+        self.products[3].free_when_subscribed = False
+        self.products[3].save()
+        orderitem2 = OrderItem.objects.create(
+            order=self.order,
+            product=self.products[3]
+        )
+        self.order.order_type = self.orderTypeSubscribed
+        self.order.save()
+        orderitem2.set_price()
+        orderitem2.save()
+        self.order.set_price()
+        self.order.save()
+        self.assertEqual(self.order.status, Order.OrderStatus.DRAFT)
+        self.assertEqual(orderitem2.price_status, OrderItem.PricingStatus.PENDING, 'pricing status stays pending')
+        # Client asks for a quote bescause order item pricing status is PENDING
+        self.order.confirm()
+
+        # An email is sent to admins, asking them to set a manual price
+        self.assertEqual(len(mail.outbox), 1, 'An email has been sent to admins')
+        self.assertEqual(self.order.status, Order.OrderStatus.PENDING, 'Order status is now pending')
 
     def test_invoice_contact_subscribed_to_product(self):
         self.assertFalse(self.user_private.identity.subscribed)
@@ -277,7 +304,7 @@ class PricingTests(APITestCase):
             subscribed=True
         )
         self.order.invoice_contact = contact
-        self.order.order_type = self.orderTypePrivate
+        self.order.order_type = self.orderTypeSubscribed
         self.order.save()
         orderitem2.set_price()
         orderitem2.save()

@@ -13,7 +13,7 @@ export interface IProduct {
   /** Metadata url */
   metadata?: string;
   group?: any;
-  /** Princing url */
+  /** Pricing url */
   pricing?: string;
   /** Use only in the app to facilitate */
   metadataObject?: IMetadata;
