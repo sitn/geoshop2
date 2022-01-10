@@ -14,6 +14,9 @@ def merge_metadata_descriptions(apps, schema_editor):
             F('description_long'))
     )
 
+def reverse(apps, schema_editor):
+    pass
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -21,5 +24,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(merge_metadata_descriptions),
+        migrations.RunPython(merge_metadata_descriptions, reverse),
     ]

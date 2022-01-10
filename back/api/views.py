@@ -28,11 +28,11 @@ from .serializers import (
     ExtractOrderSerializer,
     ExtractOrderItemSerializer, UserIdentitySerializer, MetadataIdentitySerializer,
     MetadataSerializer, MetadataContactSerializer, OrderDigestSerializer,
-    OrderSerializer, OrderItemSerializer, OrderTypeSerializer,
+    OrderSerializer, OrderItemSerializer, OrderItemValidationSerializer, OrderTypeSerializer,
     PasswordResetSerializer, PasswordResetConfirmSerializer,
     PricingSerializer, ProductSerializer, ProductDigestSerializer,
     ProductFormatSerializer, RegisterSerializer, UserChangeSerializer,
-    VerifyEmailSerializer)
+    VerifyEmailSerializer, ValidationSerializer)
 
 from .helpers import send_geoshop_email
 
@@ -481,8 +481,8 @@ class ProductViewSet(MultiSerializerMixin, viewsets.ReadOnlyModelViewSet):
     }
     filter_backends = (FullTextSearchFilter,)
     serializers = {
-        'default':  ProductSerializer,
-        'list':    ProductDigestSerializer,
+        'default': ProductSerializer,
+        'list': ProductDigestSerializer,
     }
     ts_field = 'ts'
 
@@ -543,6 +543,37 @@ class OrderByUUIDView(generics.RetrieveAPIView):
         order = get_object_or_404(queryset, download_guid=guid)
         serializer = OrderSerializer(order, context={'request': request})
         return Response(serializer.data)
+
+
+class OrderItemByTokenView(generics.RetrieveAPIView):
+    """
+    Returns an orderitem based on its token.
+    PATCH allows to validate the order item:
+      * `{'is_validated': true}` will validate
+      * `{'is_validated': false}` will reject the order item but order will proceed
+    """
+    queryset = OrderItem.objects.filter(status=OrderItem.OrderItemStatus.VALIDATION_PENDING)
+    serializer_class = OrderItemValidationSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, token):
+        queryset = self.get_queryset()
+        item = get_object_or_404(queryset, token=token)
+        serializer = OrderItemValidationSerializer(item, context={'request': request})
+        return Response(serializer.data)
+
+    def patch(self, request, token):
+        queryset = self.get_queryset()
+        item = get_object_or_404(queryset, token=token)
+
+        validation_serializer = ValidationSerializer(data=request.data)
+        validation_serializer.is_valid()
+        is_validated = validation_serializer.validated_data['is_validated']
+        item.validation_date = timezone.now()
+
+        item.status = OrderItem.OrderItemStatus.PENDING if is_validated else OrderItem.OrderItemStatus.REJECTED
+        item.save()
+        return Response(status=status.HTTP_202_ACCEPTED)
 
 
 class DownloadLinkView(generics.RetrieveAPIView):

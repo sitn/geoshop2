@@ -22,12 +22,19 @@ cd..
 
 The best is to backup and restore a production db. Otherwise, to start from scratch follow this:
 
-Postrgres user `geoshop` is assumed to be already created. Set up a database manually or with the provided script in `scripts/create_db.ps1` (psql binary must be on PATH) :
+Postrgres user `geoshop` is assumed to be already created. Set up a database manually in psql:
 
 ```sql
-CREATE DATABASE geoshop;
+CREATE DATABASE geoshop OWNER geoshop;
+REVOKE ALL ON DATABASE geoshop FROM PUBLIC;
+\c geoshop
 CREATE EXTENSION postgis;
+CREATE EXTENSION unaccent;
+CREATE EXTENSION "uuid-ossp";
 CREATE SCHEMA geoshop AUTHORIZATION geoshop;
+CREATE TEXT SEARCH CONFIGURATION fr (COPY = simple);
+ALTER TEXT SEARCH CONFIGURATION fr ALTER MAPPING FOR hword, hword_part, word
+WITH unaccent, simple;
 ```
 
 ### Backend with docker
@@ -36,7 +43,7 @@ Create an .env.local based on .env.sample, then build:
 
 ```powershell
 cd back
-docker build -t geoshop_api --build-arg ENV_FILE=.env.local .
+docker build -t geoshop_api --build-arg ENV_FILE=.env.local --build-arg TESTING=True .
 ```
 
 Now you can run it with:
