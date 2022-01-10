@@ -1,8 +1,6 @@
 from collections import OrderedDict
 
-from rest_framework.routers import DefaultRouter, APIRootView
-from rest_framework.schemas.views import SchemaView
-from rest_framework.schemas import SchemaGenerator
+from rest_framework.routers import DefaultRouter
 
 
 class GeoshopRouter(DefaultRouter):
