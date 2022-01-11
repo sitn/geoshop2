@@ -1,14 +1,12 @@
 from django.urls import reverse
-from django.core import management, mail
-from django.contrib.auth import get_user_model
+from django.core import mail
 
 from djmoney.money import Money
 from rest_framework import status
 from rest_framework.test import APITestCase
-from api.models import Contact, OrderType, DataFormat, Pricing, Product, OrderItem, Order
+from api.models import Contact, OrderItem, Order, Metadata, Product
+from api.tests.factories import BaseObjectsFactory
 
-
-UserModel = get_user_model()
 
 class OrderTests(APITestCase):
     """
@@ -16,6 +14,7 @@ class OrderTests(APITestCase):
     """
 
     def setUp(self):
+        self.config = BaseObjectsFactory(self.client)
         self.order_data = {
             'order_type': 'Privé',
             'items': [],
@@ -49,54 +48,6 @@ class OrderTests(APITestCase):
                 ]
             },
         }
-        management.call_command('fixturize')
-        self.userPrivate = UserModel.objects.create_user(
-            username="private_user_order",
-            password="testPa$$word",
-        )
-        self.orderTypePrivate = OrderType.objects.create(
-            name="Privé",
-        )
-        self.orderTypeSubscribed = OrderType.objects.create(
-            name="Utilisateur permanent",
-        )
-        self.formats = DataFormat.objects.bulk_create([
-            DataFormat(name="Geobat NE complet (DXF)"),
-            DataFormat(name="Rhino 3DM"),
-        ])
-        self.pricing_free = Pricing.objects.create(
-            name="Gratuit",
-            pricing_type="FREE"
-        )
-        self.pricing_manual = Pricing.objects.create(
-            name="Manuel",
-            pricing_type="MANUAL"
-        )
-        self.products = Product.objects.bulk_create([
-            Product(
-                label="MO - Cadastre complet (Format A4-A3-A2-A1-A0)",
-                pricing=self.pricing_free,
-                free_when_subscribed=True),
-            Product(
-                label="Maquette 3D",
-                pricing=self.pricing_manual),
-        ])
-        self.contact = Contact.objects.create(
-            first_name='Jean',
-            last_name='Doe',
-            email='test3@admin.com',
-            postcode=2000,
-            city='Lausanne',
-            country='Suisse',
-            company_name='Marine de Colombier',
-            phone='+41 00 787 29 16',
-            belongs_to=self.userPrivate
-        )
-        url = reverse('token_obtain_pair')
-        resp = self.client.post(url, {'username':'private_user_order', 'password':'testPa$$word'}, format='json')
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertTrue('access' in resp.data)
-        self.token = resp.data['access']
 
     def get_order_item(self):
         url = reverse('orderitem-list')
@@ -111,7 +62,7 @@ class OrderTests(APITestCase):
         response = self.client.post(url, self.order_data, format='json')
         # Forbidden if not logged in
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED, response.content)
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         response = self.client.post(url, self.order_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
         # Last draft view
@@ -135,7 +86,7 @@ class OrderTests(APITestCase):
         # Update
         data = {
             "items": [{
-                "product": "MO - Cadastre complet (Format A4-A3-A2-A1-A0)"}]
+                "product": "Produit gratuit"}]
         }
 
         response = self.client.patch(url, data, format='json')
@@ -171,7 +122,7 @@ class OrderTests(APITestCase):
         # Edit order that's already confirmed, should not work
         data = {
             "items": [{
-                "product": "Maquette 3D"}]
+                "product": "Produit forfaitaire"}]
         }
         url = reverse('order-detail', kwargs={'pk':order_id})
         response = self.client.patch(url, data, format='json')
@@ -183,7 +134,7 @@ class OrderTests(APITestCase):
     def test_post_order_quote(self):
         # POST an order
         url = reverse('order-list')
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         response = self.client.post(url, self.order_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
         order_id = response.data['id']
@@ -234,13 +185,12 @@ class OrderTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
 
     def test_post_order_subscribed(self):
-        sub_user = UserModel.objects.get(username='private_user_order')
-        sub_user.identity.subscribed = True
-        sub_user.identity.save()
+        self.config.user_private.identity.subscribed = True
+        self.config.user_private.identity.save()
         self.order_data['order_type'] = 'Utilisateur permanent'
 
         url = reverse('order-list')
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         response = self.client.post(url, self.order_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
         order_id = response.data['id']
@@ -248,7 +198,7 @@ class OrderTests(APITestCase):
         data = {
             "items": [
                 {
-                    "product": "MO - Cadastre complet (Format A4-A3-A2-A1-A0)",
+                    "product": "MO",
                     "data_format": "Geobat NE complet (DXF)"
                 }
             ]
@@ -256,7 +206,6 @@ class OrderTests(APITestCase):
         # Check price is PENDIND and no price is given
         url = reverse('order-detail', kwargs={'pk':order_id})
         response = self.client.patch(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertEqual(response.data['processing_fee'], '0.00', 'Check price is 0')
         self.assertEqual(response.data['total_without_vat'], '0.00', 'Check price is 0')
@@ -267,7 +216,7 @@ class OrderTests(APITestCase):
 
     def test_patch_put_order_items(self):
         url = reverse('order-list')
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         response = self.client.post(url, self.order_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
         self.assertEqual(response.data['status'], Order.OrderStatus.DRAFT, 'status is DRAFT')
@@ -276,7 +225,7 @@ class OrderTests(APITestCase):
         data1 = {
             "items": [
                 {
-                    "product": "Maquette 3D"
+                    "product": "Produit forfaitaire"
                 }
             ]
         }
@@ -288,9 +237,9 @@ class OrderTests(APITestCase):
         data2 = {
             "items": [
                 {
-                    "product": "Maquette 3D"
+                    "product": "Produit forfaitaire"
                 },{
-                    "product": "MO - Cadastre complet (Format A4-A3-A2-A1-A0)"
+                    "product": "Produit gratuit"
                 }
             ]
         }
@@ -307,11 +256,11 @@ class OrderTests(APITestCase):
 
     def test_delete_order(self):
         url = reverse('order-list')
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         response = self.client.post(url, self.order_data, format='json')
         order = Order.objects.get(pk=response.data['id'])
-        oi1 = OrderItem.objects.create(order=order, product=self.products[0], data_format=self.formats[0])
-        oi2 = OrderItem.objects.create(order=order, product=self.products[1], data_format=self.formats[1])
+        oi1 = OrderItem.objects.create(order=order, product=self.config.products['free'], data_format=self.config.formats['geobat'])
+        oi2 = OrderItem.objects.create(order=order, product=self.config.products['single'], data_format=self.config.formats['rhino'])
         oi1.set_price()
         oi1.save()
         oi2.set_price(price=Money(400, 'CHF'), base_fee=Money(150, 'CHF'))
@@ -324,7 +273,7 @@ class OrderTests(APITestCase):
 
     def test_order_geom_is_valid(self):
         url = reverse('order-list')
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         self.order_data['geom'] = {
             'type': 'Polygon',
             'coordinates': [
@@ -337,3 +286,59 @@ class OrderTests(APITestCase):
         response = self.client.post(url, self.order_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
         self.assertEqual(len(mail.outbox), 1, 'An email has been sent to admins')
+
+
+    def test_order_item_validation(self):
+        """
+        Tests email is sent when a product needs validation
+        """
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
+        response = self.client.post(url, self.order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        order_id = response.data['id']
+
+        approval_needed_metadata = Metadata.objects.create(
+            id_name='01_approval_generic',
+            modified_user=self.config.user_private,
+            accessibility=Metadata.MetadataAccessibility.APPROVAL_NEEDED
+        )
+
+        Product.objects.create(
+            label="Données sensibles",
+            pricing=self.config.pricings['free'],
+            metadata=approval_needed_metadata,
+            status=Product.ProductStatus.PUBLISHED
+        )
+
+        data = {
+            "items": [
+                {
+                    "product": "Données sensibles",
+                    "data_format": "DXF"
+                }
+            ]
+        }
+        url = reverse('order-detail', kwargs={'pk': order_id})
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        url = reverse('order-confirm', kwargs={'pk': order_id})
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+        self.assertEqual(len(mail.outbox), 1, 'An email has been sent to the first metadata contact')
+        order = Order.objects.get(pk=order_id)
+        item = order.items.first()
+        self.assertEqual(OrderItem.OrderItemStatus.VALIDATION_PENDING, item.status, 'Item is waiting for validation')
+        self.assertGreater(len(item.token), 0, 'item has token')
+
+        url = reverse('orderitem_validate', kwargs={'token': item.token})
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        data = {
+            "is_validated": True
+        }
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+        order = Order.objects.get(pk=order_id)
+        item = order.items.first()
+        self.assertEqual(OrderItem.OrderItemStatus.PENDING, item.status, 'Item is ready for extraction')

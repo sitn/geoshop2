@@ -1,17 +1,15 @@
 
 
 import os
-import time
 from django.urls import reverse
-from django.core import management, mail
-from django.utils import timezone
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.contrib.gis.geos import Polygon
 from rest_framework import status
 from rest_framework.test import APITestCase
-from api.models import OrderType, DataFormat, Pricing, Product, OrderItem, Order
+from api.models import DataFormat, OrderItem, Order
+from api.tests.factories import BaseObjectsFactory, ExtractFactory
 
 UserModel = get_user_model()
 
@@ -22,86 +20,40 @@ class OrderTests(APITestCase):
     """
 
     def setUp(self):
-        management.call_command('fixturize')
-        self.user_private = UserModel.objects.create_user(
-            username="private_user_order",
-            password="testPa$$word",
-        )
-        self.user_private.identity.email = 'user@sitn.com'
-        self.user_private.identity.save()
-        order_type_private = OrderType.objects.create(
-            name="Privé",
-        )
-        self.user_extract = UserModel.objects.get(username='sitn_extract')
-        pricing_free = Pricing.objects.create(
-            name="Gratuit",
-            pricing_type="FREE"
-        )
-        self.products = Product.objects.bulk_create([
-            Product(
-                label="MO - Cadastre complet (Format A4-A3-A2-A1-A0)",
-                pricing=pricing_free,
-                provider=self.user_extract),
-            Product(
-                label="Maquette 3D",
-                pricing=pricing_free,
-                provider=self.user_extract),
-        ])
-        self.order = Order.objects.create(
-            title='Test 1734',
-            description='Test 1734',
-            order_type=order_type_private,
-            client=self.user_private,
-            geom=Polygon((
-                (
-                    2528577.8382161376,
-                    1193422.4003930448
-                ),
-                (
-                    2542482.6542869355,
-                    1193422.4329014618
-                ),
-                (
-                    2542482.568523701,
-                    1199018.36469272
-                ),
-                (
-                    2528577.807487005,
-                    1199018.324372703
-                ),
-                (
-                    2528577.8382161376,
-                    1193422.4003930448
-                )
-            )),
-            date_ordered=timezone.now()
-        )
+        self.config = BaseObjectsFactory(self.client)
+        self.extract_config = ExtractFactory(self.client)
+
+        self.products = [
+            self.config.products['free'],
+            self.config.products['single']
+        ]
+
         for product in self.products:
+            product.provider=self.extract_config.user
+            product.save()
             OrderItem.objects.create(
-                order=self.order,
+                order=self.config.order,
                 price_status=OrderItem.PricingStatus.CALCULATED,
                 product=product,
                 data_format=DataFormat.objects.create(name="ZIP"),
             )
-        self.order.confirm()
-        self.order.save()
+        self.config.order.confirm()
+        self.config.order.save()
 
         self.empty_zip_data = b'PK\x05\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
         url = reverse('token_obtain_pair')
         resp = self.client.post(
             url, {'username': 'sitn_extract', 'password': os.environ['EXTRACT_USER_PASSWORD']}, format='json')
-        self.token = resp.data['access']
-        resp = self.client.post(url, {'username':'private_user_order', 'password':'testPa$$word'}, format='json')
-        self.client_token = resp.data['access']
+        self.extract_token = resp.data['access']
 
 
     def test_put_files(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.extract_token)
         url = reverse('extract_order')
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.data[0]['title'], 'Test 1734', 'Check that previous confirmed order is available')
+        self.assertGreater(len(response.data), 0, 'Check there is an order')
         order_id = response.data[0]['id']
         order_item_id1 = response.data[0]['items'][0]['id']
         order_item_id2 = response.data[0]['items'][1]['id']
@@ -131,7 +83,7 @@ class OrderTests(APITestCase):
         self.assertEqual(len(mail.outbox), 1, 'An email has been sent to client')
 
         # Download file by user
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.client_token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         url = reverse('order-detail', kwargs={'pk': order_id})
         response = self.client.get(url)
         self.assertEqual(
@@ -159,7 +111,7 @@ class OrderTests(APITestCase):
 
 
     def test_cancel_order_item(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.extract_token)
         url = reverse('extract_order')
         response = self.client.get(url, format='json')
         order_item_id1 = response.data[0]['items'][0]['id']
@@ -169,7 +121,7 @@ class OrderTests(APITestCase):
         response = self.client.put(url, {'is_rejected': True, 'comment': 'Interdit de commander ces données'})
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         self.assertEqual(
-            Order.objects.get(pk=self.order.id).status,
+            Order.objects.get(pk=self.config.order.id).status,
             Order.OrderStatus.READY,
             "Check order status is still ready"
         )
@@ -179,14 +131,14 @@ class OrderTests(APITestCase):
         response = self.client.put(url, {'extract_result': extract_file})
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         self.assertEqual(
-            Order.objects.get(pk=self.order.id).status,
+            Order.objects.get(pk=self.config.order.id).status,
             Order.OrderStatus.PROCESSED,
             "Check order status is processed"
         )
 
 
     def test_reject_order(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.extract_token)
         url = reverse('extract_order')
         response = self.client.get(url, format='json')
         order_item_id1 = response.data[0]['items'][0]['id']
@@ -196,7 +148,7 @@ class OrderTests(APITestCase):
         response = self.client.put(url, {'is_rejected': True, 'comment': 'Interdit de commander ces données'})
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         self.assertEqual(
-            Order.objects.get(pk=self.order.id).status,
+            Order.objects.get(pk=self.config.order.id).status,
             Order.OrderStatus.READY,
             "Check order status is still ready for extract"
         )
@@ -205,7 +157,7 @@ class OrderTests(APITestCase):
         response = self.client.put(url, {'is_rejected': True, 'comment': 'Interdit de commander ces données'})
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         self.assertEqual(
-            Order.objects.get(pk=self.order.id).status,
+            Order.objects.get(pk=self.config.order.id).status,
             Order.OrderStatus.REJECTED,
             "Check order status is rejected"
         )
@@ -225,7 +177,7 @@ class OrderTests(APITestCase):
         self.products[0].save()
 
         # First Extract user
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.extract_token)
         url = reverse('extract_order')
         response = self.client.get(url, format='json')
         order_item_id1 = response.data[0]['items'][0]['id']
@@ -234,7 +186,7 @@ class OrderTests(APITestCase):
         response = self.client.put(url, {'is_rejected': True, 'comment': 'Interdit de commander ces données'})
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         self.assertEqual(
-            Order.objects.get(pk=self.order.id).status,
+            Order.objects.get(pk=self.config.order.id).status,
             Order.OrderStatus.READY,
             "Check order status is still ready for extract"
         )
@@ -257,7 +209,7 @@ class OrderTests(APITestCase):
         response = self.client.put(url, {'extract_result': extract_file})
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         self.assertEqual(
-            Order.objects.get(pk=self.order.id).status,
+            Order.objects.get(pk=self.config.order.id).status,
             Order.OrderStatus.PROCESSED,
             "Check order status is processed"
         )

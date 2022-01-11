@@ -28,4 +28,16 @@ If (Test-Path $dumpFile) {
 }
 $env:PGPASSWORD = $previous_PGPASSWORD
 
+Write-Host "$(Get-Date -Format g) variables d'environnement remises sur .env.local"
+
+foreach ($line in Get-Content $PSScriptRoot\..\back\.env.local) {
+    $args = $line -split "="
+    If ($args[0] -And !$args[0].StartsWith("#")) {
+        $cmd = '$env:' + $args[0].Trim('"') + '="' + $args[1].Trim('"') + '"'
+        Invoke-Expression $cmd
+    }
+}
+
+Write-Host "$(Get-Date -Format g) terminé."
+
 cd $pwd
