@@ -1,4 +1,5 @@
 import logging
+import secrets
 import uuid
 from django.conf import settings
 from django.core.validators import RegexValidator
@@ -144,10 +145,21 @@ class Metadata(models.Model):
     """
     Describes one or more Products. Every metadata can have one or more contact persons
     """
+
+    class MetadataAccessibility(models.TextChoices):
+        PUBLIC = 'PUBLIC', _('Public')
+        APPROVAL_NEEDED = 'APPROVAL_NEEDED', _('Approval needed')
+        PRIVATE = 'PRIVATE', _('Private')
+
     id_name = models.CharField(_('id_name'), max_length=50, unique=True)
     name = models.CharField(_('name'), max_length=300, blank=True)
     description_long = models.TextField(_('description_long'), blank=True)
     datasource = models.CharField(_('datasource'), max_length=260, blank=True, null=True)
+    accessibility = models.CharField(
+        _('accessibility'), max_length=30,
+        choices=MetadataAccessibility.choices,
+        default=MetadataAccessibility.PUBLIC
+    )
     scale = models.CharField(_('scale'), max_length=500, blank=True)
     geocat_link = models.CharField(_('geocat_link'), max_length=2000, blank=True)
     legend_link = models.CharField(_('legend_link'), max_length=2000, blank=True)
@@ -315,7 +327,7 @@ class Product(models.Model):
         DEPRECATED = 'DEPRECATED', _('Deprecated')
 
     metadata = models.ForeignKey(
-        Metadata, models.SET_NULL, verbose_name=_('metadata'), blank=True, null=True)
+        Metadata, models.PROTECT, verbose_name=_('metadata'))
     label = models.CharField(_('label'), max_length=250, unique=True, validators=[
         RegexValidator(
             regex=r'^[^<>%$"\(\)\n\r]*$',
@@ -495,6 +507,9 @@ class Order(models.Model):
             if item.price_status == OrderItem.PricingStatus.PENDING:
                 item.ask_price()
                 has_all_prices_calculated = has_all_prices_calculated and False
+            if item.product.metadata.accessibility == Metadata.MetadataAccessibility.APPROVAL_NEEDED:
+                item.ask_validation()
+                item.save()
         if has_all_prices_calculated:
             self.date_ordered = timezone.now()
             self.download_guid = uuid.uuid4()
@@ -565,6 +580,7 @@ class OrderItem(models.Model):
         IMPORTED = 'IMPORTED', _('Imported')  # from old database
 
     class OrderItemStatus(models.TextChoices):
+        VALIDATION_PENDING = 'VALIDATION_PENDING', _('Validation pending')
         PENDING = 'PENDING', _('Pending')
         IN_EXTRACT = 'IN_EXTRACT', _('In extract')
         PROCESSED = 'PROCESSED', _('Processed')
@@ -579,6 +595,7 @@ class OrderItem(models.Model):
         DataFormat, models.PROTECT, verbose_name=_('data_format'), blank=True, null=True)
     srid = models.IntegerField(_('srid'), default=settings.DEFAULT_SRID)
     last_download = models.DateTimeField(_('last_download'), blank=True, null=True)
+    validation_date = models.DateTimeField(_('validation_date'), blank=True, null=True)
     price_status = models.CharField(
         _('price_status'), max_length=20, choices=PricingStatus.choices, default=PricingStatus.PENDING)
     status = models.CharField(
@@ -589,6 +606,7 @@ class OrderItem(models.Model):
         _('base_fee'), max_digits=14, decimal_places=2, default_currency='CHF', null=True, blank=True)
     extract_result = models.FileField(upload_to=RandomFileName('extract'), null=True, blank=True)
     comment = models.TextField(_('comment'), null=True, blank=True)
+    token = models.CharField(_('token'), max_length=256, null=True, blank=True)
 
 
     class Meta:
@@ -667,6 +685,25 @@ class OrderItem(models.Model):
                 return
         self.price_status = OrderItem.PricingStatus.PENDING
         return
+
+    def ask_validation(self):
+        """Sends email to the first metadata contact to ask for validation"""
+        self.token = secrets.token_urlsafe(32)
+        self.status = OrderItem.OrderItemStatus.VALIDATION_PENDING
+        send_geoshop_email(
+            _('Geoshop - Validation requested'),
+            recipient=self.product.metadata.contact_persons.first(),
+            template_name='email_validation_needed',
+            template_data={
+                'front_url': '{}://{}{}'.format(
+                    settings.FRONT_PROTOCOL,
+                    settings.FRONT_URL,
+                    settings.FRONT_HREF
+                    ),
+                'what': 'orderitem',
+                'token': self.token,
+            }
+        )
 
     def ask_price(self):
         send_geoshop_email(

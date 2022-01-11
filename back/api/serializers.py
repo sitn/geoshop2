@@ -1,11 +1,10 @@
-from datetime import datetime
 import json
 import copy
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.gis.gdal import GDALException, gdal_version
+from django.contrib.gis.gdal import GDALException
 from django.contrib.gis.geos import Polygon, GEOSException, GEOSGeometry, WKTWriter
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import force_text
@@ -230,8 +229,20 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         exclude = ['_price_currency', '_price', '_base_fee_currency',
-                   '_base_fee', 'last_download', 'extract_result']
+                   '_base_fee', 'last_download', 'extract_result',
+                   'validation_date', 'token']
         read_only_fields = ['price_status', 'order']
+
+
+class OrderItemValidationSerializer(OrderItemSerializer):
+    """
+    Extends OrderItemSerializer with the order_guid.
+    CAUTION: order_guid allows to acces to order without authentication
+    """
+    order_guid = serializers.SerializerMethodField()
+
+    def get_order_guid(self, obj):
+        return obj.order.download_guid
 
 
 class OrderItemTextualSerializer(OrderItemSerializer):
@@ -619,6 +630,10 @@ class UserChangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserChange
         fields = '__all__'
+
+
+class ValidationSerializer(serializers.Serializer):
+    is_validated = serializers.BooleanField()
 
 
 class VerifyEmailSerializer(serializers.Serializer):

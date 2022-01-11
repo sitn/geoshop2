@@ -71,6 +71,8 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('session-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    re_path(r'^validate/orderitem/(?P<token>[a-zA-Z0-9_-]+)$',
+            views.OrderItemByTokenView.as_view(), name='orderitem_validate'),
     path('admin/', admin.site.urls, name='admin'),
     path('', include(router.urls)),
 ]
