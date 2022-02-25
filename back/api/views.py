@@ -420,6 +420,7 @@ class PasswordResetView(generics.GenericAPIView):
     """
     serializer_class = PasswordResetSerializer
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
 
     def post(self, request, *args, **kwargs):
         # Create a serializer with request.data
@@ -445,6 +446,7 @@ class PasswordResetConfirmView(generics.GenericAPIView):
     """
     serializer_class = PasswordResetConfirmSerializer
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
 
     @sensitive_post_parameters_m
     def dispatch(self, *args, **kwargs):
@@ -505,6 +507,7 @@ class RegisterView(generics.CreateAPIView):
     queryset = UserModel.objects.all().order_by('-date_joined')
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
 
     def post(self, request, *args, **kwargs):
         response = super(RegisterView, self).post(request, *args, **kwargs)
@@ -537,6 +540,7 @@ class OrderByUUIDView(generics.RetrieveAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
 
     def get(self, request, guid):
         queryset = self.get_queryset()
@@ -555,6 +559,7 @@ class OrderItemByTokenView(generics.RetrieveAPIView):
     queryset = OrderItem.objects.filter(status=OrderItem.OrderItemStatus.VALIDATION_PENDING)
     serializer_class = OrderItemValidationSerializer
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
 
     def get(self, request, token):
         queryset = self.get_queryset()
@@ -583,6 +588,7 @@ class DownloadLinkView(generics.RetrieveAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
 
     def get(self, request, guid):
         queryset = self.get_queryset()
@@ -648,6 +654,7 @@ class UserChangeView(generics.CreateAPIView):
 
 class VerifyEmailView(views.APIView, ConfirmEmailView):
     permission_classes = (permissions.AllowAny,)
+    authentication_classes = []
     allowed_methods = ('POST', 'OPTIONS', 'HEAD')
 
     def get_serializer(self, *args, **kwargs):
@@ -667,6 +674,7 @@ class VerifyUsernameView(views.APIView):
     Verifies if username is available
     """
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
     allowed_methods = ['GET']
 
     #TODO
