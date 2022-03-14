@@ -303,6 +303,10 @@ class OrderTests(APITestCase):
             modified_user=self.config.user_private,
             accessibility=Metadata.MetadataAccessibility.APPROVAL_NEEDED
         )
+        approval_needed_metadata.contact_persons.set([
+            self.config.user_private.identity
+        ])
+        approval_needed_metadata.save()
 
         Product.objects.create(
             label="Données sensibles",
