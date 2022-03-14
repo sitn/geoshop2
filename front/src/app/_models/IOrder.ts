@@ -2,10 +2,10 @@
 
 import Polygon from 'ol/geom/Polygon';
 import GeoJSON from 'ol/format/GeoJSON';
-import Geometry from 'ol/geom/Geometry';
 import {Contact} from './IContact';
 import {PricingStatus} from './IPricing';
 import {IProduct} from './IProduct';
+import { IIdentity } from './IIdentity';
 
 export interface IOrderType {
   id: number;
@@ -42,6 +42,7 @@ export interface IOrderItem {
   price?: string;
   data_format?: string;
   available_formats?: string[];
+  order_guid?: string;
   srid?: number;
   price_status?: PricingStatus;
   /** id of the order   */
@@ -95,6 +96,7 @@ export interface IOrder {
   [key: string]: any;
 
   id: number;
+  client?: IIdentity;
   order_type: string;
   items: Array<IOrderItem>;
   title: string;
@@ -116,8 +118,32 @@ export interface IOrder {
   invoice_contact: string | number;
 }
 
+export class OrderItem {
+  product: IProduct | string;
+  product_id: number;
+  id?: number;
+  price?: string;
+  data_format?: string;
+  available_formats?: string[];
+  order_guid?: string;
+  srid?: number;
+  price_status?: PricingStatus;
+  /** id of the order   */
+  order?: number;
+  status?: OrderItemStatus;
+
+  constructor(options: IOrderItem) {
+    if (!options) {
+      throw new Error('Missing argument');
+    }
+
+    Object.assign(this, options);
+  }
+}
+
 export class Order {
   id: number;
+  client: IIdentity;
   order_type: string;
   items: Array<IOrderItem>;
   title: string;

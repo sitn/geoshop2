@@ -219,6 +219,7 @@ class MetadataContact(models.Model):
     contact_person = models.ForeignKey(
         Identity, models.CASCADE, verbose_name=_('contact_person'), limit_choices_to={'is_public': True})
     metadata_role = models.CharField(_('role'), max_length=150, default='Gestionnaire')
+    is_validator = models.BooleanField(_('is_validator'), default=False)
 
     class Meta:
         db_table = 'metadata_contact_persons'
@@ -687,12 +688,16 @@ class OrderItem(models.Model):
         return
 
     def ask_validation(self):
-        """Sends email to the first metadata contact to ask for validation"""
+        """
+        Sends email to the first metadata contact that is validator to ask for validation.
+        If validator cannot be found, an email to one of the metadata contact is sent.
+        """
         self.token = secrets.token_urlsafe(32)
         self.status = OrderItem.OrderItemStatus.VALIDATION_PENDING
+        validator = MetadataContact.objects.filter(metadata=self.product.metadata).order_by('-is_validator').first()
         send_geoshop_email(
             _('Geoshop - Validation requested'),
-            recipient=self.product.metadata.contact_persons.first(),
+            recipient=validator.contact_person,
             template_name='email_validation_needed',
             template_data={
                 'front_url': '{}://{}{}'.format(

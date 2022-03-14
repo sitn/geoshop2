@@ -28,6 +28,7 @@ import {MatListModule} from '@angular/material/list';
 import {SharedModule} from '../shared/shared.module';
 import {DownloadComponent} from './download/download.component';
 import {MatTabsModule} from '@angular/material/tabs';
+import { ValidateComponent } from './validate/validate.component';
 
 const MODULES = [
   MatMenuModule,
@@ -57,6 +58,7 @@ const MODULES = [
         MapComponent,
         CatalogComponent,
         DownloadComponent,
+        ValidateComponent,
         DialogMetadataComponent,
         ManualentryComponent
     ],

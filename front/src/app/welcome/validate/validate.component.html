@@ -1,0 +1,45 @@
+<div class="max-content">
+
+  <mat-card>
+    <div *ngIf="!order">
+      <mat-card-title>GeoShop - Validation</mat-card-title>
+      <mat-card-content>
+        <mat-spinner class="flex" diameter="48" color="accent" style="margin-right: 10px"></mat-spinner>
+      </mat-card-content>
+    </div>
+
+    <div *ngIf="order">
+
+      <mat-card-title>{{orderitem.product}} - à valider</mat-card-title>
+      <mat-card-subtitle>
+        Cette page permet d'autoriser ou d'annuler l'utilisation d'un produit commandé sur le geoshop.
+      </mat-card-subtitle>
+      <mat-card-content>
+        <h4>Titre du mandat {{order.order_type | lowercase}}:</h4>
+        <p>{{order.title}}</p>
+        <h4>Description fournie par le client:</h4>
+        <p>{{order.description}}</p>
+        <h4>Détails du client:</h4>
+        <p>
+          <span *ngIf="order.client.company_name">
+            {{order.client.company_name}}<br>
+          </span>
+          {{order.client.first_name}} {{order.client.last_name}}<br>
+          {{order.client.street}}<br>
+          <span *ngIf="order.client.street2">{{order.client.street2}}<br></span>
+          {{order.client.postcode}} {{order.client.city}}<br>
+          <span *ngIf="order.client.phone">
+            {{ order.client.phone }}<br>
+          </span>
+          <a href="mailto:{{ order.client.email }}">{{ order.client.email }}</a>
+        </p>
+        <div class="mini-map" [id]="'mini-map-' + order.id"></div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-button color="primary" (click)="proceedOrder(true)">ACCEPTER</button>
+        <button mat-button color="warn" (click)="proceedOrder(false)">REFUSER</button>
+      </mat-card-actions>
+    </div>
+  </mat-card>
+
+</div>

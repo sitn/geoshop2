@@ -1,13 +1,13 @@
-import {Injectable} from '@angular/core';
-import {Observable, of, zip} from 'rxjs';
-import {IOrder, IOrderDowloadLink, IOrderItem, IOrderSummary, IOrderToPost, IOrderType, Order} from '../_models/IOrder';
-import {HttpClient} from '@angular/common/http';
-import {ConfigService} from './config.service';
-import {IApiResponse} from '../_models/IApi';
-import {catchError, flatMap, map} from 'rxjs/operators';
-import {Contact, IContact} from '../_models/IContact';
-import {GeoshopUtils} from '../_helpers/GeoshopUtils';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import { Injectable } from '@angular/core';
+import { Observable, of, zip } from 'rxjs';
+import { IOrder, IOrderDowloadLink, IOrderItem, IOrderSummary, IOrderToPost, IOrderType, Order } from '../_models/IOrder';
+import { HttpClient } from '@angular/common/http';
+import { ConfigService } from './config.service';
+import { IApiResponse } from '../_models/IApi';
+import { catchError, flatMap, map } from 'rxjs/operators';
+import { Contact, IContact } from '../_models/IContact';
+import { GeoshopUtils } from '../_helpers/GeoshopUtils';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 
 @Injectable({
@@ -42,7 +42,7 @@ export class ApiOrderService {
         );
   }
 
-  getOrderByUUID(uuid: string): Observable<Order | null> {
+  getOrderByUUID(uuid: string | undefined): Observable<Order | null> {
     this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/download/${uuid}`);
@@ -55,6 +55,41 @@ export class ApiOrderService {
         })
       );
   }
+
+  getOrderItemByToken(token: string): Observable<IOrderItem | null> {
+    this._getApiUrl();
+
+    const url = new URL(`${this.apiUrl}/validate/orderitem/${token}`);
+
+    return this.http.get<IOrderItem>(url.toString())
+      .pipe(
+        catchError(() => {
+          console.log('cizciz')
+          return of(null);
+        })
+      );
+  }
+
+  updateOrderItemStatus(token: string, isAccepted: boolean) {
+    this._getApiUrl();
+
+    const url = new URL(`${this.apiUrl}/validate/orderitem/${token}`);
+
+    return this.http.patch<boolean>(url.toString(), {
+      'is_validated': isAccepted
+    }).pipe(
+      map(() => {
+        this.snackBar.open(
+          'Décision soumise avec succès', 'Ok', {
+          panelClass: 'notification-info'
+        }
+        );
+        return true
+      }),
+      catchError(() => of(false))
+    );
+  }
+
 
   getOrderType(url: string): Observable<IOrderType | null> {
     this._getApiUrl();
@@ -148,20 +183,20 @@ export class ApiOrderService {
     return this.createOrUpdateContact(contact)
       .pipe(
         flatMap((newJsonContact) => {
-            if (!isAddressForCurrentUser) {
-              if (!newJsonContact) {
-                return of(null);
-              }
-              jsonOrder.invoice_contact = GeoshopUtils.ExtractIdFromUrl((newJsonContact as IContact).url);
+          if (!isAddressForCurrentUser) {
+            if (!newJsonContact) {
+              return of(null);
             }
-            return this.http.post<IOrder | null>(url.toString(), jsonOrder)
-              .pipe(
-                catchError(() => {
-                  return of(null);
-                })
-              );
+            jsonOrder.invoice_contact = GeoshopUtils.ExtractIdFromUrl((newJsonContact as IContact).url);
+          }
+          return this.http.post<IOrder | null>(url.toString(), jsonOrder)
+            .pipe(
+              catchError(() => {
+                return of(null);
+              })
+            );
         }
-      ));
+        ));
   }
 
   updateOrder(order: Order, contact: Contact | undefined, isAddressForCurrentUser: boolean): Observable<IOrder | null> {
@@ -172,22 +207,22 @@ export class ApiOrderService {
     return this.createOrUpdateContact(contact)
       .pipe(
         flatMap((newJsonContact) => {
-            const orderToPost = order.toPostAsJson;
+          const orderToPost = order.toPostAsJson;
 
-            if (!isAddressForCurrentUser) {
-              if (!newJsonContact) {
-                return of(null);
-              }
-              orderToPost.invoice_contact = GeoshopUtils.ExtractIdFromUrl((newJsonContact as IContact).url);
+          if (!isAddressForCurrentUser) {
+            if (!newJsonContact) {
+              return of(null);
             }
-
-            return this.http.put<IOrder | null>(`${url.toString()}${order.id}/`, orderToPost)
-              .pipe(
-                catchError(() => {
-                  return of(null);
-                })
-              );
+            orderToPost.invoice_contact = GeoshopUtils.ExtractIdFromUrl((newJsonContact as IContact).url);
           }
+
+          return this.http.put<IOrder | null>(`${url.toString()}${order.id}/`, orderToPost)
+            .pipe(
+              catchError(() => {
+                return of(null);
+              })
+            );
+        }
         ));
   }
 
@@ -201,8 +236,8 @@ export class ApiOrderService {
         map(() => {
           this.snackBar.open(
             'Commande passée avec succès! Vous recevrez un email lorsque tous les téléchargements seront prêts.', 'Ok', {
-              panelClass: 'notification-info'
-            }
+            panelClass: 'notification-info'
+          }
           );
           return true
         }),
@@ -276,7 +311,7 @@ export class ApiOrderService {
 
     const url = new URL(`${this.apiUrl}/orderitem/${orderItemId}/`);
 
-    return this.http.patch<IOrderItem | null>(url.toString(), {data_format: dataFormat})
+    return this.http.patch<IOrderItem | null>(url.toString(), { data_format: dataFormat })
       .pipe(
         catchError(() => {
           return of(null);

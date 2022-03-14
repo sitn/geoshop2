@@ -30,7 +30,7 @@ from .serializers import (
     MetadataSerializer, MetadataContactSerializer, OrderDigestSerializer,
     OrderSerializer, OrderItemSerializer, OrderItemValidationSerializer, OrderTypeSerializer,
     PasswordResetSerializer, PasswordResetConfirmSerializer,
-    PricingSerializer, ProductSerializer, ProductDigestSerializer,
+    PricingSerializer, ProductSerializer, ProductDigestSerializer, PublicOrderSerializer,
     ProductFormatSerializer, RegisterSerializer, UserChangeSerializer,
     VerifyEmailSerializer, ValidationSerializer)
 
@@ -538,14 +538,14 @@ class OrderByUUIDView(generics.RetrieveAPIView):
     Returns an order based on in its UUID
     """
     queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+    serializer_class = PublicOrderSerializer
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
 
     def get(self, request, guid):
         queryset = self.get_queryset()
         order = get_object_or_404(queryset, download_guid=guid)
-        serializer = OrderSerializer(order, context={'request': request})
+        serializer = PublicOrderSerializer(order, context={'request': request})
         return Response(serializer.data)
 
 
