@@ -75,10 +75,9 @@ class WKTPolygonField(serializers.Field):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
-        exclude = [
-            'password', 'first_name', 'last_name', 'email',
-            'is_staff', 'is_superuser', 'is_active', 'groups',
-            'user_permissions']
+        fields = [
+            'username', 'id', 'identity'
+        ]
 
 
 class IdentitySerializer(serializers.ModelSerializer):
@@ -150,6 +149,13 @@ class MetadataIdentitySerializer(serializers.HyperlinkedModelSerializer):
             'postcode', 'city', 'country']
 
 
+class PublicUserIdentitySerializer(UserIdentitySerializer):
+    """
+    User serializer that is safe to use on token protected routes.
+    """
+    identity = MetadataIdentitySerializer(many=False)
+
+
 class MetadataContactSerializer(serializers.HyperlinkedModelSerializer):
     contact_person = MetadataIdentitySerializer(read_only=True)
 
@@ -158,8 +164,6 @@ class MetadataContactSerializer(serializers.HyperlinkedModelSerializer):
         fields = [
             'contact_person',
             'metadata_role']
-
-# TODO: Test this, check for passing contexts ! Check public identities
 
 
 class MetadataSerializer(serializers.HyperlinkedModelSerializer):
@@ -367,6 +371,17 @@ class OrderSerializer(serializers.ModelSerializer):
                 instance.set_price()
                 instance.save()
         return instance
+
+
+class PublicOrderSerializer(OrderSerializer):
+    """
+    Meant to be accessed by token
+    """
+    client = PublicUserIdentitySerializer(read_only=True)
+    class Meta(OrderSerializer.Meta):
+        exclude = [
+            'date_downloaded', 'extract_result', 'download_guid',
+            'processing_fee_currency', 'processing_fee', 'total_with_vat']
 
 
 class ProductSerializer(serializers.ModelSerializer):
