@@ -493,7 +493,9 @@ class Order(models.Model):
                         )
                         # If the data format for the group is not available for the item,
                         # pick the first possible
-                        if item.data_format not in item.available_formats:
+                        LOGGER.debug(f'{item.id} has format: {item.data_format}')
+                        if item.data_format.name not in item.available_formats:
+                            LOGGER.debug(f'{item.data_format} is not in {item.available_formats}')
                             new_item.data_format = product.product_formats.all().first().data_format
                         new_item.set_price()
                         new_item.save()
