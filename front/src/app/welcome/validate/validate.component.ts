@@ -49,12 +49,10 @@ export class ValidateComponent implements OnInit, OnDestroy {
     this.apiOrderService.getOrderItemByToken(this.token)
       .subscribe(iOrderItem => {
         if (iOrderItem) {
-          console.log(iOrderItem)
           this.orderitem = new OrderItem(iOrderItem);
           this.apiOrderService.getOrderByUUID(iOrderItem.order_guid).pipe(takeUntil(this.onDestroy$))
             .subscribe(order => {
               if (order) {
-                console.log(order)
                 this.order = order;
                 GeoHelper.generateMiniMap(this.configService, this.mapService).then(result => {
                   this.minimap = result.minimap;

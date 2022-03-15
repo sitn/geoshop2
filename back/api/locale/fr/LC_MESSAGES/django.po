@@ -194,8 +194,6 @@ msgid "identity"
 msgstr "identité"
 
 #: api/models.py:150
-#, fuzzy
-#| msgid "is_public"
 msgid "Public"
 msgstr "Public"
 

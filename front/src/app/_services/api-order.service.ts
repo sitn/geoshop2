@@ -64,7 +64,6 @@ export class ApiOrderService {
     return this.http.get<IOrderItem>(url.toString())
       .pipe(
         catchError(() => {
-          console.log('cizciz')
           return of(null);
         })
       );
