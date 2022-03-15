@@ -221,7 +221,7 @@ msgstr "source des données"
 
 #: api/models.py:159
 msgid "accessibility"
-msgstr "Accèssibilité"
+msgstr "Accessibilité"
 
 #: api/models.py:163
 msgid "scale"
