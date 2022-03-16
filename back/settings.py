@@ -145,6 +145,33 @@ SITE_ID = 2
 
 VAT = 0.077
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '{levelname} {module} {filename} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': os.getenv('LOGGING_LEVEL', 'ERROR'),
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('LOGGING_LEVEL', 'ERROR'),
+            'propagate': False,
+        },
+    },
+}
+
 # Django REST specific configuration
 # https://www.django-rest-framework.org/
 REST_FRAMEWORK = {
