@@ -99,7 +99,7 @@ class ProductGroupTests(APITestCase):
         OrderItem.objects.create(
             order=self.config.order,
             price_status=OrderItem.PricingStatus.CALCULATED,
-            product=self.child_group,
+            product=self.group,
             data_format=DataFormat.objects.create(name="ZIP"),
         )
 
