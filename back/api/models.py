@@ -482,7 +482,7 @@ class Order(models.Model):
         for child_product in group_of_products.products.all():
             # if child_product is a group, recurse
             if child_product.products.exists():
-                return self._flatten(child_product, data_format)
+                return self._flatten_groups(child_product, data_format)
 
             # only create OrderItem for products that intersect current order geom
             if child_product.geom.intersects(self.geom):
