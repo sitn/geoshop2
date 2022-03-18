@@ -1,11 +1,15 @@
 . "$PSScriptRoot\replace-with-env.ps1"
+$destConfig = Read-Host -Prompt 'Input "prod", "prepub", "dev" or "local"'
+
+# Do not deploy to internet with DEBUG set to True
 $settings = Get-Content ("{0}\..\back\settings.py" -f $PSScriptRoot)
 $isDebug = $settings | Select-String -Pattern "^\DEBUG = (True)$"
 if ($isDebug.Matches.Success) {
-    Write-Output "Cannot deploy if DEBUG=True in settings.py"
-    Exit
+    if ($destConfig -ne "local") {
+        Write-Output "Cannot deploy if DEBUG=True in settings.py"
+        Exit
+    }
 }
-$destConfig = Read-Host -Prompt 'Input "prod", "prepub" or "dev"'
 $envFile = ("{0}\..\back\.env.{1}" -f $PSScriptRoot, $destConfig)
 # Read .env
 foreach ($line in Get-Content $envFile) {
