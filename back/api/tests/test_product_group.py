@@ -30,7 +30,16 @@ class ProductGroupTests(APITestCase):
         user_extern_extract.save()
 
         self.group = Product.objects.create(
+            label="Cadastre souterrain",
+            pricing=self.config.pricings['free'],
+            provider=self.extract_config.user,
+            metadata=self.config.metadata,
+            status=Product.ProductStatus.PUBLISHED
+        )
+
+        self.child_group = Product.objects.create(
             label="Réseau d'eau",
+            group=self.group,
             pricing=self.config.pricings['free'],
             provider=self.extract_config.user,
             metadata=self.config.metadata,
@@ -43,7 +52,7 @@ class ProductGroupTests(APITestCase):
         self.products = Product.objects.bulk_create([
             Product(
                 label="Réseau d'eau de la commune d'Ankh",
-                group=self.group,
+                group=self.child_group,
                 pricing=self.config.pricings['free'],
                 provider=self.extract_config.user,
                 metadata=self.config.metadata,
@@ -54,11 +63,11 @@ class ProductGroupTests(APITestCase):
                     (2520000, 1210000),
                     (2537498, 1210000)
                 )),
-                status=Product.ProductStatus.PUBLISHED_ONLY_IN_GROUP
+                status=Product.ProductStatus.PUBLISHED
             ),
             Product(
                 label="Réseau d'eau de la commune de Morpork",
-                group=self.group,
+                group=self.child_group,
                 pricing=self.config.pricings['free'],
                 provider=user_extern_extract,
                 metadata=self.config.metadata,
@@ -73,7 +82,7 @@ class ProductGroupTests(APITestCase):
             ),
             Product(
                 label="Réseau d'eau du Klatch",
-                group=self.group,
+                group=self.child_group,
                 pricing=self.config.pricings['free'],
                 provider=user_extern_extract,
                 metadata=self.config.metadata,
@@ -90,7 +99,7 @@ class ProductGroupTests(APITestCase):
         OrderItem.objects.create(
             order=self.config.order,
             price_status=OrderItem.PricingStatus.CALCULATED,
-            product=self.group,
+            product=self.child_group,
             data_format=DataFormat.objects.create(name="ZIP"),
         )
 
