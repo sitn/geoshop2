@@ -474,31 +474,43 @@ class Order(models.Model):
             )
         return price_is_set
 
+    def _flatten_groups(self, group_of_products: Product, data_format: DataFormat):
+        """
+        Creates an OrderItem for each child found in an incoming group_of_products.
+        The new OrderItems will inherit chosen data_format for the group if possible.
+        """
+        for child_product in group_of_products.products.all():
+            # if child_product is a group, recurse
+            if child_product.products.exists():
+                return self._flatten_groups(child_product, data_format)
+
+            # only create OrderItem for products that intersect current order geom
+            if child_product.geom.intersects(self.geom):
+                new_item = OrderItem(
+                    order=self,
+                    product=child_product,
+                    data_format=data_format
+                )
+                # If the data format for the group is not available for the item,
+                # pick the first possible
+                LOGGER.debug(f'{child_product.label} wants format: {data_format}')
+                if new_item.data_format.name not in new_item.available_formats:
+                    LOGGER.warning(f'{new_item.data_format} is not in {new_item.available_formats}')
+                    new_item.data_format = child_product.product_formats.all().first().data_format
+                new_item.set_price()
+                new_item.save()
+
     def _expand_product_groups(self):
         """
-        When a product is a group of products, the group is deleted from cart and
-        is replaced with one OrderItem for each product inside the group.
+        When an OrderItem is a group of products, the OrderItem is deleted from cart and
+        is replaced with one OrderItem for each product inside the group by calling
+        _flatten_groups.
         """
         items = self.items.all()
         for item in items:
-            # if product is a group (if product has children)
+            # if ordered product is a group (if product has children)
             if item.product.products.exists():
-                for product in item.product.products.all():
-                    # only pick products that intersect current order geom
-                    if product.geom.intersects(self.geom):
-                        new_item = OrderItem(
-                            order=self,
-                            product=product,
-                            data_format=item.data_format
-                        )
-                        # If the data format for the group is not available for the item,
-                        # pick the first possible
-                        LOGGER.debug(f'{item.id} has format: {item.data_format}')
-                        if item.data_format.name not in item.available_formats:
-                            LOGGER.debug(f'{item.data_format} is not in {item.available_formats}')
-                            new_item.data_format = product.product_formats.all().first().data_format
-                        new_item.set_price()
-                        new_item.save()
+                self._flatten_groups(item.product, item.data_format)
                 item.delete()
 
     def confirm(self):
