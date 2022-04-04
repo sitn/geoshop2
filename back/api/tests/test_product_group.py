@@ -1,9 +1,7 @@
-import os
 from django.urls import reverse
-from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, MultiPolygon
 from rest_framework import status
 from rest_framework.test import APITestCase
 from api.models import DataFormat, Product, ProductFormat, OrderItem
@@ -56,13 +54,13 @@ class ProductGroupTests(APITestCase):
                 pricing=self.config.pricings['free'],
                 provider=self.extract_config.user,
                 metadata=self.config.metadata,
-                geom=Polygon((
+                geom=MultiPolygon(Polygon((
                     (2537498, 1210000),
                     (2533183, 1180000),
                     (2520000, 1180000),
                     (2520000, 1210000),
                     (2537498, 1210000)
-                )),
+                ))),
                 status=Product.ProductStatus.PUBLISHED
             ),
             Product(
@@ -71,13 +69,13 @@ class ProductGroupTests(APITestCase):
                 pricing=self.config.pricings['free'],
                 provider=user_extern_extract,
                 metadata=self.config.metadata,
-                geom=Polygon((
+                geom=MultiPolygon(Polygon((
                     (2533183, 1180000),
                     (2537498, 1210000),
                     (2550000, 1210000),
                     (2550000, 1180000),
                     (2533183, 1180000)
-                )),
+                ))),
                 status=Product.ProductStatus.PUBLISHED_ONLY_IN_GROUP
             ),
             Product(
@@ -86,7 +84,7 @@ class ProductGroupTests(APITestCase):
                 pricing=self.config.pricings['free'],
                 provider=user_extern_extract,
                 metadata=self.config.metadata,
-                geom=Polygon.from_bbox((2564000, 1212000, 2570000, 1207000)),
+                geom=MultiPolygon(Polygon.from_bbox((2564000, 1212000, 2570000, 1207000))),
                 status=Product.ProductStatus.PUBLISHED_ONLY_IN_GROUP
             )
         ])

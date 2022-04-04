@@ -4,7 +4,7 @@ import uuid
 from django.conf import settings
 from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex, BTreeIndex
@@ -350,9 +350,9 @@ class Product(models.Model):
     thumbnail_link = models.CharField(
         _('thumbnail_link'), max_length=250, default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL)
     ts = SearchVectorField(null=True)
-    geom = models.PolygonField(_('geom'), srid=settings.DEFAULT_SRID, default=Polygon.from_bbox(
+    geom = models.MultiPolygonField(_('geom'), srid=settings.DEFAULT_SRID, default=MultiPolygon(Polygon.from_bbox(
         (2519900, 1186430, 2578200, 1227030)
-    ))
+    )))
 
     class Meta:
         db_table = 'product'
@@ -482,7 +482,8 @@ class Order(models.Model):
         for child_product in group_of_products.products.all():
             # if child_product is a group, recurse
             if child_product.products.exists():
-                return self._flatten_groups(child_product, data_format)
+                self._flatten_groups(child_product, data_format)
+                continue
 
             # only create OrderItem for products that intersect current order geom
             if child_product.geom.intersects(self.geom):
