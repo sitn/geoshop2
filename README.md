@@ -42,26 +42,34 @@ WITH unaccent, simple;
 Create an .env.local based on .env.sample, then build:
 
 ```powershell
+.\scripts\deploy.ps1
+```
+
+And choose `local`.
+
+Otherwise you can build it manually with:
+
+```powershell
 cd back
-docker build -t geoshop_api --build-arg ENV_FILE=.env.local --build-arg TESTING=True .
+docker build -t sitn/geoshop-dev-api --build-arg ENV_FILE=.env.local --build-arg TESTING=True .
 ```
 
 Now you can run it with:
 
 ```powershell
-docker run -d --rm --name geoshop --env-file=.env.local -p 8000:8000 -v ${PWD}:/app/geoshop_back geoshop_api gunicorn --reload wsgi -b :8000
+docker run -d --rm --name geoshop --env-file=.env.local -p 8000:8000 -v ${PWD}:/app/geoshop_back sitn/geoshop-dev-api gunicorn --reload wsgi -b :8000
 ```
 
 Run tests:
 
 ```powershell
-docker run --rm --env-file=.env.local -v ${PWD}:/app/geoshop_back geoshop_api python manage.py test api
+docker run --rm --env-file=.env.local -v ${PWD}:/app/geoshop_back sitn/geoshop-dev-api python manage.py test api
 ```
 
 Make messages for translation:
 
 ```powershell
-docker run --rm --env-file=.env.local -v ${PWD}:/app/geoshop_back:rw geoshop_api python manage.py makemessages -l fr
+docker run --rm --env-file=.env.local -v ${PWD}:/app/geoshop_back:rw sitn/geoshop-dev-api python manage.py makemessages -l fr
 ```
 
 Stop the server:
