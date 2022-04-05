@@ -398,7 +398,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         read_only_fields = ['pricing', 'label', 'group']
-        exclude = ['order', 'thumbnail_link', 'ts', 'metadata']
+        exclude = ['order', 'thumbnail_link', 'ts', 'metadata', 'geom']
 
 
 class ProductExtractSerializer(ProductSerializer):
