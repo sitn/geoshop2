@@ -551,24 +551,27 @@ class Order(models.Model):
                 self.status = Order.OrderStatus.READY
         else:
             if OrderItem.OrderItemStatus.PROCESSED in items_statuses:
-                self.status = Order.OrderStatus.PROCESSED
-                self.date_processed = timezone.now()
-                send_geoshop_email(
-                    _('Geoshop - Download ready'),
-                    recipient=self.email_deliver or self.client.identity,
-                    template_name='email_download_ready',
-                    template_data={
-                        'order_id': self.id,
-                        'download_guid': self.download_guid,
-                        'front_url': '{}://{}{}'.format(
-                            settings.FRONT_PROTOCOL,
-                            settings.FRONT_URL,
-                            settings.FRONT_HREF
-                            ),
-                        'first_name': self.client.identity.first_name,
-                        'last_name': self.client.identity.last_name,
-                    }
-                )
+                if OrderItem.OrderItemStatus.VALIDATION_PENDING in items_statuses:
+                    self.status = Order.OrderStatus.PARTIALLY_DELIVERED
+                else:
+                    self.status = Order.OrderStatus.PROCESSED
+                    self.date_processed = timezone.now()
+                    send_geoshop_email(
+                        _('Geoshop - Download ready'),
+                        recipient=self.email_deliver or self.client.identity,
+                        template_name='email_download_ready',
+                        template_data={
+                            'order_id': self.id,
+                            'download_guid': self.download_guid,
+                            'front_url': '{}://{}{}'.format(
+                                settings.FRONT_PROTOCOL,
+                                settings.FRONT_URL,
+                                settings.FRONT_HREF
+                                ),
+                            'first_name': self.client.identity.first_name,
+                            'last_name': self.client.identity.last_name,
+                        }
+                    )
             else:
                 self.status = Order.OrderStatus.REJECTED
         return self.status
