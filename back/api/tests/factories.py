@@ -21,6 +21,7 @@ class BaseObjectsFactory:
     max_price = Money(150, 'CHF')
 
     def __init__(self, webclient=None):
+        # Creates admin account and Extract group with permissions
         management.call_command('fixturize')
         self.user_private = UserModel.objects.create_user(
             username=self.private_username,
@@ -85,49 +86,58 @@ class BaseObjectsFactory:
             )
         }
 
+        self.provider = UserModel.objects.get(username='sitn_extract')
+
         self.products = {
             'free': Product.objects.create(
                 label="Produit gratuit",
                 pricing=self.pricings['free'],
                 metadata=self.metadata,
                 status=Product.ProductStatus.PUBLISHED,
+                provider=self.provider
             ),
             'single': Product.objects.create(
                 label="Produit forfaitaire",
                 pricing=self.pricings['single'],
                 metadata=self.metadata,
-                status=Product.ProductStatus.PUBLISHED
+                status=Product.ProductStatus.PUBLISHED,
+                provider=self.provider
             ),
             'by_number_objects': Product.objects.create(
                 label="Bâtiments 3D",
                 pricing=self.pricings['by_number_objects'],
                 metadata=self.metadata,
-                status=Product.ProductStatus.PUBLISHED
+                status=Product.ProductStatus.PUBLISHED,
+                provider=self.provider
             ),
             'by_area': Product.objects.create(
                 label="Produit vendu au m²",
                 pricing=self.pricings['by_area'],
                 metadata=self.metadata,
-                status=Product.ProductStatus.PUBLISHED
+                status=Product.ProductStatus.PUBLISHED,
+                provider=self.provider
             ),
             'from_pricing_layer': Product.objects.create(
                 label="MO",
                 pricing=self.pricings['from_pricing_layer'],
                 metadata=self.metadata,
                 status=Product.ProductStatus.PUBLISHED,
-                free_when_subscribed=True
+                free_when_subscribed=True,
+                provider=self.provider
             ),
             'manual': Product.objects.create(
                 label="Maquette 3D",
                 pricing=self.pricings['manual'],
                 metadata=self.metadata,
-                status=Product.ProductStatus.PUBLISHED
+                status=Product.ProductStatus.PUBLISHED,
+                provider=self.provider
             ),
             'yet_unknown_pricing': Product.objects.create(
                 label="Produit facturé au Mb (non implémenté)",
                 pricing=self.pricings['yet_unknown_pricing'],
                 metadata=self.metadata,
-                status=Product.ProductStatus.PUBLISHED
+                status=Product.ProductStatus.PUBLISHED,
+                provider=self.provider
             )
         }
 

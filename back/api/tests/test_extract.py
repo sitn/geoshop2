@@ -29,8 +29,6 @@ class OrderTests(APITestCase):
         ]
 
         for product in self.products:
-            product.provider=self.extract_config.user
-            product.save()
             OrderItem.objects.create(
                 order=self.config.order,
                 price_status=OrderItem.PricingStatus.CALCULATED,
