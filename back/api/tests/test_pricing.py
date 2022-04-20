@@ -261,6 +261,7 @@ class PricingTests(APITestCase):
             label="Réseau d'eau",
             metadata=self.config.metadata,
             pricing=self.config.pricings['from_children_of_group'],
+            provider=self.config.provider
         )
         self.config.products['free'].group = group_product
         self.config.products['single'].group = group_product

@@ -340,7 +340,7 @@ class Product(models.Model):
     group = models.ForeignKey(
         'self', models.SET_NULL, verbose_name=_('group'), blank=True, null=True, related_name='products')
     provider = models.ForeignKey(
-        UserModel, models.PROTECT, verbose_name=_('provider'), null=True,
+        UserModel, models.PROTECT, verbose_name=_('provider'),
         limit_choices_to={
             'groups__name': 'extract'
         })
@@ -652,6 +652,22 @@ class OrderItem(models.Model):
     def base_fee(self):
         return self._get_price_values(self._base_fee)
 
+    def _calculate_nested_price(self, group_of_products: Product):
+        """
+        Sums all levels of nested prices inside a group of products
+        to _self_price and sets _base_fee for the group
+        """
+        for product in group_of_products.products.all():
+            if product.products.exists():
+                self._calculate_nested_price(product)
+                continue
+            if product.geom.intersects(self.order.geom):
+                price, base_fee = product.pricing.get_price(self.order.geom)
+                if price:
+                    self._price += price
+                if base_fee and base_fee > self._base_fee:
+                    self._base_fee = base_fee
+
     def set_price(self, price=None, base_fee=None):
         """
         Sets price and updates price status
@@ -674,7 +690,7 @@ class OrderItem(models.Model):
             return
 
         # prices are 0 when order is for public authorities or academic purposes
-        if self.order.order_type.name in ( 'Communal', 'Cantonal', 'Fédéral', 'Académique'):
+        if self.order.order_type.name in ('Communal', 'Cantonal', 'Fédéral', 'Académique'):
             self._price = Money(0, 'CHF')
             self._base_fee = Money(0, 'CHF')
             self.price_status = OrderItem.PricingStatus.CALCULATED
@@ -682,20 +698,18 @@ class OrderItem(models.Model):
 
         if self.product.pricing.pricing_type != Pricing.PricingType.MANUAL:
             if self.product.pricing.pricing_type == Pricing.PricingType.FROM_CHILDREN_OF_GROUP:
+                # Pricing from children is only used when groups are present in cart
+                # When order is confirmed groups are falttenend and
+                # each price will be set individually
                 self._price = Money(0, 'CHF')
                 self._base_fee = Money(0, 'CHF')
-                for product in self.product.products.all():
-                    if product.geom.intersects(self.order.geom):
-                        price, base_fee = product.pricing.get_price(self.order.geom)
-                        if price:
-                            self._price += price
-                        if base_fee:
-                            self._base_fee = base_fee if base_fee > self._base_fee else self._base_fee
+                self._calculate_nested_price(self.product)
             else:
                 self._price, self._base_fee = self.product.pricing.get_price(self.order.geom)
             if self._price is not None:
                 self.price_status = OrderItem.PricingStatus.CALCULATED
                 return
+        # When price is MANUAL and a price is passed as argument of this function
         else:
             if price is not None:
                 self._price = price
