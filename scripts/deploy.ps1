@@ -20,8 +20,8 @@ foreach ($line in Get-Content $envFile) {
     }
 }
 
-$env:API_URL = ("{0}{1}" -f $env:DOCUMENT_BASE_URL, $env:ROOTURL)
-$env:MEDIA_URL = ("{0}/geoshop2_media" -f $env:DOCUMENT_BASE_URL, $env:FRONT_HREF)
+$env:API_URL = ("{0}{1}" -f $env:API_BASE_URL, $env:ROOTURL)
+$env:MEDIA_URL = ("{0}/geoshop2_media" -f $env:API_BASE_URL, $env:FRONT_HREF)
 if ($destConfig -eq "prod") {
     $env:GEOSHOP_DATA = "/mnt/geoshop_data"
 } else {
