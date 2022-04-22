@@ -149,7 +149,8 @@ class Metadata(models.Model):
     class MetadataAccessibility(models.TextChoices):
         PUBLIC = 'PUBLIC', _('Public')
         APPROVAL_NEEDED = 'APPROVAL_NEEDED', _('Approval needed')
-        PRIVATE = 'PRIVATE', _('Private')
+        NOT_ACCESSIBLE = 'NOT_ACCESSIBLE', _('Not accessible')
+        INTERNAL = 'INTERNAL', _('Internal')
 
     id_name = models.CharField(_('id_name'), max_length=50, unique=True)
     name = models.CharField(_('name'), max_length=300, blank=True)

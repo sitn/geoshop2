@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from djmoney.contrib.django_rest_framework import MoneyField
+from importlib_metadata import metadata
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -389,8 +390,16 @@ class ProductSerializer(serializers.ModelSerializer):
     Product serializer
     """
 
+    metadata = serializers.HyperlinkedRelatedField(
+        many=False,
+        read_only=True,
+        view_name='metadata-detail',
+        lookup_field='id_name'
+    )
+
     pricing = serializers.StringRelatedField(
         read_only=True)
+
     provider = serializers.CharField(
         source='provider.identity.company_name',
         read_only=True)
@@ -398,13 +407,14 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         read_only_fields = ['pricing', 'label', 'group']
-        exclude = ['order', 'thumbnail_link', 'ts', 'metadata', 'geom']
+        exclude = ['order', 'thumbnail_link', 'ts', 'geom']
 
 
 class ProductExtractSerializer(ProductSerializer):
     """
     Product serializer without geom
     """
+    metadata = None
 
     class Meta:
         model = Product
@@ -573,13 +583,7 @@ class DataFormatListSerializer(ProductFormatSerializer):
         exclude = ['product']
 
 
-class ProductDigestSerializer(serializers.ModelSerializer):
-    metadata = serializers.HyperlinkedRelatedField(
-        many=False,
-        read_only=True,
-        view_name='metadata-detail',
-        lookup_field='id_name'
-    )
+class ProductDigestSerializer(ProductSerializer):
     pricing = serializers.SlugRelatedField(
         required=False,
         queryset=DataFormat.objects.all(),
@@ -588,10 +592,6 @@ class ProductDigestSerializer(serializers.ModelSerializer):
     provider = serializers.CharField(
         source='provider.identity.company_name',
         read_only=True)
-
-    class Meta:
-        model = Product
-        exclude = ['ts']
 
 
 class RegisterSerializer(serializers.ModelSerializer):
