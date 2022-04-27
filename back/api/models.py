@@ -329,7 +329,12 @@ class Product(models.Model):
         DEPRECATED = 'DEPRECATED', _('Deprecated')
 
     metadata = models.ForeignKey(
-        Metadata, models.PROTECT, verbose_name=_('metadata'))
+        Metadata,
+        models.PROTECT,
+        verbose_name=_('metadata'),
+        limit_choices_to=models.Q(accessibility = Metadata.MetadataAccessibility.PUBLIC) | \
+            models.Q(accessibility = Metadata.MetadataAccessibility.APPROVAL_NEEDED)
+    )
     label = models.CharField(_('label'), max_length=250, unique=True, validators=[
         RegexValidator(
             regex=r'^[^<>%$"\(\)\n\r]*$',

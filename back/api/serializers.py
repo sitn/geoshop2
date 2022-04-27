@@ -10,7 +10,6 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from djmoney.contrib.django_rest_framework import MoneyField
-from importlib_metadata import metadata
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError

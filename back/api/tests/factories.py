@@ -40,9 +40,16 @@ class BaseObjectsFactory:
             )
             self.client_token = resp.data['access']
 
-        self.metadata = Metadata.objects.create(
+        self.public_metadata = Metadata.objects.create(
             id_name='00_generic',
-            modified_user=self.user_private
+            modified_user=self.user_private,
+            accessibility=Metadata.MetadataAccessibility.PUBLIC
+        )
+
+        self.private_metadata = Metadata.objects.create(
+            id_name='01_private',
+            modified_user=self.user_private,
+            accessibility=Metadata.MetadataAccessibility.INTERNAL
         )
 
         self.pricings = {
@@ -92,35 +99,35 @@ class BaseObjectsFactory:
             'free': Product.objects.create(
                 label="Produit gratuit",
                 pricing=self.pricings['free'],
-                metadata=self.metadata,
+                metadata=self.public_metadata,
                 status=Product.ProductStatus.PUBLISHED,
                 provider=self.provider
             ),
             'single': Product.objects.create(
                 label="Produit forfaitaire",
                 pricing=self.pricings['single'],
-                metadata=self.metadata,
+                metadata=self.public_metadata,
                 status=Product.ProductStatus.PUBLISHED,
                 provider=self.provider
             ),
             'by_number_objects': Product.objects.create(
                 label="Bâtiments 3D",
                 pricing=self.pricings['by_number_objects'],
-                metadata=self.metadata,
+                metadata=self.public_metadata,
                 status=Product.ProductStatus.PUBLISHED,
                 provider=self.provider
             ),
             'by_area': Product.objects.create(
                 label="Produit vendu au m²",
                 pricing=self.pricings['by_area'],
-                metadata=self.metadata,
+                metadata=self.public_metadata,
                 status=Product.ProductStatus.PUBLISHED,
                 provider=self.provider
             ),
             'from_pricing_layer': Product.objects.create(
                 label="MO",
                 pricing=self.pricings['from_pricing_layer'],
-                metadata=self.metadata,
+                metadata=self.public_metadata,
                 status=Product.ProductStatus.PUBLISHED,
                 free_when_subscribed=True,
                 provider=self.provider
@@ -128,14 +135,14 @@ class BaseObjectsFactory:
             'manual': Product.objects.create(
                 label="Maquette 3D",
                 pricing=self.pricings['manual'],
-                metadata=self.metadata,
+                metadata=self.public_metadata,
                 status=Product.ProductStatus.PUBLISHED,
                 provider=self.provider
             ),
             'yet_unknown_pricing': Product.objects.create(
                 label="Produit facturé au Mb (non implémenté)",
                 pricing=self.pricings['yet_unknown_pricing'],
-                metadata=self.metadata,
+                metadata=self.public_metadata,
                 status=Product.ProductStatus.PUBLISHED,
                 provider=self.provider
             )

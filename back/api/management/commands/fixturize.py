@@ -11,7 +11,8 @@ class Command(BaseCommand):
     """
     Needs to be called once after database is reset.
     Sets .env ADMIN_PASSWORD
-    Creates extract user
+    Creates extract user and group
+    Creates internal group
     """
     def handle(self, *args, **options):
         admin_user = UserModel.objects.get(username='admin')
@@ -20,6 +21,7 @@ class Command(BaseCommand):
 
         content_type = ContentType.objects.get_for_model(Order)
         extract_group = Group.objects.create(name='extract')
+        Group.objects.create(name='internal')
         extract_permission = Permission.objects.create(
             codename='is_extract',
             name='Is extract service',
