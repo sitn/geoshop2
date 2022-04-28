@@ -2,7 +2,6 @@
 from django.contrib import admin
 from django.conf import settings
 from django.urls import include, path, re_path
-from django.conf.urls.static import static
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
@@ -23,7 +22,7 @@ router.register(r'copyright', views.CopyrightViewSet)
 router.register(r'document', views.DocumentViewSet)
 router.register(r'dataformat', views.DataFormatViewSet)
 router.register(r'identity', views.IdentityViewSet, basename='identity')
-router.register(r'metadata', views.MetadataViewSet)
+router.register(r'metadata', views.MetadataViewSet, basename='metadata')
 router.register(r'order', views.OrderViewSet, basename='order')
 router.register(r'orderitem', views.OrderItemViewSet, basename='orderitem')
 router.register(r'ordertype', views.OrderTypeViewSet)
@@ -63,7 +62,6 @@ urlpatterns = [
             name='account_confirm_email'),
     path('auth/register/', views.RegisterView.as_view(), name='auth_register'),
     path('extract/order/', views.ExtractOrderView.as_view(), name='extract_order'),
-    path('extract/order/fake/', views.ExtractOrderFake.as_view(), name='extract_order_fake'),
     path('extract/orderitem/', views.ExtractOrderItemView.as_view(), name='extract_orderitem'),
     re_path(r'^extract/orderitem/(?P<pk>[0-9]+)',
             views.ExtractOrderItemView.as_view(), name='extract_orderitem'),

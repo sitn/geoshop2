@@ -31,7 +31,7 @@ class ProductGroupTests(APITestCase):
             label="Cadastre souterrain",
             pricing=self.config.pricings['free'],
             provider=self.extract_config.user,
-            metadata=self.config.metadata,
+            metadata=self.config.public_metadata,
             status=Product.ProductStatus.PUBLISHED
         )
 
@@ -40,7 +40,7 @@ class ProductGroupTests(APITestCase):
             group=self.group,
             pricing=self.config.pricings['free'],
             provider=self.extract_config.user,
-            metadata=self.config.metadata,
+            metadata=self.config.public_metadata,
             status=Product.ProductStatus.PUBLISHED
         )
         self.formats = DataFormat.objects.bulk_create([
@@ -53,7 +53,7 @@ class ProductGroupTests(APITestCase):
                 group=self.child_group,
                 pricing=self.config.pricings['free'],
                 provider=self.extract_config.user,
-                metadata=self.config.metadata,
+                metadata=self.config.public_metadata,
                 geom=MultiPolygon(Polygon((
                     (2537498, 1210000),
                     (2533183, 1180000),
@@ -68,7 +68,7 @@ class ProductGroupTests(APITestCase):
                 group=self.child_group,
                 pricing=self.config.pricings['free'],
                 provider=user_extern_extract,
-                metadata=self.config.metadata,
+                metadata=self.config.public_metadata,
                 geom=MultiPolygon(Polygon((
                     (2533183, 1180000),
                     (2537498, 1210000),
@@ -83,7 +83,7 @@ class ProductGroupTests(APITestCase):
                 group=self.child_group,
                 pricing=self.config.pricings['free'],
                 provider=user_extern_extract,
-                metadata=self.config.metadata,
+                metadata=self.config.public_metadata,
                 geom=MultiPolygon(Polygon.from_bbox((2564000, 1212000, 2570000, 1207000))),
                 status=Product.ProductStatus.PUBLISHED_ONLY_IN_GROUP
             )
@@ -106,7 +106,6 @@ class ProductGroupTests(APITestCase):
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertEqual(len(response.data), 4, 'Check that all products are visible')
-
 
     def test_groups_are_expanded_when_confirmed(self):
         """

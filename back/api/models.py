@@ -149,7 +149,8 @@ class Metadata(models.Model):
     class MetadataAccessibility(models.TextChoices):
         PUBLIC = 'PUBLIC', _('Public')
         APPROVAL_NEEDED = 'APPROVAL_NEEDED', _('Approval needed')
-        PRIVATE = 'PRIVATE', _('Private')
+        NOT_ACCESSIBLE = 'NOT_ACCESSIBLE', _('Not accessible')
+        INTERNAL = 'INTERNAL', _('Internal')
 
     id_name = models.CharField(_('id_name'), max_length=50, unique=True)
     name = models.CharField(_('name'), max_length=300, blank=True)
@@ -328,7 +329,12 @@ class Product(models.Model):
         DEPRECATED = 'DEPRECATED', _('Deprecated')
 
     metadata = models.ForeignKey(
-        Metadata, models.PROTECT, verbose_name=_('metadata'))
+        Metadata,
+        models.PROTECT,
+        verbose_name=_('metadata'),
+        limit_choices_to=models.Q(accessibility = Metadata.MetadataAccessibility.PUBLIC) | \
+            models.Q(accessibility = Metadata.MetadataAccessibility.APPROVAL_NEEDED)
+    )
     label = models.CharField(_('label'), max_length=250, unique=True, validators=[
         RegexValidator(
             regex=r'^[^<>%$"\(\)\n\r]*$',

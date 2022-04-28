@@ -259,7 +259,7 @@ class PricingTests(APITestCase):
     def test_from_children_of_group_price(self):
         group_product = Product.objects.create(
             label="Réseau d'eau",
-            metadata=self.config.metadata,
+            metadata=self.config.public_metadata,
             pricing=self.config.pricings['from_children_of_group'],
             provider=self.config.provider
         )

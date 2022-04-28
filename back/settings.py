@@ -26,7 +26,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = os.environ["ALLOWED_HOST"].split(",")
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
-DOCUMENT_BASE_URL = os.environ.get('DOCUMENT_BASE_URL', 'http://example.com')
 
 #
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@ne.ch')

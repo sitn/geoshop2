@@ -36,7 +36,6 @@ from .serializers import (
 
 from .helpers import send_geoshop_email
 
-from .faker import generate_fake_order
 from .filters import FullTextSearchFilter
 
 from .permissions import ExtractGroupPermission
@@ -133,8 +132,9 @@ class IdentityViewSet(viewsets.ReadOnlyModelViewSet):
 class MetadataViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows Metadata to be viewed.
+    `public` and `approval needed` metadatas can be viewed by everyone.
+    All metadatas can be accessed only by users belonging to `intranet` group.
     """
-    queryset = Metadata.objects.all()
     serializer_class = MetadataSerializer
     lookup_field = 'id_name'
 
@@ -155,6 +155,15 @@ class MetadataViewSet(viewsets.ReadOnlyModelViewSet):
         response['Access-Control-Allow-Origin'] = '*'
         response['Content-Security-Policy'] = 'frame-ancestors *'
         return response
+
+    def get_queryset(self):
+        groups = self.request.user.groups.values_list('name', flat=True)
+        if 'internal' in list(groups):
+            return Metadata.objects.all()
+        return Metadata.objects.filter(accessibility__in=[
+                Metadata.MetadataAccessibility.PUBLIC,
+                Metadata.MetadataAccessibility.APPROVAL_NEEDED
+            ]).all()
 
     def get_serializer_context(self):
         context = super(MetadataViewSet, self).get_serializer_context()
@@ -331,23 +340,6 @@ class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
                 {"detail": _("Full zip is not ready")},
                 status=status.HTTP_200_OK)
         return Response(status=status.HTTP_404_NOT_FOUND)
-
-
-class ExtractOrderFake(views.APIView):
-    """
-    Generates a fake order for testing purposes
-    """
-    permission_classes = [ExtractGroupPermission]
-
-    def get(self, request):
-        """
-        Generates a fake order for testing purposes
-        """
-        generate_fake_order()
-        return Response(
-            {"detail": _("Fake orders have been generated")},
-            status=status.HTTP_201_CREATED)
-
 
 
 class ExtractOrderView(views.APIView):
@@ -576,8 +568,14 @@ class OrderItemByTokenView(generics.RetrieveAPIView):
         is_validated = validation_serializer.validated_data['is_validated']
         item.validation_date = timezone.now()
 
-        item.status = OrderItem.OrderItemStatus.PENDING if is_validated else OrderItem.OrderItemStatus.REJECTED
-        item.save()
+        if is_validated:
+            item.status = OrderItem.OrderItemStatus.PENDING
+            item.save()
+        else:
+            item.status = OrderItem.OrderItemStatus.REJECTED
+            item.save()
+            item.order.next_status_on_extract_input()
+            item.order.save()
         return Response(status=status.HTTP_202_ACCEPTED)
 
 
