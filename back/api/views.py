@@ -158,7 +158,6 @@ class MetadataViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         groups = self.request.user.groups.values_list('name', flat=True)
-        print(groups)
         if 'internal' in list(groups):
             return Metadata.objects.all()
         return Metadata.objects.filter(accessibility__in=[
