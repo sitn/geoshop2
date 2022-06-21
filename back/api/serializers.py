@@ -406,7 +406,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         read_only_fields = ['pricing', 'label', 'group']
-        exclude = ['order', 'thumbnail_link', 'ts', 'geom']
+        exclude = ['order', 'ts', 'geom']
 
 
 class ProductExtractSerializer(ProductSerializer):
