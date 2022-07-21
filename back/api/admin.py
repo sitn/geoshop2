@@ -218,7 +218,7 @@ class UserAdmin(BaseUserAdmin):
     """Overrides BaseUserAdmin"""
     change_form_template = 'admin/api/user_change_form.html'
     search_fields = ['username', 'identity__first_name', 'identity__last_name', 'identity__email', 'identity__sap_id']
-    list_display = ['username', 'identity_first_name', 'identity_last_name', 'identity_email']
+    list_display = ['username', 'identity_first_name', 'identity_last_name', 'identity_email', 'date_joined']
     inlines = [IdentityInline]
     fieldsets = (
         (None, {'fields': ('username', 'password', 'email')}),
