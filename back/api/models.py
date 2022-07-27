@@ -141,6 +141,22 @@ class Identity(AbstractIdentity):
         verbose_name = _('identity')
 
 
+class MetadataCategoryEch(models.Model):
+    """
+    Imported list of eCH categories used to thematize metadatas
+    """
+
+    notation = models.CharField(_('notation'), max_length=3, unique=True)
+    description_fr = models.CharField(_('description_fr'), max_length=250)
+
+    class Meta:
+        db_table = 'metadata_category_ech'
+        verbose_name = _('metadata_category_ech')
+
+    def __str__(self):
+        return '%s (%s)' % (self.description_fr, self.notation)
+
+
 class Metadata(models.Model):
     """
     Describes one or more Products. Every metadata can have one or more contact persons
@@ -154,14 +170,17 @@ class Metadata(models.Model):
 
     id_name = models.CharField(_('id_name'), max_length=50, unique=True)
     name = models.CharField(_('name'), max_length=300, blank=True)
+    ech_category = models.ForeignKey(
+        MetadataCategoryEch, models.SET_NULL, verbose_name=_('ech_category'), null=True)
     description_long = models.TextField(_('description_long'), blank=True)
+    genealogy = models.TextField(_('genealogy'), blank=True)
     datasource = models.CharField(_('datasource'), max_length=260, blank=True, null=True)
     accessibility = models.CharField(
         _('accessibility'), max_length=30,
         choices=MetadataAccessibility.choices,
         default=MetadataAccessibility.PUBLIC
     )
-    scale = models.CharField(_('scale'), max_length=500, blank=True)
+    scale = models.CharField(_('scale'), max_length=50, blank=True)
     geocat_link = models.CharField(_('geocat_link'), max_length=2000, blank=True)
     legend_link = models.CharField(_('legend_link'), max_length=2000, blank=True)
     image_link = models.CharField(_('image_link'), max_length=250, default=settings.DEFAULT_METADATA_IMAGE_URL, blank=True)
@@ -179,6 +198,8 @@ class Metadata(models.Model):
         models.PROTECT,
         verbose_name=_('modified_user'),
         related_name='modified_user')
+    data_last_update_date = models.DateField(_('data_last_update_date'), null=True)
+    update_frequency = models.CharField(_('update_frequency'), max_length=50, blank=True)
 
     class Meta:
         db_table = 'metadata'
