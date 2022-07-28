@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "adbe959024ee96a690795980b2e094c0c950cde4f059bd79e0cf95c0b4d1ebbf"
+            "sha256": "894cdb7eb99e23150eb618a95db11205e5c69d42cd7d5b366c558981703ccca0"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -152,11 +152,11 @@
         },
         "django": {
             "hashes": [
-                "sha256:59304646ebc6a77b9b6a59adc67d51ecb03c5e3d63ed1f14c909cdfda84e8010",
-                "sha256:d5a8a14da819a8b9237ee4d8c78dfe056ff6e8a7511987be627192225113ee75"
+                "sha256:a67a793ff6827fd373555537dca0da293a63a316fe34cb7f367f898ccca3c3ae",
+                "sha256:ca54ebedfcbc60d191391efbf02ba68fb52165b8bf6ccd6fe71f098cac1fe59e"
             ],
             "index": "pypi",
-            "version": "==4.0"
+            "version": "==4.0.6"
         },
         "django-allauth": {
             "hashes": [
@@ -282,6 +282,9 @@
             "version": "==2.21"
         },
         "pyjwt": {
+            "extras": [
+                "crypto"
+            ],
             "hashes": [
                 "sha256:72d1d253f32dbd4f5c88eaf1fdc62f3a19f676ccbadb9dbc5d07e951b2b26daf",
                 "sha256:d42908208c699b3b973cbeb01a969ba6a96c821eefb1c5bfe4c390c01d67abba"
@@ -351,14 +354,6 @@
             "markers": "python_version >= '3.7'",
             "version": "==4.3.0"
         },
-        "tzdata": {
-            "hashes": [
-                "sha256:238e70234214138ed7b4e8a0fab0e5e13872edab3be586ab8198c407620e2ab9",
-                "sha256:8b536a8ec63dc0751342b3984193a3118f8fca2afe25752bb9b7fffd398552d3"
-            ],
-            "markers": "sys_platform == 'win32'",
-            "version": "==2022.1"
-        },
         "unidecode": {
             "hashes": [
                 "sha256:8e4352fb93d5a735c788110d2e7ac8e8031eb06ccbfe8d324ab71735015f9342",
@@ -400,14 +395,6 @@
             ],
             "index": "pypi",
             "version": "==1.6.0"
-        },
-        "colorama": {
-            "hashes": [
-                "sha256:854bf444933e37f5824ae7bfc1e98d5bce2ebe4160d46b5edf346a89358e99da",
-                "sha256:e6c6b4334fc50988a639d9b98aa429a0b57da6e17b9a44f0451f930b6967b7a4"
-            ],
-            "markers": "sys_platform == 'win32'",
-            "version": "==0.4.5"
         },
         "dill": {
             "hashes": [
