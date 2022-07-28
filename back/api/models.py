@@ -171,7 +171,7 @@ class Metadata(models.Model):
     id_name = models.CharField(_('id_name'), max_length=50, unique=True)
     name = models.CharField(_('name'), max_length=300, blank=True)
     ech_category = models.ForeignKey(
-        MetadataCategoryEch, models.SET_NULL, verbose_name=_('ech_category'), null=True)
+        MetadataCategoryEch, models.SET_NULL, verbose_name=_('ech_category'), null=True, blank=True)
     description_long = models.TextField(_('description_long'), blank=True)
     genealogy = models.TextField(_('genealogy'), blank=True)
     datasource = models.CharField(_('datasource'), max_length=260, blank=True, null=True)
@@ -184,6 +184,8 @@ class Metadata(models.Model):
     geocat_link = models.CharField(_('geocat_link'), max_length=2000, blank=True)
     legend_link = models.CharField(_('legend_link'), max_length=2000, blank=True)
     image_link = models.CharField(_('image_link'), max_length=250, default=settings.DEFAULT_METADATA_IMAGE_URL, blank=True)
+    wms_link = models.CharField(_('wms_link'), max_length=2000, blank=True)
+    geoportal_link = models.CharField(_('geoportal_link'), max_length=2000, blank=True)
     copyright = models.ForeignKey(
         Copyright, models.SET_NULL, verbose_name=_('copyright'), blank=True, null=True)
     documents = models.ManyToManyField(Document, verbose_name=_('documents'), blank=True)
@@ -198,7 +200,7 @@ class Metadata(models.Model):
         models.PROTECT,
         verbose_name=_('modified_user'),
         related_name='modified_user')
-    data_last_update_date = models.DateField(_('data_last_update_date'), null=True)
+    data_last_update_date = models.DateField(_('data_last_update_date'), null=True, blank=True)
     update_frequency = models.CharField(_('update_frequency'), max_length=50, blank=True)
 
     class Meta:

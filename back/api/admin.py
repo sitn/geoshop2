@@ -35,39 +35,37 @@ class CustomModelAdmin(admin.GeoModelAdmin):
             'all': (settings.STATIC_URL + 'api/admin-extra.css ',)
         }
 
-    def formfield_for_dbfield(self, db_field, **kwargs):
-        formfield = super(CustomModelAdmin, self).formfield_for_dbfield(db_field, **kwargs)
-        if isinstance(db_field, models.CharField):
-            if db_field.max_length > 300:
-                formfield.widget.attrs['rows'] = 5
-                formfield.widget = forms.Textarea(attrs=formfield.widget.attrs)
-        return formfield
-
 
 class CustomGeoModelAdmin(CustomModelAdmin):
     map_template = 'gis/admin/sitn.html'
     map_srid = 2056
 
+
 class DocumentAdmin(CustomModelAdmin):
     search_fields = ['name', 'link']
     model = Document
 
+
 class IdentityInline(admin.StackedInline):
     model = Identity
+
 
 class MetadataContactInline(admin.StackedInline):
     raw_id_fields = ['contact_person']
     model = MetadataContact
     extra = 1
 
+
 class ProductFormatInline(admin.TabularInline):
     model = ProductFormat
     exclude = ['is_manual']
     extra = 3
 
+
 class DataFormatAdmin(CustomModelAdmin):
     search_fields = ['name']
     model = DataFormat
+
 
 class MetadataAdmin(CustomModelAdmin):
     save_as = True
