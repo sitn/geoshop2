@@ -24,6 +24,12 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+# Only for windows dev mode without docker
+if os.name == 'nt' and os.environ.get('DEBUG'):
+    DEBUG = True
+    GDAL_LIBRARY_PATH = 'C:/OSGeo4W/bin/gdal302'
+    GEOS_LIBRARY_PATH = 'C:/OSGeo4W/bin/geos_c'
+
 ALLOWED_HOSTS = os.environ["ALLOWED_HOST"].split(",")
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
 
@@ -83,7 +89,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
