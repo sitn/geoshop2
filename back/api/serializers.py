@@ -19,7 +19,7 @@ from allauth.account.adapter import get_adapter
 from .helpers import send_geoshop_email, zip_all_orderitems
 from .models import (
     Copyright, Contact, Document, DataFormat, Identity,
-    Metadata, MetadataContact, Order, OrderItem, OrderType,
+    Metadata, MetadataCategoryEch, MetadataContact, Order, OrderItem, OrderType,
     Pricing, Product, ProductFormat, UserChange)
 
 # Get the UserModel
@@ -174,6 +174,11 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
     legend_tag = serializers.StringRelatedField()
     image_tag = serializers.StringRelatedField()
     legend_link = serializers.SerializerMethodField()
+    ech_category = serializers.SlugRelatedField(
+        required=False,
+        queryset=MetadataCategoryEch.objects.all(),
+        slug_field='description_fr'
+    )
 
     class Meta:
         model = Metadata
