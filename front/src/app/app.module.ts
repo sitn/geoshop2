@@ -1,5 +1,5 @@
 import {BrowserModule} from '@angular/platform-browser';
-import {NgModule, APP_INITIALIZER, LOCALE_ID, DEFAULT_CURRENCY_CODE} from '@angular/core';
+import { NgModule, APP_INITIALIZER, LOCALE_ID, DEFAULT_CURRENCY_CODE, Inject } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeCH from '@angular/common/locales/fr-CH';
 
@@ -14,10 +14,10 @@ import {HelpOverlayComponent} from './_components/help-overlay/help-overlay.comp
 import {MatRippleModule} from '@angular/material/core';
 import {MatBadgeModule} from '@angular/material/badge';
 import {CartOverlayComponent} from './_components/cart-overlay/cart-overlay.component';
-import {StoreModule} from '@ngrx/store';
+import {StoreModule, Store} from '@ngrx/store';
 import {EffectsModule} from '@ngrx/effects';
 import {AuthEffects} from './_store/auth/auth.effects';
-import {reducers, metaReducers} from './_store';
+import {reducers, metaReducers, AppState, getUser} from './_store';
 import {TokenInterceptor} from './_interceptors/tokenInterceptor';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatIconModule} from '@angular/material/icon';
@@ -31,12 +31,19 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {OverlayContainer} from '@angular/cdk/overlay';
 import {ActivatedRoute} from '@angular/router';
 import {CartEffects} from './_store/cart/cart.effects';
+import * as fromAuth from './_store/auth/auth.action';
 import {CommonModule} from '@angular/common';
 
 registerLocaleData(localeCH);
 
-export function initializeApp(configService: ConfigService) {
-  return () => configService.load();
+export function initializeApp(configService: ConfigService, store: Store<AppState>) {
+  return () => configService.load().then(() => {
+      store.select(getUser).subscribe(user => {
+        if (user && user.tokenRefresh) {
+          store.dispatch(fromAuth.refreshToken({token: user.tokenRefresh}));
+        }
+      });
+    })
 }
 
 const MODULES = [
@@ -73,7 +80,7 @@ const MODULES = [
     {
       provide: APP_INITIALIZER,
       useFactory: initializeApp,
-      deps: [ConfigService],
+      deps: [ConfigService, [new Inject(Store)]],
       multi: true
     },
     {
