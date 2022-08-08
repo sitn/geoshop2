@@ -496,7 +496,7 @@ export class MapService {
     }
     this.drawingSource.on('addfeature', (evt: { feature: any; }) => {
       this.featureFromDrawing = evt.feature;
-      this.setAreaToCurrentFeature();
+      this.dispatchCurrentGeometry(true);
 
       setTimeout(() => {
         this.transformInteraction.setActive(true);
@@ -533,8 +533,9 @@ export class MapService {
       this.transformInteraction.setActive(false);
     });
     this.modifyInteraction.on('modifyend', (evt) => {
-      const firstFeature = new Feature(evt.features.item(0))
+      const firstFeature = new Feature(evt.features.item(0)?.getGeometry())
       this.featureFromDrawing = firstFeature;
+      this.dispatchCurrentGeometry(false);
       setTimeout(() => {
         this.transformInteraction.setActive(true);
       }, 500);
@@ -550,7 +551,7 @@ export class MapService {
     this.modifyInteraction.setActive(false);
   }
 
-  private setAreaToCurrentFeature() {
+  private dispatchCurrentGeometry(fitMap: boolean) {
     if (this.featureFromDrawing) {
       const polygon = this.featureFromDrawing.getGeometry() as Polygon;
       const area = GeoHelper.formatArea(polygon);
@@ -562,11 +563,12 @@ export class MapService {
           }
         )
       );
-
-      const extent = this.featureFromDrawing.getGeometry()?.getExtent() || [];
-      this.map.getView().fit(extent, {
-        padding: [100, 100, 100, 100]
-      });
+      if (fitMap) {
+        const extent = this.featureFromDrawing.getGeometry()?.getExtent() || [];
+        this.map.getView().fit(extent, {
+          padding: [100, 100, 100, 100]
+        });
+      }
     }
   }
 
@@ -619,7 +621,7 @@ export class MapService {
 
     this.transformInteraction.on(['rotateend', 'translateend'], (evt: any) => {
       this.featureFromDrawing = evt.features.item(0);
-      this.setAreaToCurrentFeature();
+      this.dispatchCurrentGeometry(true);
     });
 
     this.map.addInteraction(this.transformInteraction);
