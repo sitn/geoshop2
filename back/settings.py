@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'rest_framework',
     'rest_framework_gis',
+    'rest_framework_simplejwt',
     'corsheaders',
 ]
 
