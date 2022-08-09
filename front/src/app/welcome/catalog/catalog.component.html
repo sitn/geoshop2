@@ -20,17 +20,13 @@
 
       <img class="item-logo rounded-image" alt="Logo du produit" aria-label="Logo du produit"
            src="{{mediaUrl}}/{{product.thumbnail_link}}">
-      <div class="item-label text-ellipsis-2" [matTooltip]="product.label">{{product.label}}</div>
+      <div class="item-label text-ellipsis-2">{{product.label}}</div>
+      <div *ngIf="product.metadata_summary.geoportal_link.length > 0" class="item-links text-ellipsis-2">
+        <a mat-icon-button  color="primary" href="{{product.metadata_summary.geoportal_link}}">
+          Voir sur le géoportail<mat-icon class="icon-sm">open_in_new</mat-icon>
+        </a>
+      </div>
 
-      <!--
-      <ng-container *ngIf="product.pricing === 'Gratuit'; then gratuit; else payant">
-      </ng-container>
-      <ng-template #gratuit>
-        <span class="item-price text-secondary">Gratuit</span>
-      </ng-template>
-      <ng-template #payant>
-        <span class="item-price text-secondary">Tarification selon le type de mandat</span>
-      </ng-template>-->
 
       <button class="item-help" matTooltip="Voir les meta données" aria-label="Voir les meta données"
               [disabled]="!product.metadata"

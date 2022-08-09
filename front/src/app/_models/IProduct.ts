@@ -1,6 +1,6 @@
 // tslint:disable:variable-name
 
-import {IMetadata} from './IMetadata';
+import {IMetadata, IMetadataSummary} from './IMetadata';
 
 export interface IProduct {
   id: number;
@@ -17,4 +17,5 @@ export interface IProduct {
   pricing?: string;
   /** Use only in the app to facilitate */
   metadataObject?: IMetadata;
+  metadataSummary?: IMetadataSummary
 }
