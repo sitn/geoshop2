@@ -166,6 +166,12 @@ class MetadataContactSerializer(serializers.HyperlinkedModelSerializer):
             'metadata_role']
 
 
+class MetadataDigestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Metadata
+        fields = ['geoportal_link']
+
+
 class MetadataSerializer(serializers.HyperlinkedModelSerializer):
     contact_persons = serializers.SerializerMethodField()
     modified_user = serializers.StringRelatedField(read_only=True)
@@ -408,9 +414,14 @@ class ProductSerializer(serializers.ModelSerializer):
         source='provider.identity.company_name',
         read_only=True)
 
+    metadata_summary = MetadataDigestSerializer(
+        source='metadata',
+        read_only=True
+    )
+
     class Meta:
         model = Product
-        read_only_fields = ['pricing', 'label', 'group']
+        read_only_fields = ['pricing', 'label', 'group', 'metadata_summary']
         exclude = ['order', 'ts', 'geom']
 
 

@@ -31,3 +31,7 @@ export interface IMetadata {
   copyright: string;
   documents: Array<any>;
 }
+
+export interface IMetadataSummary {
+  geoportal_link: string;
+}
