@@ -1,6 +1,7 @@
 
 
 import os
+import time
 from django.urls import reverse
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -99,6 +100,9 @@ class OrderTests(APITestCase):
         self.assertIsNone(order_item2.last_download, 'Check if there\'s not a last_download date')
 
         url = reverse('order-download-link', kwargs={'pk': order_id})
+
+        # Full zip takes time on windows
+        time.sleep(1)
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertIsNotNone(response.data['download_link'], 'Check file is visible for user')
