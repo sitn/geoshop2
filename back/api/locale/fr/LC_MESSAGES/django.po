@@ -592,7 +592,7 @@ msgid "A new quote has been requested:"
 msgstr ""
 "Un devis a été demandé. Il s'agit soit d'un produit dont la tarification est "
 "manuelle, soit d'une commande utilisateur permanent dont le client ou le "
-"contact n'est pas encore définit comme tel dans l'admin. Il faut contrôler "
+"contact n'est pas encore défini comme tel dans l'admin. Il faut contrôler "
 "et renseigner les prix manuellement dans l'admin du geoshop. Détails:"
 
 #: api/models.py:799
