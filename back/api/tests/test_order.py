@@ -212,6 +212,9 @@ class OrderTests(APITestCase):
         url = reverse('order-confirm', kwargs={'pk':order_id})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+        order = Order.objects.get(pk=order_id)
+        self.assertIsNotNone(order.download_guid, "Check order has a GUID")
+        self.assertIsNotNone(order.date_ordered, "Check order has a date")
 
 
     def test_patch_put_order_items(self):
@@ -294,6 +297,7 @@ class OrderTests(APITestCase):
         """
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
+        self.order_data['order_type'] = 'Utilisateur permanent'
         response = self.client.post(url, self.order_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
         order_id = response.data['id']
@@ -321,6 +325,10 @@ class OrderTests(APITestCase):
                 {
                     "product": "Données sensibles",
                     "data_format": "DXF"
+                },
+                {
+                    "product": "MO",
+                    "data_format": "Geobat NE complet (DXF)"
                 }
             ]
         }
@@ -330,11 +338,13 @@ class OrderTests(APITestCase):
         url = reverse('order-confirm', kwargs={'pk': order_id})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
-        self.assertEqual(len(mail.outbox), 1, 'An email has been sent to the first metadata contact')
+        self.assertEqual(len(mail.outbox), 2, 'An email has been sent to the validator and one to admin')
         order = Order.objects.get(pk=order_id)
         item = order.items.first()
         self.assertEqual(OrderItem.OrderItemStatus.VALIDATION_PENDING, item.status, 'Item is waiting for validation')
         self.assertGreater(len(item.token), 0, 'item has token')
+        self.assertIsNotNone(order.download_guid, "Check order has a GUID")
+        self.assertIsNotNone(order.date_ordered, "Check order has a date")
 
         url = reverse('orderitem_validate', kwargs={'token': item.token})
         response = self.client.get(url, format='json')

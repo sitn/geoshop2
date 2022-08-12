@@ -463,6 +463,19 @@ class Order(models.Model):
         self.part_vat = None
         self.total_with_vat = None
 
+    def ask_price(self):
+        send_geoshop_email(
+            _('Geoshop - Quote requested'),
+            template_name='email_admin',
+            template_data={
+                'messages': [_('A new quote has been requested:')],
+                'details': {
+                    _('order'): self.id,
+                    _('link'): reverse("admin:api_order_change", args=[self.id])
+                }
+            }
+        )
+
     def set_price(self):
         """
         Sets price information if all items have prices
@@ -547,19 +560,19 @@ class Order(models.Model):
         """Customer's confirmations he wants to proceed with the order"""
         self._expand_product_groups()
         items = self.items.all()
+        self.date_ordered = timezone.now()
+        self.download_guid = uuid.uuid4()
         has_all_prices_calculated = True
         for item in items:
             if item.price_status == OrderItem.PricingStatus.PENDING:
-                item.ask_price()
                 has_all_prices_calculated = has_all_prices_calculated and False
             if item.product.metadata.accessibility == Metadata.MetadataAccessibility.APPROVAL_NEEDED:
                 item.ask_validation()
                 item.save()
         if has_all_prices_calculated:
-            self.date_ordered = timezone.now()
-            self.download_guid = uuid.uuid4()
             self.status = Order.OrderStatus.READY
         else:
+            self.ask_price()
             self.status = Order.OrderStatus.PENDING
 
     def next_status_on_extract_input(self):
@@ -768,20 +781,6 @@ class OrderItem(models.Model):
                     ),
                 'what': 'orderitem',
                 'token': self.token,
-            }
-        )
-
-    def ask_price(self):
-        send_geoshop_email(
-            _('Geoshop - Quote requested'),
-            template_name='email_admin',
-            template_data={
-                'messages': [_('A new quote has been requested:')],
-                'details': {
-                    _('order'): self.order.id,
-                    _('product'): self.product.label,
-                    _('link'): reverse("admin:api_order_change", args=[self.order.id])
-                }
             }
         )
 
