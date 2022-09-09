@@ -586,7 +586,7 @@ class Order(models.Model):
             raise Exception("Order has an inappropriate status after input")
         items_statuses = set(self.items.all().values_list('status', flat=True))
 
-        if OrderItem.OrderItemStatus.IN_EXTRACT in items_statuses:
+        if OrderItem.OrderItemStatus.IN_EXTRACT in items_statuses or OrderItem.OrderItemStatus.PENDING in items_statuses:
             if OrderItem.OrderItemStatus.PROCESSED in items_statuses:
                 self.status = Order.OrderStatus.PARTIALLY_DELIVERED
             else:
@@ -609,7 +609,7 @@ class Order(models.Model):
                                 settings.FRONT_PROTOCOL,
                                 settings.FRONT_URL,
                                 settings.FRONT_HREF
-                                ),
+                            ),
                             'first_name': self.client.identity.first_name,
                             'last_name': self.client.identity.last_name,
                         }
