@@ -203,7 +203,40 @@ class OrderTests(APITestCase):
                 }
             ]
         }
-        # Check price is PENDIND and no price is given
+        # Check price is 0
+        url = reverse('order-detail', kwargs={'pk':order_id})
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(response.data['processing_fee'], '0.00', 'Check price is 0')
+        self.assertEqual(response.data['total_without_vat'], '0.00', 'Check price is 0')
+        url = reverse('order-confirm', kwargs={'pk':order_id})
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+        order = Order.objects.get(pk=order_id)
+        self.assertIsNotNone(order.download_guid, "Check order has a GUID")
+        self.assertIsNotNone(order.date_ordered, "Check order has a date")
+
+    def test_post_order_contact_subscribed(self):
+        self.config.contact.subscribed = True
+        self.config.contact.save()
+        self.order_data['invoice_contact'] = self.config.contact.id
+        self.order_data['order_type'] = 'Utilisateur permanent'
+
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
+        response = self.client.post(url, self.order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        order_id = response.data['id']
+
+        data = {
+            "items": [
+                {
+                    "product": "MO",
+                    "data_format": "Geobat NE complet (DXF)"
+                }
+            ]
+        }
+        # Check price is 0
         url = reverse('order-detail', kwargs={'pk':order_id})
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)

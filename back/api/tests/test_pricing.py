@@ -176,10 +176,31 @@ class PricingTests(APITestCase):
         self.assertEqual(self.config.order.processing_fee, Money(0, 'CHF'), 'Processing fee is free')
         self.assertEqual(self.config.order.total_with_vat, Money(0, 'CHF'), 'Order is free')
 
-    def test_user_not_subscribed_to_product(self):
+    def test_product_not_free_even_for_subscribed_user(self):
         self.config.user_private.identity.subscribed = True
         self.config.user_private.identity.save()
         self.config.products['by_area'].free_when_subscribed = False
+        self.config.products['by_area'].save()
+        orderitem2 = OrderItem.objects.create(
+            order=self.config.order,
+            product=self.config.products['by_area']
+        )
+        self.config.order.order_type = self.config.order_types['subscribed']
+        self.config.order.save()
+        orderitem2.set_price()
+        orderitem2.save()
+        self.config.order.set_price()
+        self.config.order.save()
+        self.assertEqual(self.config.order.status, Order.OrderStatus.DRAFT)
+        self.assertEqual(orderitem2.price_status, OrderItem.PricingStatus.CALCULATED, 'pricing status stays pending')
+        # Client confirms order
+        self.config.order.confirm()
+        self.assertEqual(self.config.order.status, Order.OrderStatus.READY, 'Order status is now pending')
+
+    def test_user_not_subscribed(self):
+        self.config.user_private.identity.subscribed = False
+        self.config.user_private.identity.save()
+        self.config.products['by_area'].free_when_subscribed = True
         self.config.products['by_area'].save()
         orderitem2 = OrderItem.objects.create(
             order=self.config.order,
