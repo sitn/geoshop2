@@ -2,9 +2,10 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.gis.geos import Polygon, MultiPolygon
+from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 from rest_framework.test import APITestCase
-from api.models import DataFormat, Product, ProductFormat, OrderItem
+from api.models import DataFormat, Product, ProductFormat, OrderItem, Order
 from api.tests.factories import BaseObjectsFactory, ExtractFactory
 
 
@@ -134,3 +135,31 @@ class ProductGroupTests(APITestCase):
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertEqual(len(response.data), 1, 'Response should have only one item')
+
+    def test_upload_file_with_multi_provider(self):
+        """
+        First Extract finishes all its jobs while second Extract haven't read its orders yet.
+        """
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
+        url = reverse('order-confirm', kwargs={'pk':self.config.order.id})
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+
+        # First Extract user
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.extract_config.token)
+        url = reverse('extract_order')
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(len(response.data), 1, 'Response should have only one item')
+
+        order_item_id1 = response.data[0]['items'][0]['id']
+        url = reverse('extract_orderitem', kwargs={'pk': order_item_id1})
+        empty_zip_data = b'PK\x05\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+        extract_file = SimpleUploadedFile("result.zip", empty_zip_data, content_type="multipart/form-data")
+        response = self.client.put(url, {'extract_result': extract_file, 'comment': 'ok'})
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+        self.assertEqual(
+            Order.objects.get(pk=self.config.order.id).status,
+            Order.OrderStatus.PARTIALLY_DELIVERED,
+            "Check order status is partially delivered"
+        )
