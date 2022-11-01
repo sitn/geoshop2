@@ -727,9 +727,9 @@ class OrderItem(models.Model):
                     self._base_fee = Money(0, 'CHF')
                     self.price_status = OrderItem.PricingStatus.CALCULATED
                     return
-            # if user adds other products than the ones he's subscribed, quote needs to be done
-            self.price_status = OrderItem.PricingStatus.PENDING
-            return
+                # if user or contact is not subscribed, quote needs to be done
+                self.price_status = OrderItem.PricingStatus.PENDING
+                return
 
         # prices are 0 when order is for public authorities or academic purposes
         if self.order.order_type.name in ('Communal', 'Cantonal', 'Fédéral', 'Académique'):
