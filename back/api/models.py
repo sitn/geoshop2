@@ -168,7 +168,7 @@ class Metadata(models.Model):
         NOT_ACCESSIBLE = 'NOT_ACCESSIBLE', _('Not accessible')
         INTERNAL = 'INTERNAL', _('Internal')
 
-    id_name = models.CharField(_('id_name'), max_length=50, unique=True)
+    id_name = models.CharField(_('id_name'), max_length=100, unique=True)
     name = models.CharField(_('name'), max_length=300, blank=True)
     ech_category = models.ForeignKey(
         MetadataCategoryEch, models.SET_NULL, verbose_name=_('ech_category'), null=True, blank=True)
