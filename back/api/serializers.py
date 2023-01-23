@@ -35,10 +35,11 @@ class WKTPolygonField(serializers.Field):
         if isinstance(value, dict) or value is None:
             return value
         new_value = copy.copy(value)
-        new_value = new_value.buffer(0.5)
 
-        # Use Douglas-Peucker to simplify geom (one vertex 0.2m) for large polygons
-        if new_value.num_coords > 1000:
+        # Use buffer and Douglas-Peucker to simplify geom (one vertex 0.2m) for large polygons
+        # The smallest Cadastre has 156 vertices
+        if new_value.num_coords > 156:
+            new_value = new_value.buffer(0.5)
             new_value = new_value.simplify(0.2, preserve_topology=False)
         new_value.transform(4326)
 
