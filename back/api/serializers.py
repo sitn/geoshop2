@@ -35,17 +35,17 @@ class WKTPolygonField(serializers.Field):
         if isinstance(value, dict) or value is None:
             return value
         new_value = copy.copy(value)
+        wkt_w = WKTWriter()
 
         # Use buffer and Douglas-Peucker to simplify geom (one vertex 0.2m) for large polygons
         # The smallest Cadastre has 156 vertices
         if new_value.num_coords > 156:
             new_value = new_value.buffer(0.5)
             new_value = new_value.simplify(0.2, preserve_topology=False)
+            wkt_w.precision = 6
         new_value.transform(4326)
 
-        wkt_w = WKTWriter()
         # number of decimals
-        wkt_w.precision = 6
 
         if new_value.area > 0:
             return wkt_w.write(new_value).decode()
