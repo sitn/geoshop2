@@ -206,6 +206,9 @@ class Metadata(models.Model):
     class Meta:
         db_table = 'metadata'
         verbose_name = _('metadata')
+        permissions = [
+            ("view_internal", _('Can view metadata with accessibility set to "internal"'))
+        ]
 
     def __str__(self):
         return self.id_name

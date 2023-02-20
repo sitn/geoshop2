@@ -38,7 +38,7 @@ from .helpers import send_geoshop_email
 
 from .filters import FullTextSearchFilter
 
-from .permissions import ExtractGroupPermission
+from .permissions import ExtractGroupPermission, InternalGroupObjectPermission
 
 sensitive_post_parameters_m = method_decorator(
     sensitive_post_parameters(
@@ -135,6 +135,8 @@ class MetadataViewSet(viewsets.ReadOnlyModelViewSet):
     `public` and `approval needed` metadatas can be viewed by everyone.
     All metadatas can be accessed only by users belonging to `intranet` group.
     """
+    queryset = Metadata.objects.all()
+    permission_classes = [InternalGroupObjectPermission]
     serializer_class = MetadataSerializer
     lookup_field = 'id_name'
 
@@ -155,15 +157,6 @@ class MetadataViewSet(viewsets.ReadOnlyModelViewSet):
         response['Access-Control-Allow-Origin'] = '*'
         response['Content-Security-Policy'] = 'frame-ancestors *'
         return response
-
-    def get_queryset(self):
-        groups = self.request.user.groups.values_list('name', flat=True)
-        if 'internal' in list(groups):
-            return Metadata.objects.all()
-        return Metadata.objects.filter(accessibility__in=[
-                Metadata.MetadataAccessibility.PUBLIC,
-                Metadata.MetadataAccessibility.APPROVAL_NEEDED
-            ]).all()
 
     def get_serializer_context(self):
         context = super(MetadataViewSet, self).get_serializer_context()
