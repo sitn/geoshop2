@@ -17,8 +17,8 @@ import GeometryType from 'ol/geom/GeometryType';
 import { Feature } from 'ol';
 import { FeatureLike } from 'ol/Feature';
 import Polygon, { fromExtent } from 'ol/geom/Polygon';
-import WMTSCapabilities from 'ol/format/WMTSCapabilities';
-import WMTS, { optionsFromCapabilities } from 'ol/source/WMTS';
+import WMTS from 'ol/source/WMTS';
+import WMTSTileGrid from 'ol/tilegrid/WMTS';
 import { register } from 'ol/proj/proj4';
 import DragPan from 'ol/interaction/DragPan';
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
@@ -61,7 +61,9 @@ export class MapService {
 
   private map: Map;
   private basemapLayers: Array<BaseLayer> = [];
-  private capabilities: any;
+  private projection: Projection;
+  private resolutions: number[];
+  private initialExtent: number[];
 
   // Drawing
   private transformInteraction: Transform;
@@ -231,14 +233,27 @@ export class MapService {
   }
 
   public async createTileLayer(baseMapConfig: IBasemap, isVisible: boolean): Promise<TileLayer<TileSource> | undefined> {
-    if (!this.capabilities) {
-      await this.loadCapabilities();
+    const matrixIds = [];
+    for (let i = 0; i < this.resolutions.length; i += 1) {
+      matrixIds.push(`${i}`);
     }
 
-    const options = optionsFromCapabilities(this.capabilities, {
-      layer: baseMapConfig.id,
-      matrixSet: baseMapConfig.matrixSet,
+    const tileGrid = new WMTSTileGrid({
+      origin: [this.initialExtent[0], this.initialExtent[3]],
+      resolutions: this.resolutions,
+      matrixIds: matrixIds
     });
+
+    const options = {
+      layer: baseMapConfig.id,
+      projection: this.projection,
+      url: `${this.configService.config?.baseMapUrl}/1.0.0/{layer}/{style}/{TileMatrixSet}/{TileMatrix}/{TileRow}/{TileCol}.png`,
+      tileGrid: tileGrid,
+      matrixSet: baseMapConfig.matrixSet,
+      format: 'image/png',
+      style: 'default',
+      requestEncoding: 'REST'
+    }
     if (options == null) {
       return undefined;
     }
@@ -252,15 +267,6 @@ export class MapService {
     tileLayer.set('thumbnail', baseMapConfig.thumbUrl);
 
     return tileLayer;
-  }
-
-  private async loadCapabilities() {
-    const url = this.configService.config?.baseMapCapabilitiesUrl;
-    if (!this.capabilities && url) {
-      const response = await fetch(url);
-      const parser = new WMTSCapabilities();
-      this.capabilities = parser.read(await response.text());
-    }
   }
 
   public geocoderSearch(inputText: string) {
@@ -331,24 +337,31 @@ export class MapService {
   }
 
   private async initializeMap() {
-    const EPSG = this.configService.config?.epsg || 'EPSG2056'
+    if (!this.configService.config) {
+      console.error('There is no config defined in configService, map will not be initialized.');
+      return
+    }
+    const EPSG = this.configService.config.epsg || 'EPSG2056'
     proj4.defs(EPSG,
       '+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333'
       + ' +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel '
       + '+towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs');
     register(proj4);
 
-    const projection = new Projection({
+    this.initialExtent = this.configService.config.initialExtent;
+    this.resolutions = this.configService.config.resolutions;
+    this.projection = new Projection({
       code: EPSG,
-      // @ts-ignore
-      extent: this.configService.config.initialExtent,
+      extent: this.initialExtent,
     });
 
     const baseLayers = await this.generateBasemapLayersFromConfig();
     const view = new View({
-      projection,
-      center: fromLonLat([6.80, 47.05], projection),
-      zoom: 4,
+      projection: this.projection,
+      center: fromLonLat([6.80, 47.05], this.projection),
+      zoom: 1,
+      resolutions: this.resolutions,
+      constrainResolution: true
     });
 
     // Create the map
