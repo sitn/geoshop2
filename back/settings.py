@@ -139,7 +139,7 @@ LOCALE_PATHS = [
 ]
 
 TIME_ZONE = 'Europe/Zurich'
-
+DATE_FORMAT = '%d.%m.%Y'
 USE_I18N = True
 
 USE_L10N = True

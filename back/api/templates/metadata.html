@@ -1,8 +1,12 @@
-<html>
+<!DOCTYPE html>
+<html lang="fr-CH">
 
 <head>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Métadonnée {{ name }}</title>
+  <link rel="stylesheet" href="https://sitn.ne.ch/sitnstatic/sitn-bootstrap@v5.2.3/sitn-bootstrap.css">
   <style>
     .max-width-img img {
       max-width: 100%;
@@ -42,6 +46,26 @@
               </td>
               <td>
                 {{ scale }}
+              </td>
+            </tr>
+            {% endif %}
+            {% if data_last_update_date %}
+            <tr>
+              <td>
+                Dernière mise à jour de la donnée
+              </td>
+              <td>
+                {{ data_last_update_date }}
+              </td>
+            </tr>
+            {% endif %}
+            {% if update_frequency %}
+            <tr>
+              <td>
+                Fréquence de mise à jour
+              </td>
+              <td>
+                {{ update_frequency }}
               </td>
             </tr>
             {% endif %}

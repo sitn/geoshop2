@@ -186,6 +186,7 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
         queryset=MetadataCategoryEch.objects.all(),
         slug_field='description_fr'
     )
+    data_last_update_date = serializers.DateField(format=settings.DATE_FORMAT)
 
     class Meta:
         model = Metadata
