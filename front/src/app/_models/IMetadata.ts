@@ -28,6 +28,7 @@ export interface IMetadata {
   legend_link?: string;
   image_link: string;
   modified_date: string;
+  data_last_update_date: string;
   copyright: string;
   documents: Array<any>;
 }
