@@ -4,6 +4,7 @@ export interface IBasemap {
   description: string;
   thumbUrl: string;
   matrixSet: string;
+  format: string;
 }
 
 export interface IConfig {

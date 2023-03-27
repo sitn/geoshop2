@@ -247,10 +247,9 @@ export class MapService {
     const options = {
       layer: baseMapConfig.id,
       projection: this.projection,
-      url: `${this.configService.config?.baseMapUrl}/1.0.0/{layer}/{style}/{TileMatrixSet}/{TileMatrix}/{TileRow}/{TileCol}.png`,
+      url: `${this.configService.config?.baseMapUrl}/1.0.0/{layer}/{style}/{TileMatrixSet}/{TileMatrix}/{TileRow}/{TileCol}.${baseMapConfig.format}`,
       tileGrid: tileGrid,
       matrixSet: baseMapConfig.matrixSet,
-      format: 'image/png',
       style: 'default',
       requestEncoding: 'REST'
     }
@@ -339,9 +338,9 @@ export class MapService {
   private async initializeMap() {
     if (!this.configService.config) {
       console.error('There is no config defined in configService, map will not be initialized.');
-      return
+      return;
     }
-    const EPSG = this.configService.config.epsg || 'EPSG2056'
+    const EPSG = this.configService.config.epsg || 'EPSG2056';
     proj4.defs(EPSG,
       '+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333'
       + ' +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel '
@@ -359,7 +358,7 @@ export class MapService {
     const view = new View({
       projection: this.projection,
       center: fromLonLat([6.80, 47.05], this.projection),
-      zoom: 1,
+      zoom: 2,
       resolutions: this.resolutions,
       constrainResolution: true
     });
