@@ -1,7 +1,7 @@
 {
   "apiUrl": "${API_URL}",
   "mediaUrl": "${MEDIA_URL}",
-  "baseMapCapabilitiesUrl": "https://sitn.ne.ch/web_getcapabilities/WMTSGetCapabilities95.xml",
+  "baseMapUrl": "https://sitn.ne.ch/mapproxy95/wmts",
   "geocoderUrl": "https://sitn.ne.ch/search",
   "geocoderLayers": [
     "adresses_sitn", "nom_local_lieu_dit", "search_cours_eau",
@@ -21,6 +21,7 @@
   "initialExtent": [
     2420000, 1030000, 2900000, 1350000
   ],
+  "resolutions": [250, 100, 50, 20, 10, 5, 2.5, 2, 1.5, 1, 0.5, 0.25, 0.125, 0.0625,0.03125, 0.015625, 0.0078125],
   "epsg": "EPSG:2056",
   "basemaps": [
     {
@@ -28,21 +29,24 @@
       "label": "Plan cadastral",
       "description": "Plan cadastral",
       "thumbUrl": "assets/images/cadastre.png",
-      "matrixSet": "EPSG:2056"
+      "matrixSet": "EPSG2056",
+      "format": "png"
     },
     {
       "id": "plan_ville",
       "label": "Plan de ville",
       "description": "Plan de ville",
       "thumbUrl": "assets/images/planville.png",
-      "matrixSet": "EPSG:2056"
+      "matrixSet": "EPSG2056",
+      "format": "png"
     },
     {
       "id": "ortho",
       "label": "Orthophotos",
       "description": "Orthophotos",
       "thumbUrl": "assets/images/mixte.jpg",
-      "matrixSet": "EPSG:2056"
+      "matrixSet": "EPSG2056",
+      "format": "jpeg"
     }
   ],
   "pageformats": [
