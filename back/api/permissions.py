@@ -1,4 +1,5 @@
 from rest_framework import permissions
+from django.conf import settings
 
 
 class ExtractGroupPermission(permissions.BasePermission):
@@ -17,7 +18,7 @@ class InternalGroupObjectPermission(permissions.BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
-        if obj.accessibility in ['PUBLIC', 'APPROVAL_NEEDED']:
+        if obj.accessibility in settings.METADATA_PUBLIC_ACCESSIBILITIES:
             return True
         if request.user.has_perm('api.view_internal'):
             return True

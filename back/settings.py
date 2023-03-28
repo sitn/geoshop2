@@ -229,3 +229,6 @@ INTRA_LEGEND_URL = os.environ.get('INTRA_LEGEND_URL', '')
 
 # Geometries settings
 DEFAULT_SRID = 2056
+
+# Controls values of metadata accessibility field that will turn the metadata public
+METADATA_PUBLIC_ACCESSIBILITIES = ['PUBLIC', 'APPROVAL_NEEDED']

@@ -135,7 +135,6 @@ class MetadataViewSet(viewsets.ReadOnlyModelViewSet):
     `public` and `approval needed` metadatas can be viewed by everyone.
     All metadatas can be accessed only by users belonging to `intranet` group.
     """
-    queryset = Metadata.objects.all()
     permission_classes = [InternalGroupObjectPermission]
     serializer_class = MetadataSerializer
     lookup_field = 'id_name'
@@ -157,6 +156,13 @@ class MetadataViewSet(viewsets.ReadOnlyModelViewSet):
         response['Access-Control-Allow-Origin'] = '*'
         response['Content-Security-Policy'] = 'frame-ancestors *'
         return response
+
+    def get_queryset(self):
+        user = self.request.user
+        has_permision = user.has_perm('api.view_internal')
+        if has_permision:
+            return Metadata.objects.all()
+        return Metadata.objects.filter(accessibility__in=settings.METADATA_PUBLIC_ACCESSIBILITIES)
 
     def get_serializer_context(self):
         context = super(MetadataViewSet, self).get_serializer_context()
