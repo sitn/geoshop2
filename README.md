@@ -1,33 +1,42 @@
-# geoshop2
+# Geoshop
 
 ## Requirements
 
-* PostgreSQL > 10 + PostGIS
-* Python 3.6 / 3.7
+* PostgreSQL >= 11 + PostGIS
+* Python >= 3.9
 * pipenv (pip install pipenv)
 * GDAL 2.4 (see instructions below to install it in your venv)
 
 ## Getting started
 
-
 Fork and clone this repository. Make a copy of the `.env` file and adapt it to your environment settings:
 
 ```powershell
 cd back
-cp .env.sample .env
-cd..
+cp .env.sample .env.local
+cd ..
 ```
 
 ### Database
 
-The best is to backup and restore a production db. Otherwise, to start from scratch follow this:
+The best is to backup and restore a production db. Otherwise, to start from scratch follow this.
 
-Postrgres user `geoshop` is assumed to be already created. Set up a database manually in psql:
+Create a `geoshop` user if not existing yet, set your password according to your `env.local`:
+
+```sql
+CREATE ROLE geoshop WITH LOGIN PASSWORD <password>;
+```
+
+Then, set up a database in psql:
 
 ```sql
 CREATE DATABASE geoshop OWNER geoshop;
 REVOKE ALL ON DATABASE geoshop FROM PUBLIC;
-\c geoshop
+```
+
+Then connect to the geoshop database `\c geoshop` and create extensions:
+
+```sql
 CREATE EXTENSION postgis;
 CREATE EXTENSION unaccent;
 CREATE EXTENSION "uuid-ossp";
@@ -37,21 +46,23 @@ ALTER TEXT SEARCH CONFIGURATION fr ALTER MAPPING FOR hword, hword_part, word
 WITH unaccent, simple;
 ```
 
+Now that the database is ready, you can start backend either with Docker or not.
+
 ### Backend with docker
 
-Create an .env.local based on .env.sample, then build:
+To ease debug, you can add `DEBUG=True` to your `env.local` file. Never add this to a container exposed on internet.
 
-```powershell
-.\scripts\deploy.ps1
-```
-
-And choose `local`.
-
-Otherwise you can build it manually with:
+Build backend image:
 
 ```powershell
 cd back
-docker build -t sitn/geoshop-dev-api --build-arg ENV_FILE=.env.local --build-arg TESTING=True .
+docker build -t sitn/geoshop-dev-api --build-arg ENV_FILE=.env.local .
+```
+
+If you started with an empty database, run this once in order to create admin account:
+
+```powershell
+docker run --rm --name geoshop --env-file=.env.local sitn/geoshop-dev-api python manage.py fixturize
 ```
 
 Now you can run it with:
@@ -59,6 +70,8 @@ Now you can run it with:
 ```powershell
 docker run -d --rm --name geoshop --env-file=.env.local -p 8000:8000 -v ${PWD}:/app/geoshop_back sitn/geoshop-dev-api gunicorn --reload wsgi -b :8000
 ```
+
+You should be able to visit the API at http://localhost:8000.
 
 Run tests:
 
@@ -77,7 +90,7 @@ Stop the server:
 docker stop geoshop
 ```
 
-### Backend without docker on windows
+### Backend without docker on Windows
 
 > :warning: **No longer maintained**: Installing GDAL in windows is really painfull, use docker for backend.
 
