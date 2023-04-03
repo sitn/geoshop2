@@ -4,8 +4,6 @@
 
 * PostgreSQL >= 11 + PostGIS
 * Python >= 3.9
-* pipenv (pip install pipenv)
-* GDAL 2.4 (see instructions below to install it in your venv)
 
 ## Getting started
 
@@ -93,6 +91,11 @@ docker stop geoshop
 ### Backend without docker on Windows
 
 > :warning: **No longer maintained**: Installing GDAL in windows is really painfull, use docker for backend.
+
+If not using docker, additionnal packages are required:
+
+* pipenv (pip install pipenv)
+* GDAL 2.4 (see instructions below to install it in your venv)
 
 Install the app. If you want your `venv` to be inside your project directory, you need to set `PIPENV_VENV_IN_PROJECT` environment variable, otherwise it'll go to your profile, if you want `DEBUG` to be enabled, change it in `settings.py` file but never commit it with debug enabled:
 
