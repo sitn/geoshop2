@@ -247,7 +247,7 @@ export class MapService {
     const options = {
       layer: baseMapConfig.id,
       projection: this.projection,
-      url: `${this.configService.config?.baseMapUrl}/1.0.0/{layer}/{style}/{TileMatrixSet}/{TileMatrix}/{TileRow}/{TileCol}.${baseMapConfig.format}`,
+      url: `${this.configService.config?.baseMapUrl}.${baseMapConfig.format}`,
       tileGrid: tileGrid,
       matrixSet: baseMapConfig.matrixSet,
       style: 'default',
