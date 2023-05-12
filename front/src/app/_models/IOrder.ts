@@ -306,8 +306,8 @@ export class Order {
         break;
       case 'READY':
         result = {
-          text: `Prête pour extraction`,
-          iconName: 'check_outline',
+          text: `Extraction en cours`,
+          iconName: 'info',
           color: '#7593f0'
         };
         break;
