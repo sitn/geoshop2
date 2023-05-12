@@ -6,5 +6,6 @@ apache/app.conf
 back/files/*
 logs/*
 !logs/.gitkeep
+*.pyc
 
 front/debug.log
