@@ -1,6 +1,7 @@
 import re
 import unidecode
 
+from django.conf import settings
 from django.contrib.postgres.search import SearchQuery
 from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
@@ -58,7 +59,11 @@ class FullTextSearchFilter(BaseFilterBackend):
         if not ts_field or not search_term:
             return queryset
 
-        search_query = SearchQuery(search_term, search_type='raw')
+        search_query = SearchQuery(
+            search_term,
+            search_type='websearch',
+            config=settings.SPECIAL_DATABASE_CONFIG['FTS_SEARCH_CONFIG']
+        )
 
         kwargs = {ts_field: search_query}
         queryset = queryset.filter(**kwargs)
