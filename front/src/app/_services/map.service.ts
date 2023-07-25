@@ -232,7 +232,16 @@ export class MapService {
     this.map.updateSize();
   }
 
+  private debounce(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   public async createTileLayer(baseMapConfig: IBasemap, isVisible: boolean): Promise<TileLayer<TileSource> | undefined> {
+    if (!this.resolutions || !this.initialExtent) {
+      this.resolutions = this.configService.config!.resolutions;
+      this.initialExtent = this.configService.config!.initialExtent;
+      await this.debounce(200);
+    }
     const matrixIds = [];
     for (let i = 0; i < this.resolutions.length; i += 1) {
       matrixIds.push(`${i}`);
