@@ -4,7 +4,7 @@ from django.core import mail
 from djmoney.money import Money
 from rest_framework import status
 from rest_framework.test import APITestCase
-from api.models import Contact, OrderItem, Order, Metadata, Product
+from api.models import Contact, OrderItem, Order, Metadata, Product, ProductFormat
 from api.tests.factories import BaseObjectsFactory
 
 
@@ -324,9 +324,9 @@ class OrderTests(APITestCase):
         self.assertEqual(len(mail.outbox), 1, 'An email has been sent to admins')
 
 
-    def test_order_item_validation(self):
+    def order_item_validation(self, grouped=True):
         """
-        Tests email is sent when a product needs validation
+        Helper for tests of validation
         """
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
@@ -345,18 +345,37 @@ class OrderTests(APITestCase):
         ])
         approval_needed_metadata.save()
 
-        Product.objects.create(
-            label="Données sensibles",
+        product_name_to_order = "Données sensibles"
+        sensitive_product = Product.objects.create(
+            label=product_name_to_order,
             pricing=self.config.pricings['free'],
             metadata=approval_needed_metadata,
             status=Product.ProductStatus.PUBLISHED,
             provider=self.config.provider
         )
 
+
+        if grouped:
+            product_name_to_order = "Cadastre souterrain"
+            group = Product.objects.create(
+                label=product_name_to_order,
+                pricing=self.config.pricings['free'],
+                provider=self.config.provider,
+                metadata=self.config.public_metadata,
+                status=Product.ProductStatus.PUBLISHED
+            )
+            ProductFormat.objects.bulk_create([
+                ProductFormat(product=sensitive_product, data_format=self.config.formats['dxf']),
+                ProductFormat(product=group, data_format=self.config.formats['dxf']),
+            ])
+            sensitive_product.group = group
+            sensitive_product.save()
+
+
         data = {
             "items": [
                 {
-                    "product": "Données sensibles",
+                    "product": product_name_to_order,
                     "data_format": "DXF"
                 },
                 {
@@ -390,3 +409,16 @@ class OrderTests(APITestCase):
         order = Order.objects.get(pk=order_id)
         item = order.items.first()
         self.assertEqual(OrderItem.OrderItemStatus.PENDING, item.status, 'Item is ready for extraction')
+
+    def test_order_item_validation(self):
+        """
+        Tests email is sent when a product needs validation
+        """
+        self.order_item_validation(False)
+
+
+    def test_group_with_validation(self):
+        """
+        Tests email is sent when a product inside a group needs validation
+        """
+        self.order_item_validation(True)
