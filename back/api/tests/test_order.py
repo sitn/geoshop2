@@ -392,8 +392,13 @@ class OrderTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         self.assertEqual(len(mail.outbox), 2, 'An email has been sent to the validator and one to admin')
         order = Order.objects.get(pk=order_id)
-        item = order.items.first()
-        self.assertEqual(OrderItem.OrderItemStatus.VALIDATION_PENDING, item.status, 'Item is waiting for validation')
+        items = order.items.all()
+        item = None
+        # Get the item needing a validation
+        for i in items:
+            if i.status == OrderItem.OrderItemStatus.VALIDATION_PENDING:
+                item = i
+        self.assertIsNotNone(item, 'Item is waiting for validation')
         self.assertGreater(len(item.token), 0, 'item has token')
         self.assertIsNotNone(order.download_guid, "Check order has a GUID")
         self.assertIsNotNone(order.date_ordered, "Check order has a date")
