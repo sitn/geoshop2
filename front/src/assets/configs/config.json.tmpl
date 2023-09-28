@@ -1,7 +1,7 @@
 {
-  "apiUrl": "${API_URL}",
+  "apiUrl": "${API_BASE_URL}${ROOTURL}",
   "mediaUrl": "${MEDIA_URL}",
-  "baseMapUrl": "https://sitn.ne.ch/mapproxy95/wmts",
+  "baseMapUrl": "https://sitn.ne.ch/mapproxy95/wmts/1.0.0/{layer}/{style}/{TileMatrixSet}/{TileMatrix}/{TileRow}/{TileCol}",
   "geocoderUrl": "https://sitn.ne.ch/search",
   "geocoderLayers": [
     "adresses_sitn", "nom_local_lieu_dit", "search_cours_eau",
@@ -19,9 +19,9 @@
     2551473.73, 1211195.03
   ],
   "initialExtent": [
-    2420000, 1030000, 2900000, 1350000
+    2420000, 1030000, 2900000, 1360000
   ],
-  "resolutions": [250, 100, 50, 20, 10, 5, 2.5, 2, 1.5, 1, 0.5, 0.25, 0.125, 0.0625,0.03125, 0.015625, 0.0078125],
+  "resolutions": [250, 100, 50, 20, 10, 5, 2.5, 2, 1.5, 1, 0.5, 0.25, 0.125, 0.0625],
   "epsg": "EPSG:2056",
   "basemaps": [
     {

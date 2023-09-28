@@ -108,6 +108,13 @@ DATABASES = {
     }
 }
 
+# Special needs for geoshop running on PostgreSQL
+SPECIAL_DATABASE_CONFIG = {
+    # A search config with this name must exist on your database, please refer to
+    # https://www.postgresql.org/docs/current/textsearch-intro.html#TEXTSEARCH-INTRO-CONFIGURATIONS
+    'FTS_SEARCH_CONFIG': 'fr'
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
