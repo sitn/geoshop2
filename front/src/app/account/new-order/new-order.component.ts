@@ -9,17 +9,17 @@ import {IProduct} from '../../_models/IProduct';
 import {select, Store} from '@ngrx/store';
 import {AppState, getUser, selectOrder, selectAllProduct} from '../../_store';
 import {MatSort} from '@angular/material/sort';
-import {MatTableDataSource} from '@angular/material/table';
-import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
+import {MatLegacyTableDataSource as MatTableDataSource} from '@angular/material/legacy-table';
+import {MatLegacyAutocompleteSelectedEvent as MatAutocompleteSelectedEvent} from '@angular/material/legacy-autocomplete';
 import {IOrder, IOrderType, Order, IOrderItem} from '../../_models/IOrder';
 import {ApiOrderService} from '../../_services/api-order.service';
 import {MatStepper} from '@angular/material/stepper';
 import {StoreService} from '../../_services/store.service';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
 import {Contact, IContact} from '../../_models/IContact';
 import {Router} from '@angular/router';
 import * as fromCart from '../../_store/cart/cart.action';
-import {MatDialog, MatDialogRef} from '@angular/material/dialog';
+import {MatLegacyDialog as MatDialog, MatLegacyDialogRef as MatDialogRef} from '@angular/material/legacy-dialog';
 import {ConfirmDialogComponent} from '../../_components/confirm-dialog/confirm-dialog.component';
 
 @Component({

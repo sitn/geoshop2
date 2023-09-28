@@ -2,7 +2,7 @@ import {Component, HostBinding, OnInit} from '@angular/core';
 import {UntypedFormControl, UntypedFormGroup, UntypedFormBuilder, Validators} from '@angular/forms';
 import {EMAIL_REGEX, PHONE_REGEX} from '../../_helpers/regex';
 import {ApiService} from '../../_services/api.service';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
 import {Router} from '@angular/router';
 import {IUser, IUserToPost} from '../../_models/IUser';
 

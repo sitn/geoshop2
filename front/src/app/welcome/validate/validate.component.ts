@@ -2,13 +2,12 @@ import { takeUntil } from 'rxjs/operators';
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 
 import Map from 'ol/Map';
 import VectorSource from 'ol/source/Vector';
 
 import { GeoHelper } from '../../_helpers/geoHelper';
-import { GeoshopUtils } from '../../_helpers/GeoshopUtils';
 import { Order, OrderItem} from '../../_models/IOrder';
 import { ApiOrderService } from '../../_services/api-order.service';
 import { ConfigService } from '../../_services/config.service';

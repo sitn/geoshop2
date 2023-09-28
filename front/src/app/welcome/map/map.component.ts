@@ -6,9 +6,9 @@ import {IBasemap, IPageFormat} from 'src/app/_models/IConfig';
 import {UntypedFormControl, UntypedFormGroup} from '@angular/forms';
 import {debounceTime, switchMap} from 'rxjs/operators';
 import Geometry from 'ol/geom/Geometry';
-import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
+import {MatLegacyAutocompleteSelectedEvent as MatAutocompleteSelectedEvent} from '@angular/material/legacy-autocomplete';
 import Feature from 'ol/Feature';
-import {MatDialog} from '@angular/material/dialog';
+import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
 import {ManualentryComponent} from './manualentry/manualentry.component';
 
 export const nameOfCategoryForGeocoder: { [prop: string]: string; } = {

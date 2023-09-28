@@ -7,7 +7,7 @@ import { IApiResponse } from '../_models/IApi';
 import { catchError, flatMap, map } from 'rxjs/operators';
 import { Contact, IContact } from '../_models/IContact';
 import { GeoshopUtils } from '../_helpers/GeoshopUtils';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 
 
 @Injectable({

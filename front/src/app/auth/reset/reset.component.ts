@@ -1,9 +1,9 @@
 import {Component, HostBinding, OnDestroy, OnInit} from '@angular/core';
 import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {ApiService} from '../../_services/api.service';
-import {catchError, takeUntil} from 'rxjs/operators';
-import {of, Subject} from 'rxjs';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {takeUntil} from 'rxjs/operators';
+import {Subject} from 'rxjs';
+import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
 import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({

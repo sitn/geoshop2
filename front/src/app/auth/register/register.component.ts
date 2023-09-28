@@ -4,10 +4,9 @@ import {AppState} from '../../_store';
 import {Store} from '@ngrx/store';
 import {IIdentity} from '../../_models/IIdentity';
 import {ApiService} from '../../_services/api.service';
-import {catchError, map} from 'rxjs/operators';
+import {map} from 'rxjs/operators';
 import {Router} from '@angular/router';
-import {of} from 'rxjs';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
 import {StepperSelectionEvent} from '@angular/cdk/stepper';
 import {PHONE_REGEX, IDE_REGEX} from '../../_helpers/regex';
 

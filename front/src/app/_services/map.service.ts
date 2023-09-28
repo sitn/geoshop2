@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ConfigService } from 'src/app/_services/config.service';
-import { MatSnackBar, MatSnackBarRef, SimpleSnackBar } from '@angular/material/snack-bar';
+import { MatLegacySnackBar as MatSnackBar, MatLegacySnackBarRef as MatSnackBarRef, LegacySimpleSnackBar as SimpleSnackBar } from '@angular/material/legacy-snack-bar';
 
 // Openlayers imports
 import Map from 'ol/Map';
