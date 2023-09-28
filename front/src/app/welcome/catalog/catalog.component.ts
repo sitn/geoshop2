@@ -4,7 +4,7 @@ import {ApiService} from 'src/app/_services/api.service';
 import {ConfigService} from 'src/app/_services/config.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogMetadataComponent} from './dialog-metadata/dialog-metadata.component';
-import {FormControl} from '@angular/forms';
+import {UntypedFormControl} from '@angular/forms';
 import {BehaviorSubject, merge, Observable} from 'rxjs';
 import {debounceTime, map, mergeMap, scan, switchMap, tap, throttleTime} from 'rxjs/operators';
 import {CdkVirtualScrollViewport} from '@angular/cdk/scrolling';
@@ -33,7 +33,7 @@ export class CatalogComponent implements OnInit {
   isSearchLoading = false;
 
   // Filtering
-  catalogInputControl = new FormControl('');
+  catalogInputControl = new UntypedFormControl('');
 
   mediaUrl: String | undefined;
   order: IOrder;

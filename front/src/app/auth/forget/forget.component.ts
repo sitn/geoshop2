@@ -1,5 +1,5 @@
 import {Component, HostBinding, OnInit} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
 import {Router} from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {EMAIL_REGEX} from '../../_helpers/regex';
@@ -17,13 +17,13 @@ export class ForgetComponent implements OnInit {
   @HostBinding('class') class = 'main-container';
 
   private readonly successMessage = 'Le mot de passe a été envoyé à l\'adresse : ';
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   get email() {
     return this.form.get('email');
   }
 
-  constructor(private fb: FormBuilder,
+  constructor(private fb: UntypedFormBuilder,
               private router: Router,
               public snackBar: MatSnackBar,
               private apiService: ApiService

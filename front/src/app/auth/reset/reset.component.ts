@@ -1,5 +1,5 @@
 import {Component, HostBinding, OnDestroy, OnInit} from '@angular/core';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {ApiService} from '../../_services/api.service';
 import {catchError, takeUntil} from 'rxjs/operators';
 import {of, Subject} from 'rxjs';
@@ -21,9 +21,9 @@ export class ResetComponent implements OnInit, OnDestroy {
   private uid: string;
   private successMessage = 'Votre nouveau mot de passe a bien été pris en compte. Vous pouvez vous authentifier.';
 
-  passwords = new FormGroup({
-    password: new FormControl('', Validators.required),
-    passwordConfirm: new FormControl('', Validators.required),
+  passwords = new UntypedFormGroup({
+    password: new UntypedFormControl('', Validators.required),
+    passwordConfirm: new UntypedFormControl('', Validators.required),
   }, this.passwordMatchValidator);
 
   get password() {
@@ -61,7 +61,7 @@ export class ResetComponent implements OnInit, OnDestroy {
     }
   }
 
-  private passwordMatchValidator(g: FormGroup) {
+  private passwordMatchValidator(g: UntypedFormGroup) {
     const passValue = g.get('password')?.value;
     const passConfirmValue = g.get('passwordConfirm')?.value;
     return passValue === passConfirmValue ? null : {mismatch: true};
