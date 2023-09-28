@@ -27,9 +27,9 @@
 
 </ng-container>
 
-<ng-container *ngIf="!(isLoggedIn$|async)">
-  <div class="flex-row info-container px-16">
-    <mat-icon>info</mat-icon>
+<ng-container *ngIf="!(isLoggedIn$|async)">    
+  <div class="flex-row px-16">
+    <mat-icon class="overflow">info</mat-icon>
     <span>Pour commander vous devez obligatoirement vous authentifier.</span>
   </div>
 
