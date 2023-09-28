@@ -9,7 +9,7 @@ autopep8 = "*"
 pylint-django = "*"
 
 [packages]
-django = "==4.1.7"
+django = "==4.1.10"
 djangorestframework = "==3.14.0"
 markdown = "*"
 django-filter = "*"
