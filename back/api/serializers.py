@@ -393,8 +393,8 @@ class PublicOrderSerializer(OrderSerializer):
     client = PublicUserIdentitySerializer(read_only=True)
     class Meta(OrderSerializer.Meta):
         exclude = [
-            'date_downloaded', 'extract_result', 'download_guid',
-            'processing_fee_currency', 'processing_fee', 'total_with_vat']
+            'date_downloaded', 'extract_result', 'download_guid'
+        ]
 
 
 class ProductSerializer(serializers.ModelSerializer):
