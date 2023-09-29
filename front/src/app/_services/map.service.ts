@@ -13,11 +13,10 @@ import { defaults as defaultInteractions, DragAndDrop } from 'ol/interaction';
 import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
 import { Draw, Modify } from 'ol/interaction';
-import GeometryType from 'ol/geom/GeometryType';
 import { Feature } from 'ol';
 import { FeatureLike } from 'ol/Feature';
 import Polygon, { fromExtent } from 'ol/geom/Polygon';
-import WMTS from 'ol/source/WMTS';
+import WMTS, {Options} from 'ol/source/WMTS';
 import WMTSTileGrid from 'ol/tilegrid/WMTS';
 import { register } from 'ol/proj/proj4';
 import DragPan from 'ol/interaction/DragPan';
@@ -265,7 +264,7 @@ export class MapService {
     if (options == null) {
       return undefined;
     }
-    const source = new WMTS(options);
+    const source = new WMTS(options as Options);
     const tileLayer = new TileLayer({
       source,
       visible: isVisible,
@@ -487,13 +486,13 @@ export class MapService {
     if (drawingMode === 'Box') {
       this.drawInteraction = new Draw({
         source: this.drawingSource,
-        type: GeometryType.CIRCLE,
+        type: 'Circle',
         geometryFunction: createBox()
       });
     } else {
       this.drawInteraction = new Draw({
         source: this.drawingSource,
-        type: GeometryType.POLYGON,
+        type: 'Polygon',
         finishCondition: (evt) => {
           return true;
         }
