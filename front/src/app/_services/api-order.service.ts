@@ -274,7 +274,7 @@ export class ApiOrderService {
   getContact(contactId: number | string) {
     this._getApiUrl();
 
-    if (contactId < 0 || typeof contactId !== 'number') {
+    if (typeof contactId !== 'number' || contactId < 0) {
       return of(null);
     }
     const url = new URL(`${this.apiUrl}/contact/${contactId}/`);
