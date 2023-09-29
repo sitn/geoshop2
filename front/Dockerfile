@@ -1,5 +1,5 @@
 ### Compile ###
-FROM node:16.10-alpine as builder
+FROM node:18.18-alpine as builder
 WORKDIR /usr/src/app
 ENV PATH=${PATH}:./node_modules/.bin
 ENV NODE_PATH=/usr/src/app/node_modules
