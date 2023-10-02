@@ -1,8 +1,8 @@
 import {Component, HostBinding, OnInit} from '@angular/core';
-import {FormControl, FormGroup, FormBuilder, Validators} from '@angular/forms';
+import {UntypedFormControl, UntypedFormGroup, UntypedFormBuilder, Validators} from '@angular/forms';
 import {EMAIL_REGEX, PHONE_REGEX} from '../../_helpers/regex';
 import {ApiService} from '../../_services/api.service';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
 import {Router} from '@angular/router';
 import {IUser, IUserToPost} from '../../_models/IUser';
 
@@ -15,12 +15,12 @@ export class ModifyProfileComponent implements OnInit {
 
   @HostBinding('class') class = 'main-container';
 
-  formModifyUser = new FormGroup({});
+  formModifyUser = new UntypedFormGroup({});
   user: IUser;
 
   constructor(
     private apiService: ApiService,
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private snackBar: MatSnackBar,
     private router: Router) {
 
@@ -36,19 +36,19 @@ export class ModifyProfileComponent implements OnInit {
   private createForm() {
 
     this.formModifyUser = this.formBuilder.group({
-      username: new FormControl({value: this.user.username, disabled: true}, Validators.required),
-      firstName: new FormControl(this.user.first_name, Validators.required),
-      lastName: new FormControl(this.user.last_name, Validators.required),
-      email: new FormControl(this.user.email, Validators.compose(
+      username: new UntypedFormControl({value: this.user.username, disabled: true}, Validators.required),
+      firstName: new UntypedFormControl(this.user.first_name, Validators.required),
+      lastName: new UntypedFormControl(this.user.last_name, Validators.required),
+      email: new UntypedFormControl(this.user.email, Validators.compose(
         [Validators.required, Validators.pattern(EMAIL_REGEX)])),
-      phone: new FormControl(this.user.phone, Validators.pattern(PHONE_REGEX)),
-      street: new FormControl(this.user.street, Validators.required),
-      street2: new FormControl(this.user.street2),
-      postcode: new FormControl(this.user.postcode, Validators.required),
-      city: new FormControl(this.user.city, Validators.required),
-      country: new FormControl(this.user.country, Validators.required),
-      companyName: new FormControl(this.user.company_name),
-      ideId: new FormControl(this.user.ide_id),
+      phone: new UntypedFormControl(this.user.phone, Validators.pattern(PHONE_REGEX)),
+      street: new UntypedFormControl(this.user.street, Validators.required),
+      street2: new UntypedFormControl(this.user.street2),
+      postcode: new UntypedFormControl(this.user.postcode, Validators.required),
+      city: new UntypedFormControl(this.user.city, Validators.required),
+      country: new UntypedFormControl(this.user.country, Validators.required),
+      companyName: new UntypedFormControl(this.user.company_name),
+      ideId: new UntypedFormControl(this.user.ide_id),
     });
   }
 

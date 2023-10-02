@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {Actions, createEffect, ofType} from '@ngrx/effects';
 import {tap} from 'rxjs/operators';
 import {ApiOrderService} from '../../_services/api-order.service';
-import {MatSnackBar, MatSnackBarRef} from '@angular/material/snack-bar';
+import {MatLegacySnackBar as MatSnackBar, MatLegacySnackBarRef as MatSnackBarRef} from '@angular/material/legacy-snack-bar';
 import {deleteOrder} from './cart.action';
 import {MapService} from '../../_services/map.service';
 import {StoreService} from '../../_services/store.service';

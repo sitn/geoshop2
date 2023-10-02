@@ -1,5 +1,5 @@
 import {Component, ElementRef, HostBinding, OnInit} from '@angular/core';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {Store} from '@ngrx/store';
 import {AppState} from '../../_store';
 import * as AuthActions from '../../_store/auth/auth.action';
@@ -15,9 +15,9 @@ export class LoginComponent implements OnInit {
 
   @HostBinding('class') class = 'main-container';
 
-  form: FormGroup = new FormGroup({
-    username: new FormControl('', Validators.required),
-    password: new FormControl('', Validators.required),
+  form: UntypedFormGroup = new UntypedFormGroup({
+    username: new UntypedFormControl('', Validators.required),
+    password: new UntypedFormControl('', Validators.required),
   });
 
   get username() {

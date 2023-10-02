@@ -1,13 +1,12 @@
 import {AfterViewInit, Component, ElementRef, HostBinding, OnInit, ViewChild} from '@angular/core';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {AppState} from '../../_store';
 import {Store} from '@ngrx/store';
 import {IIdentity} from '../../_models/IIdentity';
 import {ApiService} from '../../_services/api.service';
-import {catchError, map} from 'rxjs/operators';
+import {map} from 'rxjs/operators';
 import {Router} from '@angular/router';
-import {of} from 'rxjs';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
 import {StepperSelectionEvent} from '@angular/cdk/stepper';
 import {PHONE_REGEX, IDE_REGEX} from '../../_helpers/regex';
 
@@ -22,33 +21,33 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   @ViewChild('firstInput') firstInput: ElementRef;
   startDate: Date;
 
-  formCredentials = new FormGroup({
-    passwords: new FormGroup({
-      password: new FormControl('', Validators.required),
-      passwordConfirm: new FormControl('', Validators.required),
+  formCredentials = new UntypedFormGroup({
+    passwords: new UntypedFormGroup({
+      password: new UntypedFormControl('', Validators.required),
+      passwordConfirm: new UntypedFormControl('', Validators.required),
     }, RegisterComponent.passwordMatchValidator),
-    username: new FormControl('', {
+    username: new UntypedFormControl('', {
       validators: Validators.required,
       asyncValidators: async () => this.loginMatchValidator,
       updateOn: 'blur'
     }),
   });
-  formContact = new FormGroup({
-    firstName: new FormControl('', Validators.required),
-    lastName: new FormControl('', Validators.required),
-    email: new FormControl('', Validators.compose([Validators.required, Validators.email])),
-    phone: new FormControl('', Validators.compose([Validators.pattern(PHONE_REGEX)])),
+  formContact = new UntypedFormGroup({
+    firstName: new UntypedFormControl('', Validators.required),
+    lastName: new UntypedFormControl('', Validators.required),
+    email: new UntypedFormControl('', Validators.compose([Validators.required, Validators.email])),
+    phone: new UntypedFormControl('', Validators.compose([Validators.pattern(PHONE_REGEX)])),
   });
   ideValidators = [Validators.pattern(IDE_REGEX)];
-  formAddress = new FormGroup({
-    companyName: new FormControl(''),
-    ideId: new FormControl('', this.ideValidators),
-    street: new FormControl('', Validators.required),
-    street2: new FormControl(''),
-    postcode: new FormControl('', Validators.required),
-    city: new FormControl('', Validators.required),
-    country: new FormControl('Suisse', Validators.required),
-    birthDay: new FormControl(''),
+  formAddress = new UntypedFormGroup({
+    companyName: new UntypedFormControl(''),
+    ideId: new UntypedFormControl('', this.ideValidators),
+    street: new UntypedFormControl('', Validators.required),
+    street2: new UntypedFormControl(''),
+    postcode: new UntypedFormControl('', Validators.required),
+    city: new UntypedFormControl('', Validators.required),
+    country: new UntypedFormControl('Suisse', Validators.required),
+    birthDay: new UntypedFormControl(''),
   });
 
   get passwords() {
@@ -124,7 +123,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   ) {
   }
 
-  private static passwordMatchValidator(g: FormGroup) {
+  private static passwordMatchValidator(g: UntypedFormGroup) {
     const passValue = g.get('password')?.value;
     const passConfirmValue = g.get('passwordConfirm')?.value;
     return passValue === passConfirmValue ? null : {mismatch: true};
@@ -180,7 +179,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   }
 
 
-  private loginMatchValidator(g: FormGroup) {
+  private loginMatchValidator(g: UntypedFormGroup) {
     return this.apiService.checkLoginNotTaken(g.value && g.value.length > 0 && g.value.toLowerCase())
       .pipe(
         map(response => {

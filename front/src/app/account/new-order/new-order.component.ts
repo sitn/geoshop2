@@ -1,5 +1,5 @@
 import {Component, HostBinding, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {ApiService} from '../../_services/api.service';
 import {PHONE_REGEX, IDE_REGEX, EMAIL_REGEX, EXTRACT_FORBIDDEN_REGEX} from '../../_helpers/regex';
 import {Observable, Subject} from 'rxjs';
@@ -9,17 +9,17 @@ import {IProduct} from '../../_models/IProduct';
 import {select, Store} from '@ngrx/store';
 import {AppState, getUser, selectOrder, selectAllProduct} from '../../_store';
 import {MatSort} from '@angular/material/sort';
-import {MatTableDataSource} from '@angular/material/table';
-import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
+import {MatLegacyTableDataSource as MatTableDataSource} from '@angular/material/legacy-table';
+import {MatLegacyAutocompleteSelectedEvent as MatAutocompleteSelectedEvent} from '@angular/material/legacy-autocomplete';
 import {IOrder, IOrderType, Order, IOrderItem} from '../../_models/IOrder';
 import {ApiOrderService} from '../../_services/api-order.service';
 import {MatStepper} from '@angular/material/stepper';
 import {StoreService} from '../../_services/store.service';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
 import {Contact, IContact} from '../../_models/IContact';
 import {Router} from '@angular/router';
 import * as fromCart from '../../_store/cart/cart.action';
-import {MatDialog, MatDialogRef} from '@angular/material/dialog';
+import {MatLegacyDialog as MatDialog, MatLegacyDialogRef as MatDialogRef} from '@angular/material/legacy-dialog';
 import {ConfirmDialogComponent} from '../../_components/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -35,11 +35,11 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   @ViewChild(MatSort, {static: true}) sort: MatSort;
   @ViewChild('stepper') stepper: MatStepper;
 
-  orderFormGroup: FormGroup;
-  addressChoiceForm: FormGroup;
-  contactFormGroup: FormGroup;
-  orderItemFormGroup: FormGroup;
-  invoiceContactsFormControls: { [key: string]: FormControl };
+  orderFormGroup: UntypedFormGroup;
+  addressChoiceForm: UntypedFormGroup;
+  contactFormGroup: UntypedFormGroup;
+  orderItemFormGroup: UntypedFormGroup;
+  invoiceContactsFormControls: { [key: string]: UntypedFormControl };
 
   isSearchLoading = false;
   isOrderPatchLoading = false;
@@ -98,7 +98,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       false;
   }
 
-  constructor(private formBuilder: FormBuilder,
+  constructor(private formBuilder: UntypedFormBuilder,
               private apiOrderService: ApiOrderService,
               private apiService: ApiService,
               private storeService: StoreService,
@@ -190,13 +190,13 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
   private createForms() {
     this.orderFormGroup = this.formBuilder.group({
-      orderType: new FormControl(null, Validators.required),
-      title: new FormControl('', Validators.compose(
+      orderType: new UntypedFormControl(null, Validators.required),
+      title: new UntypedFormControl('', Validators.compose(
         [Validators.pattern(EXTRACT_FORBIDDEN_REGEX), Validators.required])),
-      invoice_reference: new FormControl(''),
-      emailDeliverChoice: new FormControl('1'),
-      emailDeliver: new FormControl('', Validators.pattern(EMAIL_REGEX)),
-      description: new FormControl('', Validators.required),
+      invoice_reference: new UntypedFormControl(''),
+      emailDeliverChoice: new UntypedFormControl('1'),
+      emailDeliver: new UntypedFormControl('', Validators.pattern(EMAIL_REGEX)),
+      description: new UntypedFormControl('', Validators.required),
     });
     this.orderTypeCtrl?.valueChanges.subscribe(
       (choice) => {
@@ -215,33 +215,33 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       }
     );
     this.invoiceContactsFormControls = {
-      first_name: new FormControl(null, Validators.required),
-      last_name: new FormControl(null, Validators.required),
-      email: new FormControl(null, Validators.compose(
+      first_name: new UntypedFormControl(null, Validators.required),
+      last_name: new UntypedFormControl(null, Validators.required),
+      email: new UntypedFormControl(null, Validators.compose(
         [Validators.required, Validators.pattern(EMAIL_REGEX)])),
-      company_name: new FormControl(),
-      ide_id: new FormControl(null, Validators.compose(
+      company_name: new UntypedFormControl(),
+      ide_id: new UntypedFormControl(null, Validators.compose(
         [Validators.pattern(IDE_REGEX)])),
-      phone: new FormControl(null, Validators.pattern(PHONE_REGEX)),
-      street: new FormControl(),
-      street2: new FormControl(),
-      postcode: new FormControl(),
-      city: new FormControl(),
-      country: new FormControl(),
-      url: new FormControl(),
+      phone: new UntypedFormControl(null, Validators.pattern(PHONE_REGEX)),
+      street: new UntypedFormControl(),
+      street2: new UntypedFormControl(),
+      postcode: new UntypedFormControl(),
+      city: new UntypedFormControl(),
+      country: new UntypedFormControl(),
+      url: new UntypedFormControl(),
     };
 
-    this.addressChoiceForm = new FormGroup({
-      addressChoice: new FormControl('1')
+    this.addressChoiceForm = new UntypedFormGroup({
+      addressChoice: new UntypedFormControl('1')
     });
     this.addressChoiceCtrl?.valueChanges.subscribe((choice) => this.updateContactForm(choice));
 
-    this.contactFormGroup = new FormGroup({
-      customer: new FormControl(null),
+    this.contactFormGroup = new UntypedFormGroup({
+      customer: new UntypedFormControl(null),
       ...this.invoiceContactsFormControls
     });
-    this.orderItemFormGroup = new FormGroup({
-      formatsForAll: new FormControl(null)
+    this.orderItemFormGroup = new UntypedFormGroup({
+      formatsForAll: new UntypedFormControl(null)
     });
   }
 
@@ -298,7 +298,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.allAvailableFormats = new Set();
     for (const item of order.items) {
       item.available_formats?.forEach(format => this.allAvailableFormats.add(format));
-      const itemFormControl = new FormControl('', Validators.required);
+      const itemFormControl = new UntypedFormControl('', Validators.required);
       const controlName = this.getOrderItemControlName(item);
       this.orderItemFormGroup?.addControl(controlName, itemFormControl);
 

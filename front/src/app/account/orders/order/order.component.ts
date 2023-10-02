@@ -8,10 +8,10 @@ import {OrderItemViewComponent} from '../../../_components/order-item-view/order
 import {WidgetHostDirective} from '../../../_directives/widget-host.directive';
 import {ApiOrderService} from '../../../_services/api-order.service';
 import {GeoshopUtils} from '../../../_helpers/GeoshopUtils';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
 import {StoreService} from '../../../_services/store.service';
 import {Router} from '@angular/router';
-import {MatDialog, MatDialogRef} from '@angular/material/dialog';
+import {MatLegacyDialog as MatDialog, MatLegacyDialogRef as MatDialogRef} from '@angular/material/legacy-dialog';
 import {ConfirmDialogComponent} from '../../../_components/confirm-dialog/confirm-dialog.component';
 import Geometry from 'ol/geom/Geometry';
 

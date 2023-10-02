@@ -3,12 +3,12 @@ import {ConfigService} from 'src/app/_services/config.service';
 import {MapService} from '../../_services/map.service';
 import { CustomIconService } from '../../_services/custom-icon.service';
 import {IBasemap, IPageFormat} from 'src/app/_models/IConfig';
-import {FormControl, FormGroup} from '@angular/forms';
+import {UntypedFormControl, UntypedFormGroup} from '@angular/forms';
 import {debounceTime, switchMap} from 'rxjs/operators';
 import Geometry from 'ol/geom/Geometry';
-import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
+import {MatLegacyAutocompleteSelectedEvent as MatAutocompleteSelectedEvent} from '@angular/material/legacy-autocomplete';
 import Feature from 'ol/Feature';
-import {MatDialog} from '@angular/material/dialog';
+import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
 import {ManualentryComponent} from './manualentry/manualentry.component';
 
 export const nameOfCategoryForGeocoder: { [prop: string]: string; } = {
@@ -64,8 +64,8 @@ export class MapComponent implements OnInit {
   activeTab = 0;
 
   // Geocoder
-  formGeocoder = new FormGroup({
-    search: new FormControl('')
+  formGeocoder = new UntypedFormGroup({
+    search: new UntypedFormControl('')
   });
   geocoderGroupOptions: {
     id: string;

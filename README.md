@@ -221,13 +221,13 @@ More info on bookstack
 
 ## Upgrading front-end packages
 
-Go to https://update.angular.io/?v=13.0-14.0 and check there are not manual steps to be done.
+Go to https://update.angular.io/?v=16.0-17.0 and check there are not manual steps to be done.
 
 Then follow instructions. After upgrading, some packages will need to be upgraded according to angular version
-you will be using. For instance, if you'll upgrade to version 14, you need to target version 14 for these packages:
+you will be using. For instance, if you'll upgrade to version 17, you need to target version 17 for these packages:
 
 ```powershell
-ng update @ngrx/store@14 angular-split@14
+ng update @ngrx/store@17 angular-split@17
 ```
 
 After, you can update other packages:

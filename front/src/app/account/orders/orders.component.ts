@@ -6,7 +6,7 @@ import {MapService} from '../../_services/map.service';
 import Map from 'ol/Map';
 import VectorSource from 'ol/source/Vector';
 import {ConfigService} from '../../_services/config.service';
-import {FormControl} from '@angular/forms';
+import {UntypedFormControl} from '@angular/forms';
 import {CdkVirtualScrollViewport} from '@angular/cdk/scrolling';
 import {GeoHelper} from '../../_helpers/geoHelper';
 import {ApiOrderService} from '../../_services/api-order.service';
@@ -45,7 +45,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   vectorSource: VectorSource<Geometry>;
 
   // Filtering
-  orderFilterControl = new FormControl('');
+  orderFilterControl = new UntypedFormControl('');
   isSearchLoading$ = new BehaviorSubject(true);
 
   constructor(private apiOrderService: ApiOrderService,
