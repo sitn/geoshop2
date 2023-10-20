@@ -155,7 +155,7 @@ USE_TZ = True
 
 SITE_ID = 2
 
-VAT = 0.077
+VAT = 0.081
 
 LOGGING = {
     'version': 1,
