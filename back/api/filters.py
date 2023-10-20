@@ -61,7 +61,7 @@ class FullTextSearchFilter(BaseFilterBackend):
 
         search_query = SearchQuery(
             search_term,
-            search_type='websearch',
+            search_type='raw',
             config=settings.SPECIAL_DATABASE_CONFIG['FTS_SEARCH_CONFIG']
         )
 
