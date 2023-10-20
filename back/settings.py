@@ -181,6 +181,11 @@ LOGGING = {
             'level': os.getenv('LOGGING_LEVEL', 'ERROR'),
             'propagate': False,
         },
+        # uncomment this for DB logging
+        #'django.db.backends': {
+        #    'level': 'DEBUG',
+        #    'handlers': ['console'],
+        #}
     },
 }
 
