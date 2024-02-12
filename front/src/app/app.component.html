@@ -1,14 +1,17 @@
 <mat-toolbar color="primary">
 
   <div class="flex-row">
-    <a mat-button class="header-title" [routerLink]="['welcome']">GeoShop du système d'information du territoire neuchâtelois</a>
-    <mat-divider *ngIf="subTitle" vertical="true" color="accent"></mat-divider>
-    <span class="header-subtitle">{{subTitle}}</span>
+    <a mat-button class="header-title" [routerLink]="['welcome']"><mat-icon class="text-top">home</mat-icon> GeoShop du système d'information du territoire neuchâtelois</a>
+  </div>
+
+  <div class="w-100 h-90 text-center survey">
+    <a href="https://form.typeform.com/to/kUzpCfXO?utm_source=geoshop_sitn&utm_medium=banner&utm_campaign=initial_call#predefined_geoportal=sitn" target="_blank">
+      <img class="h-100" alt="Survey" src="assets/images/survey.svg">
+    </a>
   </div>
 
 
   <div class="right-container">
-
     <button mat-icon-button [matMenuTriggerFor]="helpOverlay">
       <mat-icon>contact_support</mat-icon>
     </button>
