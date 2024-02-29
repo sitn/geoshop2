@@ -23,12 +23,6 @@
     text-align: center;
   }
 
-  @media (max-width: 1399.98px) {
-    .survey {
-      display: none;
-    }
-  }
-
   main {
     height: calc(100vh - 64px);
     overflow: hidden;
