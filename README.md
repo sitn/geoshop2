@@ -10,8 +10,11 @@
 Fork and clone this repository. Make a copy of the `.env` file and adapt it to your environment settings:
 
 ```powershell
+git submodule init
+git submodule update
 cd back
-cp .env.sample .env.local
+cp .env.sample .env
+cp default_settings.py settings.py
 cd ..
 ```
 
@@ -90,8 +93,6 @@ docker stop geoshop
 
 ### Backend without docker on Windows
 
-> :warning: **No longer maintained**: Installing GDAL in windows is really painfull, use docker for backend.
-
 If not using docker, additionnal packages are required:
 
 * pipenv (pip install pipenv)
@@ -133,12 +134,6 @@ You should now be able to run migrations:
 
 ```powershell
 python manage.py migrate
-```
-
-If you're starting with a fresh new database you'll need to create an user or restore a dump:
-
-```powershell
-python manage.py createsuperuser --email admin@example.com --username admin
 ```
 
 Your database should be ready, now you can run the backend:
