@@ -186,8 +186,10 @@ Create an `env.prod` file base on `env.sample`.
 ### Application deployment
 
 ```powershell
-.\scripts\4_deploy_prod.ps1
+python scripts\deploy.py
 ```
+
+And choose your instance to be deployed.
 
 Create a scheduled task that runs `scripts/geoshop_clean_orders.ps1` every month.
 
