@@ -20,31 +20,10 @@ cd ..
 
 ### Database
 
-The best is to backup and restore a production db. Otherwise, to start from scratch follow this.
-
-Create a `geoshop` user if not existing yet, set your password according to your `env.local`:
+The best is to backup and restore a production db:
 
 ```sql
-CREATE ROLE geoshop WITH LOGIN PASSWORD <password>;
-```
-
-Then, set up a database in psql:
-
-```sql
-CREATE DATABASE geoshop OWNER geoshop;
-REVOKE ALL ON DATABASE geoshop FROM PUBLIC;
-```
-
-Then connect to the geoshop database `\c geoshop` and create extensions:
-
-```sql
-CREATE EXTENSION postgis;
-CREATE EXTENSION unaccent;
-CREATE EXTENSION "uuid-ossp";
-CREATE SCHEMA geoshop AUTHORIZATION geoshop;
-CREATE TEXT SEARCH CONFIGURATION fr (COPY = simple);
-ALTER TEXT SEARCH CONFIGURATION fr ALTER MAPPING FOR hword, hword_part, word
-WITH unaccent, simple;
+.\scripts\sitn\1_fetch_prod_db.ps1
 ```
 
 Now that the database is ready, you can start backend either with Docker or not.
@@ -133,6 +112,7 @@ Otherwise, if you installed it in your venv, configure `.env` properly.
 You should now be able to run migrations:
 
 ```powershell
+cd back
 python manage.py migrate
 ```
 
