@@ -1,11 +1,19 @@
 .vscode
-back/.idea/
 front/.idea/
 front/node_modules/
 apache/app.conf
-back/files/*
 logs/*
 !logs/.gitkeep
 *.pyc
 
 front/debug.log
+
+.env
+.env.local
+.env.dev
+.env.prod
+.env.prepub
+
+.venv
+Pipfile
+Pipfile.lock

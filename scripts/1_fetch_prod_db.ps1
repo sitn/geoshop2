@@ -1,5 +1,5 @@
 $pwd = pwd
-foreach ($line in Get-Content $PSScriptRoot\..\..\back\.env.prod) {
+foreach ($line in Get-Content $PSScriptRoot\..\.env.prod) {
     $args = $line -split "="
     If ($args[0] -And !$args[0].StartsWith("#")) {
         $cmd = '$env:' + $args[0].Trim('"') + '="' + $args[1].Trim('"') + '"'
@@ -22,7 +22,7 @@ Write-Host "$(Get-Date -Format g) PG dump done..."
 
 Write-Host "$(Get-Date -Format g) variables d'environnement remises sur .env.local"
 
-foreach ($line in Get-Content $PSScriptRoot\..\..\back\.env) {
+foreach ($line in Get-Content $PSScriptRoot\..\.env) {
     $args = $line -split "="
     If ($args[0] -And !$args[0].StartsWith("#")) {
         $cmd = '$env:' + $args[0].Trim('"') + '="' + $args[1].Trim('"') + '"'

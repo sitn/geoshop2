@@ -30,7 +30,7 @@ export class GeoshopUtils {
       total_with_vat_currency: '',
       total_with_vat: '',
       title: '',
-      status: 'DRAFT',
+      order_status: 'DRAFT',
       processing_fee_currency: '',
       processing_fee: '',
       part_vat_currency: '',

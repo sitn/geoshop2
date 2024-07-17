@@ -6,7 +6,7 @@ export interface IProduct {
   id: number;
   url?: string;
   label: string;
-  status?: string;
+  product_status?: string;
   provider?: string;
   order?: number;
   thumbnail_link?: string;
