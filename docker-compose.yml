@@ -5,15 +5,29 @@ services:
     image: ${DOCKER_BASE}-api
     build:
       context: ./back/
-      args:
-        ENV_FILE: ${ENV_FILE}
-    env_file: ./back/${ENV_FILE}
+    env_file: ${ENV_FILE:-.env}
     command: "gunicorn wsgi -b :8000 --timeout 90"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     restart: unless-stopped
     ports:
       - "${DOCKER_BACK_PORT}:8000"
     volumes:
-      - "${GEOSHOP_DATA}:/mnt/geoshop_data"
+      - "static-files:/app/geoshop_back/static:ro"
+
+  migrate:
+    image: geoshop-api
+    build:
+      context: ./back/
+      dockerfile: Dockerfile
+    env_file: ${ENV_FILE:-.env}
+    command:
+      - bash
+      - -c
+      - "python manage.py migrate && python manage.py collectstatic --noinput && python manage.py compilemessages --locale=fr && python manage.py fixturize"
+    volumes:
+      - "static-files:/app/geoshop_back/static:rw"
 
   front:
     image: ${DOCKER_BASE}-front
@@ -24,3 +38,6 @@ services:
     restart: unless-stopped
     ports:
       - "${DOCKER_FRONT_PORT}:80"
+
+volumes:
+  static-files:

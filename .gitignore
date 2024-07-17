@@ -7,3 +7,13 @@ logs/*
 *.pyc
 
 front/debug.log
+
+.env
+.env.local
+.env.dev
+.env.prod
+.env.prepub
+
+.venv
+Pipfile
+Pipfile.lock
