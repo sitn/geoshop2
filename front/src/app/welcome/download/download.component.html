@@ -15,14 +15,14 @@
         Commande du {{order.date_ordered | date}}.<span class="text-ellipsis-2">{{order.description}}</span>
       </mat-card-subtitle>
       <mat-card-content>
-        <div *ngIf="order && order.status === 'PROCESSED'" class="mb-2">
+        <div *ngIf="order && order.order_status === 'PROCESSED'" class="mb-2">
           <div class="flex">
             <button mat-raised-button color="primary" class="action-button" (click)="downloadOrder($event)">
               <mat-icon>download</mat-icon> Télécharger les données
             </button>
           </div>
         </div>
-        <div *ngIf="order?.status !== 'PROCESSED'">
+        <div *ngIf="order?.order_status !== 'PROCESSED'">
           <p>Votre commande n'est plus disponible.</p>
           <p>Les liens de téléchargement ne sont valables que pendant un mois. <br>
             N'hésitez pas à nous contacter si vous souhaitez une nouvelle extraction.</p>

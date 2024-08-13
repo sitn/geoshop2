@@ -7,88 +7,42 @@
 
 ## Getting started
 
-Fork and clone this repository. Make a copy of the `.env` file and adapt it to your environment settings:
+Fork and clone this repository. Make a copy of the `.env.sample` and `back/default_settings.py` files and adapt it to your environment settings:
 
 ```powershell
 git submodule init
 git submodule update
-cd back
 cp .env.sample .env
-cp default_settings.py settings.py
-cd ..
+cp back/default_settings.py back/settings.py
+cp scripts/custom.js back/api/templates/gis/admin
 ```
 
 ### Database
 
-The best is to backup and restore a production db. Otherwise, to start from scratch follow this.
+The best is to backup and restore a production db:
 
-Create a `geoshop` user if not existing yet, set your password according to your `env.local`:
-
-```sql
-CREATE ROLE geoshop WITH LOGIN PASSWORD <password>;
-```
-
-Then, set up a database in psql:
-
-```sql
-CREATE DATABASE geoshop OWNER geoshop;
-REVOKE ALL ON DATABASE geoshop FROM PUBLIC;
-```
-
-Then connect to the geoshop database `\c geoshop` and create extensions:
-
-```sql
-CREATE EXTENSION postgis;
-CREATE EXTENSION unaccent;
-CREATE EXTENSION "uuid-ossp";
-CREATE SCHEMA geoshop AUTHORIZATION geoshop;
-CREATE TEXT SEARCH CONFIGURATION fr (COPY = simple);
-ALTER TEXT SEARCH CONFIGURATION fr ALTER MAPPING FOR hword, hword_part, word
-WITH unaccent, simple;
+```powershell
+.\scripts\1_fetch_prod_db.ps1
 ```
 
 Now that the database is ready, you can start backend either with Docker or not.
 
 ### Backend with docker
 
-To ease debug, you can add `DEBUG=True` to your `env.local` file. Never add this to a container exposed on internet.
+To ease debug, you can add `DEBUG=True` to your `.env` file. Never add this to a container exposed on internet.
 
-Build backend image:
-
-```powershell
-cd back
-docker build -t sitn/geoshop-dev-api --build-arg ENV_FILE=.env.local .
-```
-
-If you started with an empty database, run this once in order to create admin account:
+Run de docker composition with the following command and type `local` when asked:
 
 ```powershell
-docker run --rm --name geoshop --env-file=.env.local sitn/geoshop-dev-api python manage.py fixturize
+python deploy.py
 ```
 
-Now you can run it with:
-
-```powershell
-docker run -d --rm --name geoshop --env-file=.env.local -p 8000:8000 -v ${PWD}:/app/geoshop_back sitn/geoshop-dev-api gunicorn --reload wsgi -b :8000
-```
-
-You should be able to visit the API at http://localhost:8000.
+You should be able to visit the API at http://localhost:5004 or another port if you changed it.
 
 Run tests:
 
 ```powershell
-docker run --rm --env-file=.env.local -v ${PWD}:/app/geoshop_back sitn/geoshop-dev-api python manage.py test api
-```
-
-Make messages for translation:
-
-```powershell
-docker run --rm --env-file=.env.local -v ${PWD}:/app/geoshop_back:rw sitn/geoshop-dev-api python manage.py makemessages -l fr
-```
-
-Stop the server:
-```powershell
-docker stop geoshop
+docker compose exec api python manage.py test api
 ```
 
 ### Backend without docker on Windows
@@ -96,26 +50,19 @@ docker stop geoshop
 If not using docker, additionnal packages are required:
 
 * pipenv (pip install pipenv)
-* GDAL 2.4 (see instructions below to install it in your venv)
+* GDAL (see instructions below to install it in your venv)
 
-Install the app. If you want your `venv` to be inside your project directory, you need to set `PIPENV_VENV_IN_PROJECT` environment variable, otherwise it'll go to your profile, if you want `DEBUG` to be enabled, change it in `settings.py` file but never commit it with debug enabled:
+Install the app. If you want your `venv` to be inside your project directory, you need to set `PIPENV_VENV_IN_PROJECT` environment variable, otherwise it'll go to your profile
 
 ```powershell
-cd back
 $env:PIPENV_VENV_IN_PROJECT="True"
-pipenv install --dev           # installs everything needed
-pipenv shell                   # activates venv and reads .env file
+pipenv install --dev -r back/requirements.txt
+pipenv shell # activates venv and reads .env file
 ```
 
 #### Installing GDAL on Windows, only once per machine
-Download the GDAL 2.4 wheel (3.X isn't supported yet by Django) on this page: https://www.lfd.uci.edu/~gohlke/pythonlibs/#gdal. For example, if you have Python 3.6 64bit, choose `GDAL‑2.4.1‑cp36‑cp36m‑win_amd64.whl`.
-Then install it weather system wide or in your venv (the example below will show the venv variant and expects you have your venv activated):
 
-```powershell
-pip install path\to\your\GDAL-2.4XXXX.whl
-```
-
-You'll then need to add GDAL dll to your PATH if you installed it system wide. You can get the dll path with:
+You'll need to add GDAL dll to your PATH if you installed it system wide. You can get the dll path with:
 
 ```python
 python
@@ -133,6 +80,7 @@ Otherwise, if you installed it in your venv, configure `.env` properly.
 You should now be able to run migrations:
 
 ```powershell
+cd back
 python manage.py migrate
 ```
 
@@ -142,20 +90,16 @@ Your database should be ready, now you can run the backend:
 python manage.py runserver
 ```
 
-Translations can be generated, static files collected with:
+Translations can be generated and static files collected with:
 
 ```powershell
 python manage.py compilemessages --locale=fr
-python .\manage.py collectstatic
+python manage.py collectstatic
 ```
-
-Then, set `DEBUG` to `True` in `back/settings.py` and you can finally run the server:
 
 ```powershell
 python manage.py runserver
 ```
-
-> :warning: **DO NOT COMMIT settings.py with `DEBUG` set to `True` !**
 
 ### Run tests
 
@@ -205,14 +149,18 @@ Create an `env.prod` file base on `env.sample`.
 
 ### Application deployment
 
+Always:
+1. Run tests locally on docker
+2. Deploy prepub and test it with a fake order
+3. Deploy prod
+
 ```powershell
-.\scripts\4_deploy_prod.ps1
+python deploy.py
 ```
 
-Create a scheduled task that runs `scripts/geoshop_clean_orders.ps1` every month.
+And choose your instance to be deployed. You must have `.env.prepub` and `.env.prod` defined at the root of the project.
 
 More info on bookstack
-
 
 ## Upgrading front-end packages
 
