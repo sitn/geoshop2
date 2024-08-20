@@ -1,0 +1,3 @@
+[submodule "geoshop-back"]
+	path = geoshop-back
+	url = https://github.com/sitn/geoshop-back.git

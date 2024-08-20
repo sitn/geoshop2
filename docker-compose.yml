@@ -1,10 +1,9 @@
-version: '3'
-
 services:
   api:
     image: ${DOCKER_BASE}-api
+    pull_policy: build
     build:
-      context: ./back/
+      context: ./geoshop-back/
     env_file: ${ENV_FILE:-.env}
     command: "gunicorn wsgi -b :8000 --timeout 90"
     depends_on:
@@ -18,8 +17,9 @@ services:
 
   migrate:
     image: geoshop-api
+    pull_policy: build
     build:
-      context: ./back/
+      context: ./geoshop-back/
       dockerfile: Dockerfile
     env_file: ${ENV_FILE:-.env}
     command:
@@ -31,6 +31,7 @@ services:
 
   front:
     image: ${DOCKER_BASE}-front
+    pull_policy: build
     build:
       context: ./front/
       args:

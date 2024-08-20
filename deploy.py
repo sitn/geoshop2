@@ -42,11 +42,9 @@ eval_templates(f'front/httpd.conf.tmpl', f'front/httpd.conf')
 
 print(f"{str(datetime.datetime.now())} - DOCKER_HOST IS {os.environ['DOCKER_HOST']}")
 
-os.rename('.env', '.env.local')
 subprocess.run(['docker-compose', 'build', 'api'])
 subprocess.run(['docker-compose', 'build', 'front'])
 subprocess.run(['docker-compose', 'down'])
 subprocess.run(['docker-compose', 'up', '-d'])
-os.rename('.env.local', '.env')
 
 print(f"{str(datetime.datetime.now())} - END")
