@@ -47,17 +47,23 @@ docker compose exec api python manage.py test api
 
 ### Backend without docker on Windows
 
-If not using docker, additionnal packages are required:
+If not using docker, additional packages are required:
 
-* pipenv (pip install pipenv)
 * GDAL (see instructions below to install it in your venv)
+* pip install poetry
 
-Install the app. If you want your `venv` to be inside your project directory, you need to set `PIPENV_VENV_IN_PROJECT` environment variable, otherwise it'll go to your profile
+The `.env` should be moved inside the `geoshop-back` folder.
 
 ```powershell
-$env:PIPENV_VENV_IN_PROJECT="True"
-pipenv install --dev -r back/requirements.txt
-pipenv shell # activates venv and reads .env file
+mv .env geoshop-back
+cd geoshop-back
+```
+
+Then you can install and activate poetry venv:
+
+```powershell
+poetry install --no-root
+poetry shell
 ```
 
 #### Installing GDAL on Windows, only once per machine
