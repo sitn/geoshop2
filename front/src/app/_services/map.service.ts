@@ -286,7 +286,6 @@ export class MapService {
       return of([]);
     }
     const url = new URL(urlText);
-    url.searchParams.append('partitionlimit', '10');
     url.searchParams.append('query', inputText);
     return this.httpClient.get(url.toString()).pipe(
       map((featureCollectionData) => {
