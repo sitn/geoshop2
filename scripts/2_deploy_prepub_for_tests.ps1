@@ -1,5 +1,5 @@
 $pwd = pwd
-foreach ($line in Get-Content $PSScriptRoot\..\..\back\.env.prepub) {
+foreach ($line in Get-Content $PSScriptRoot\..\.env.prepub) {
     $args = $line -split "="
     If ($args[0] -And !$args[0].StartsWith("#")) {
         $cmd = '$env:' + $args[0].Trim('"') + '="' + $args[1].Trim('"') + '"'
