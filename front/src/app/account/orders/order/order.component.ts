@@ -14,6 +14,7 @@ import {Router} from '@angular/router';
 import {MatLegacyDialog as MatDialog, MatLegacyDialogRef as MatDialogRef} from '@angular/material/legacy-dialog';
 import {ConfirmDialogComponent} from '../../../_components/confirm-dialog/confirm-dialog.component';
 import Geometry from 'ol/geom/Geometry';
+import { Feature } from 'ol';
 
 @Component({
   selector: 'gs2-order',
@@ -26,7 +27,7 @@ export class OrderComponent implements OnInit {
 
   // Map
   @Input() minimap: Map;
-  @Input() vectorSource: VectorSource<Geometry>;
+  @Input() vectorSource: VectorSource<Feature<Geometry>>;
 
   // Order items
   @ViewChild(WidgetHostDirective) orderItemTemplate: WidgetHostDirective;

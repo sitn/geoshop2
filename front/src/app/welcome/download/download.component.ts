@@ -14,6 +14,7 @@ import { ApiOrderService } from '../../_services/api-order.service';
 import { ConfigService} from '../../_services/config.service';
 import { MapService} from '../../_services/map.service';
 import Geometry from 'ol/geom/Geometry';
+import { Feature } from 'ol';
 
 
 @Component({
@@ -29,7 +30,7 @@ export class DownloadComponent implements OnInit, OnDestroy {
   private uuid: string;
   order: Order;
   minimap: Map;
-  vectorSource: VectorSource<Geometry>;
+  vectorSource: VectorSource<Feature<Geometry>>;
 
   constructor(
     private apiOrderService: ApiOrderService,

@@ -16,6 +16,7 @@ import {select, Store} from '@ngrx/store';
 import {selectOrder} from '../../_store';
 import {deleteOrder} from '../../_store/cart/cart.action';
 import Geometry from 'ol/geom/Geometry';
+import { Feature } from 'ol';
 
 
 @Component({
@@ -42,7 +43,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
 
   // Map
   minimap: Map;
-  vectorSource: VectorSource<Geometry>;
+  vectorSource: VectorSource<Feature<Geometry>>;
 
   // Filtering
   orderFilterControl = new UntypedFormControl('');

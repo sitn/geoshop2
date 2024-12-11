@@ -67,9 +67,9 @@ export class MapService {
   // Drawing
   private transformInteraction: Transform;
   private isDrawModeActivated = false;
-  private drawingSource: VectorSource<Geometry>;
-  private geocoderSource: VectorSource<Geometry>;
-  private drawingLayer: VectorLayer<VectorSource<Geometry>>;
+  private drawingSource: VectorSource<Feature<Geometry>>;
+  private geocoderSource: VectorSource<Feature<Geometry>>;
+  private drawingLayer: VectorLayer<VectorSource<Feature<Geometry>>>;
   private modifyInteraction: Modify;
   private drawInteraction: Draw;
   private featureFromDrawing: Feature<Geometry> | null;

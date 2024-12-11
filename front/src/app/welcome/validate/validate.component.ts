@@ -13,6 +13,7 @@ import { ApiOrderService } from '../../_services/api-order.service';
 import { ConfigService } from '../../_services/config.service';
 import { MapService } from '../../_services/map.service';
 import Geometry from 'ol/geom/Geometry';
+import { Feature } from 'ol';
 
 
 @Component({
@@ -29,7 +30,7 @@ export class ValidateComponent implements OnInit, OnDestroy {
   order: Order;
   orderitem: OrderItem;
   minimap: Map;
-  vectorSource: VectorSource<Geometry>;
+  vectorSource: VectorSource<Feature<Geometry>>;
 
 
   constructor(
