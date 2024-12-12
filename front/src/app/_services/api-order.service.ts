@@ -244,6 +244,17 @@ export class ApiOrderService {
       );
   }
 
+  public downloadResult(guid: string) {
+    this._getApiUrl();
+
+    const url = new URL(`${this.apiUrl}/download/${guid}/result`);
+
+    return this.http.get(url.toString(), {
+      observe: 'response',
+      responseType: 'blob'
+    });
+  }
+
   public downloadOrder(orderId: number, isOrderItem = false) {
     this._getApiUrl();
 
