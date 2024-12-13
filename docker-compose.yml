@@ -1,7 +1,6 @@
 services:
   api:
     image: ${DOCKER_BASE}-api
-    pull_policy: build
     build:
       context: ./geoshop-back/
     env_file: ${ENV_FILE:-.env}
@@ -10,6 +9,15 @@ services:
       migrate:
         condition: service_completed_successfully
     restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://127.0.0.1:8000/health/readiness || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "${DOCKER_BACK_PORT}:8000"
     volumes:
@@ -17,8 +25,7 @@ services:
       - "${GEOSHOP_DATA}:/mnt/geoshop_data:rw"
 
   migrate:
-    image: geoshop-api
-    pull_policy: build
+    image: ${DOCKER_BASE}-api
     build:
       context: ./geoshop-back/
       dockerfile: Dockerfile
@@ -26,13 +33,12 @@ services:
     command:
       - bash
       - -c
-      - "python manage.py migrate && python manage.py collectstatic --noinput && python manage.py compilemessages --locale=fr && python manage.py fixturize"
+      - "python3 manage.py migrate && python3 manage.py collectstatic --noinput && python3 manage.py fixturize"
     volumes:
       - "static-files:/app/geoshop_back/static:rw"
 
   front:
     image: ${DOCKER_BASE}-front
-    pull_policy: build
     build:
       context: ./front/
       args:
