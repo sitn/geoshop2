@@ -40,11 +40,17 @@ print(f"{str(datetime.datetime.now())} - ENV_FILE IS {os.environ['ENV_FILE']}")
 eval_templates(f'front/src/assets/configs/config.json.tmpl', f'front/src/assets/configs/config.json')
 eval_templates(f'front/httpd.conf.tmpl', f'front/httpd.conf')
 
-print(f"{str(datetime.datetime.now())} - DOCKER_HOST IS {os.environ['DOCKER_HOST']}")
+dest_docker_host = os.environ['DOCKER_HOST']
+os.environ['DOCKER_HOST'] = ""
+subprocess.run(['docker', 'compose', 'build'])
 
-subprocess.run(['docker-compose', 'build', 'api'])
-subprocess.run(['docker-compose', 'build', 'front'])
-subprocess.run(['docker-compose', 'down'])
+if dest_config != "local":
+    subprocess.run(['docker', 'compose', 'push'])
+    os.environ['DOCKER_HOST'] = dest_docker_host
+    print(f"{str(datetime.datetime.now())} - DOCKER_HOST IS {os.environ['DOCKER_HOST']}")
+    subprocess.run(['docker-compose', 'pull'])
+
+subprocess.run(['docker-compose', 'down', '-v'])
 subprocess.run(['docker-compose', 'up', '-d'])
 
 print(f"{str(datetime.datetime.now())} - END")

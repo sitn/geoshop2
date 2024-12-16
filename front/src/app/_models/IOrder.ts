@@ -48,6 +48,7 @@ export interface IOrderItem {
   /** id of the order   */
   order?: number;
   status?: OrderItemStatus;
+  download_guid?: string;
 }
 
 export interface IOrderToPost {
@@ -81,6 +82,7 @@ export interface IOrderSummary {
   date_processed: string | undefined;
   statusAsReadableIconText?: IStatusAsReadableIcon;
   id?: number;
+  download_guid?: string;
 }
 
 export interface IOrderDowloadLink {
@@ -163,6 +165,7 @@ export class Order {
   date_ordered: Date | undefined;
   date_processed: Date | undefined;
   invoice_contact: number;
+  download_guid: string | undefined;
 
   statusAsReadableIconText: IStatusAsReadableIcon;
   private readonly _isAllOrderItemCalculated: boolean = true;

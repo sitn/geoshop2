@@ -1,18 +1,20 @@
 ### Compile ###
-FROM node:18.18-alpine as builder
-WORKDIR /usr/src/app
-ENV PATH=${PATH}:./node_modules/.bin
-ENV NODE_PATH=/usr/src/app/node_modules
-COPY package*.json ./
-RUN npm install --no-progress --loglevel=error --no-audit
+FROM node:22.6.0-slim AS builder
+
+WORKDIR /usr/app
+
+COPY package*.json ./.
+RUN npm ci --legacy-peer-deps
+
 COPY . .
+
 ARG FRONT_HREF
-RUN npm run ng build -- --configuration production --base-href ${FRONT_HREF}/
+RUN npm run build -- --configuration production --base-href ${FRONT_HREF}/
 
 ### Run ###
 FROM httpd:alpine
 RUN rm -r /usr/local/apache2/htdocs/*
-COPY --from=builder /usr/src/app/dist/ /usr/local/apache2/htdocs/
+COPY --from=builder /usr/app/dist/ /usr/local/apache2/htdocs/
 COPY ./httpd.conf /usr/local/apache2/conf/
 
 # Read only for user daemon
