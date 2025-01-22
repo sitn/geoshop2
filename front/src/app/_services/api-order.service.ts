@@ -244,14 +244,23 @@ export class ApiOrderService {
       );
   }
 
-  public downloadResult(guid: string) {
+  public downloadResult(guid: string, orderId: number) {
     this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/download/${guid}/result`);
 
-    return this.http.get(url.toString(), {
-      observe: 'response',
-      responseType: 'blob'
+    this.http.head(url.toString(), {
+      observe: 'response'
+    }).subscribe({
+      next: () => {
+        const link = document.createElement('a');
+        link.href = url.toString();
+        link.target = '_blank';
+        link.click();
+      },
+      error: (error: any) => {
+        this.snackBar.open(error.detail ?? 'Aucun fichier disponible', 'Ok', { panelClass: 'notification-info' });
+      }
     });
   }
 
