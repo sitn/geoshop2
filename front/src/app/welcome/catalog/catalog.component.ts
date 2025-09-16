@@ -146,11 +146,10 @@ export class CatalogComponent implements OnInit {
     this.apiService.loadMetadata(product.metadata)
       .subscribe(result => {
         if (result) {
-          product.metadataObject = result;
           this.dialog.open(DialogMetadataComponent, {
             width: '60%',
             height: '90%',
-            data: product.metadataObject,
+            data: result,
             autoFocus: false,
           });
         } else {
