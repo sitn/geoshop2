@@ -2,6 +2,8 @@ import os
 import datetime
 import subprocess
 import re
+from pathlib import Path
+import shutil
 
 dest_config = input('Input "prod", "prepub", "dev" or "local": ')
 
@@ -17,8 +19,16 @@ def eval_templates(in_file, out_file):
         f.write(file_content)
 
 env_file = f'.env.{dest_config}'
+
+override_file = Path("./docker-compose.override.yml")
+override_sample_file = Path("./docker-compose.override.sample.yml")
 if dest_config == "local":
     env_file = '.env'
+    if not override_file.is_file():
+        shutil.copy(override_sample_file, override_file)
+else:
+    if override_file.is_file():
+        os.remove(override_file)
 
 # Read .env
 with open(env_file, 'r') as f:

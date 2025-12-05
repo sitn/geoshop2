@@ -13,6 +13,7 @@ front/debug.log
 .env.dev
 .env.prod
 .env.prepub
+docker-compose.override.yml
 
 .venv
 Pipfile
