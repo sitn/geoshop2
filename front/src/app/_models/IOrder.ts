@@ -205,11 +205,24 @@ export class Order {
       order_type: this.order_type,
       title: this.title,
       items: this.items.map(x => {
-        x.product = Order.getProductLabel(x);
-        if (!x.data_format) {
-          delete x.data_format;
+        // Ensure product is an IProduct object and send full product object with id and label
+        const product = typeof x.product === 'string' 
+          ? { id: x.product_id, label: x.product } 
+          : x.product;
+        
+        const item: IOrderItem = {
+          ...x,
+          product: {
+            id: product.id,
+            label: product.label
+          },
+          product_id: product.id
+        };
+        
+        if (!item.data_format) {
+          delete item.data_format;
         }
-        return x;
+        return item;
       })
     };
 

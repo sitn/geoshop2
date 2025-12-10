@@ -345,11 +345,23 @@ export class ApiOrderService {
 
     return this.http.patch<IOrder | null>(url.toString(), {
       items: order.items.map(x => {
-        x.product = Order.getProductLabel(x);
-        if (!x.data_format) {
-          delete x.data_format;
+        const product = typeof x.product === 'string' 
+          ? { id: x.product_id, label: x.product } 
+          : x.product;
+        
+        const item = {
+          ...x,
+          product: {
+            id: product.id,
+            label: product.label
+          },
+          product_id: product.id
+        };
+        
+        if (!item.data_format) {
+          delete item.data_format;
         }
-        return x;
+        return item;
       })
     })
       .pipe(
