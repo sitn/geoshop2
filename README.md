@@ -5,7 +5,7 @@
 * PostgreSQL >= 11 + PostGIS
 * Python >= 3.9
 
-⚠️ This is a getting started for SITN instance. If you wan to try geoshop, please follow:
+⚠️ This is a getting started for SITN instance. If you want to try geoshop, please follow:
  * the getting started here: https://github.com/sitn/geoshop-demo
  * or the tutorial here: https://camptocamp.github.io/geoshop/ 
 
