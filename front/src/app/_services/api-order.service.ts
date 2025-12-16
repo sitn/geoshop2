@@ -244,14 +244,23 @@ export class ApiOrderService {
       );
   }
 
-  public downloadResult(guid: string) {
+  public downloadResult(guid: string, orderId: number) {
     this._getApiUrl();
 
     const url = new URL(`${this.apiUrl}/download/${guid}/result`);
 
-    return this.http.get(url.toString(), {
-      observe: 'response',
-      responseType: 'blob'
+    this.http.head(url.toString(), {
+      observe: 'response'
+    }).subscribe({
+      next: () => {
+        const link = document.createElement('a');
+        link.href = url.toString();
+        link.target = '_blank';
+        link.click();
+      },
+      error: (error: any) => {
+        this.snackBar.open(error.detail ?? 'Aucun fichier disponible', 'Ok', { panelClass: 'notification-info' });
+      }
     });
   }
 
@@ -336,11 +345,23 @@ export class ApiOrderService {
 
     return this.http.patch<IOrder | null>(url.toString(), {
       items: order.items.map(x => {
-        x.product = Order.getProductLabel(x);
-        if (!x.data_format) {
-          delete x.data_format;
+        const product = typeof x.product === 'string' 
+          ? { id: x.product_id, label: x.product } 
+          : x.product;
+        
+        const item = {
+          ...x,
+          product: {
+            id: product.id,
+            label: product.label
+          },
+          product_id: product.id
+        };
+        
+        if (!item.data_format) {
+          delete item.data_format;
         }
-        return x;
+        return item;
       })
     })
       .pipe(

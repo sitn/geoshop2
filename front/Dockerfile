@@ -1,5 +1,5 @@
 ### Compile ###
-FROM node:22.6.0-slim AS builder
+FROM node:22.21.1-slim AS builder
 
 WORKDIR /usr/app
 

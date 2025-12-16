@@ -53,18 +53,7 @@ export class OrderComponent implements OnInit {
       return;
     }
 
-    this.apiOrderService.downloadResult(this.order.download_guid!).subscribe({
-      next: (response: HttpResponse<Blob>) => {
-        const link = document.createElement('a');
-        link.download = `${this.order.id}.zip`;
-        link.href = window.URL.createObjectURL(response.body!);
-        link.click();
-        window.URL.revokeObjectURL(link.href);
-      },
-      error: (error: any) => {
-        this.snackBar.open(error.detail ?? 'Aucun fichier disponible', 'Ok', { panelClass: 'notification-info' });
-      }
-    });
+    this.apiOrderService.downloadResult(this.order.download_guid!, this.order.id);
   }
 
   duplicateInCart() {

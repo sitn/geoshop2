@@ -66,18 +66,6 @@ export class DownloadComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     event.preventDefault();
 
-    this.apiOrderService.downloadResult(this.uuid).subscribe({
-      next: (response: HttpResponse<Blob>) => {
-        const link = document.createElement('a');
-        // TODO: resolve filename properly after upgrading to the latest Angular
-        link.download = `${this.order.id}.zip`;
-        link.href = window.URL.createObjectURL(response.body!);
-        link.click();
-        window.URL.revokeObjectURL(link.href);
-      },
-      error: (error: any) => {
-        this.snackBar.open(error.detail ?? 'Aucun fichier disponible', 'Ok', { panelClass: 'notification-info' });
-      }
-    });
+    this.apiOrderService.downloadResult(this.uuid, this.order.id);
   }
 }

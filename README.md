@@ -1,13 +1,17 @@
-# Geoshop
+# Geoshop SITN
 
 ## Requirements
 
 * PostgreSQL >= 11 + PostGIS
 * Python >= 3.9
 
+⚠️ This is a getting started for SITN instance. If you want to try geoshop, please follow:
+ * the getting started here: https://github.com/sitn/geoshop-demo
+ * or the tutorial here: https://camptocamp.github.io/geoshop/ 
+
 ## Getting started
 
-Fork and clone this repository. Make a copy of the `.env.sample` and `back/default_settings.py` files and adapt it to your environment settings:
+Fork and clone this repository, then:
 
 ```powershell
 git submodule init
@@ -17,9 +21,38 @@ cp back/default_settings.py back/settings.py
 cp scripts/custom.js back/api/templates/gis/admin
 ```
 
+adapt `.env` and `back/settings.py` to your needs.
+
 ### Database
 
-The best is to backup and restore a production db:
+Create a `geoshop` user if not existing yet, set your password according to your `env.local`:
+
+```sql
+CREATE ROLE geoshop WITH LOGIN PASSWORD <password>;
+```
+
+Then, set up a database:
+
+```sql
+CREATE DATABASE geoshop OWNER geoshop;
+REVOKE ALL ON DATABASE geoshop FROM PUBLIC;
+```
+
+Then connect to the geoshop database and create extensions:
+
+```sql
+CREATE EXTENSION postgis;
+CREATE EXTENSION unaccent;
+CREATE EXTENSION "uuid-ossp";
+CREATE SCHEMA geoshop AUTHORIZATION geoshop;
+
+-- TODO: Only if french is needed
+CREATE TEXT SEARCH CONFIGURATION fr (COPY = simple);
+ALTER TEXT SEARCH CONFIGURATION fr ALTER MAPPING FOR hword, hword_part, word
+WITH unaccent, simple;
+```
+
+Then, the best is to backup and restore a production db:
 
 ```powershell
 .\scripts\1_fetch_prod_db.ps1
@@ -63,7 +96,7 @@ Then you can install and activate poetry venv:
 
 ```powershell
 poetry install --no-root
-poetry shell
+Invoke-Expression (poetry env activate)
 ```
 
 #### Installing GDAL on Windows, only once per machine

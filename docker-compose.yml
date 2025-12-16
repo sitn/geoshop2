@@ -4,7 +4,7 @@ services:
     build:
       context: ./geoshop-back/
     env_file: ${ENV_FILE:-.env}
-    command: "gunicorn wsgi -b :8000 --timeout 90"
+    command: "gunicorn wsgi -b :8000 --worker-class=gthread --threads=10 --workers=5 --timeout=180 --max-requests=1000 --max-requests-jitter=100"
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -23,6 +23,8 @@ services:
     volumes:
       - "static-files:/app/geoshop_back/static:ro"
       - "${GEOSHOP_DATA}:/mnt/geoshop_data:rw"
+    networks:
+      - geoshop
 
   migrate:
     image: ${DOCKER_BASE}-api
@@ -36,6 +38,8 @@ services:
       - "python3 manage.py migrate && python3 manage.py collectstatic --noinput && python3 manage.py fixturize"
     volumes:
       - "static-files:/app/geoshop_back/static:rw"
+    networks:
+      - geoshop
 
   front:
     image: ${DOCKER_BASE}-front
@@ -46,6 +50,12 @@ services:
     restart: unless-stopped
     ports:
       - "${DOCKER_FRONT_PORT}:80"
+    networks:
+      - geoshop
+
+networks:
+  geoshop:
+    driver: bridge
 
 volumes:
   static-files:
