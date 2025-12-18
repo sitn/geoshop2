@@ -121,7 +121,7 @@ export interface IOrder {
 }
 
 export class OrderItem {
-  product: IProduct | string;
+  product: IProduct;
   product_id: number;
   id?: number;
   price?: string;
