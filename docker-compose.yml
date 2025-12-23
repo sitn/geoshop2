@@ -35,7 +35,7 @@ services:
     command:
       - bash
       - -c
-      - "python3 manage.py migrate && python3 manage.py collectstatic --noinput && python3 manage.py fixturize"
+      - "python3 manage.py migrate && python3 manage.py collectstatic --noinput"
     volumes:
       - "static-files:/app/geoshop_back/static:rw"
     networks:
