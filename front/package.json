@@ -25,7 +25,7 @@
     "@ngrx/entity": "^16.2.0",
     "@ngrx/store": "^16.2.0",
     "angular-split": "^16.2.1",
-    "lodash-es": "^4.17.21",
+    "lodash-es": "^4.17.23",
     "ol": "^10.2.1",
     "ol-ext": "^4.0.24",
     "ol-geocoder": "^4.3.3",
