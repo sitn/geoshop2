@@ -18,6 +18,8 @@ def eval_templates(in_file, out_file):
     with open(out_file, "w", encoding="utf8") as f:
         f.write(file_content)
 
+shutil.copy(Path("./settings.py"), Path("./geoshop-back/settings.py"))
+
 env_file = f'.env.{dest_config}'
 
 override_file = Path("./docker-compose.override.yml")
