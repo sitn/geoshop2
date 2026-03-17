@@ -1,4 +1,5 @@
 import os
+import sys
 import datetime
 import subprocess
 import re
@@ -6,6 +7,7 @@ from pathlib import Path
 import shutil
 
 dest_config = input('Input "prod", "prepub", "dev" or "local": ')
+APP_NAME = "geoshop"
 
 def resub_callback(match):
     return os.environ.get(match.group(1), '')
@@ -18,9 +20,25 @@ def eval_templates(in_file, out_file):
     with open(out_file, "w", encoding="utf8") as f:
         f.write(file_content)
 
+def fetch_last_env(env_file_name):
+    print(f"Mise à jour du fichier {env_file_name}")
+    if not "SITN_ENV_PATH" in os.environ:
+        print(f"La variable d'environnement SITN_ENV_PATH n'est pas définie!")
+        os.environ["SITN_ENV_PATH"] = input("Ou se trouve le dossier des environnements de déploiement?")
+
+    env_file_path = f"{os.environ['SITN_ENV_PATH']}/{APP_NAME}/{env_file_name}"
+
+    if not os.path.isfile(env_file_path):
+        print(f"💥 {env_file_path} n'existe pas.")
+        sys.exit(f"ERREUR: {env_file_path} pas à jour!")
+    
+    shutil.copy(env_file_path, ".")
+
 shutil.copy(Path("./settings.py"), Path("./geoshop-back/settings.py"))
 
 env_file = f'.env.{dest_config}'
+if dest_config in ["prepub", "prod"]:
+    fetch_last_env(env_file)
 
 override_file = Path("./docker-compose.override.yml")
 override_sample_file = Path("./docker-compose.override.sample.yml")
