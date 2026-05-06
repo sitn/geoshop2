@@ -297,3 +297,5 @@ OLWIDGET = {
 }
 # Limit maximum allowed area of an order, in square meters. 0 for unlimited
 MAX_ORDER_AREA=float(os.environ.get("MAX_ORDER_AREA", "0"))
+
+ALLOW_IDENTITY_AUTOAPPROVE=False
