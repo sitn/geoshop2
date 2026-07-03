@@ -28,6 +28,16 @@
     overflow: hidden;
   }
 
+  .app-toolbar {
+    background-color: var(--primary-darker-color);
+    color: white;
+  }
+
+  .header-logo {
+    height: 40px;
+    margin-right: 12px;
+  }
+
   .header-title {
     cursor: pointer;
     color: white;
@@ -49,7 +59,11 @@
   .mat-divider {
     height: 40px;
     margin: 0 10px;
-    border-right-color: #69f0ae;
+    border-right-color: white;
+  }
+
+  .mat-icon-button.mat-button-disabled.mat-button-disabled {
+    color: #999;
   }
 
   

@@ -156,7 +156,7 @@
           </mat-form-field>
 
           <!-- Email -->
-          <mat-form-field [style.color]="contactFormGroup?.get('email')?.touched ? '#26a59a' : 'black'">
+          <mat-form-field [style.color]="contactFormGroup?.get('email')?.touched ? '#036250' : 'black'">
             <mat-label>Courriel mandant</mat-label>
             <input matInput required type="email" formControlName="email">
             <mat-error *ngIf="contactFormGroup?.get('email')?.hasError('required')">Requis</mat-error>

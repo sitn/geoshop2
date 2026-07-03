@@ -451,7 +451,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       dialogRef.componentInstance.noButtonTitle = 'Annuler';
       dialogRef.componentInstance.yesButtonTitle = 'Continuer';
       dialogRef.componentInstance.confirmMessage =
-        `Le contact <b style='color:#26a59a;'>${this.currentSelectedContact.first_name} ${this.currentSelectedContact.last_name}</b> a été modifié. Voulez-vous continuer?`;
+        `Le contact <b style='color:#036250;'>${this.currentSelectedContact.first_name} ${this.currentSelectedContact.last_name}</b> a été modifié. Voulez-vous continuer?`;
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
           this.apiOrderService.deleteContact(invoiceContact.Id).subscribe(confirmed => {
@@ -577,7 +577,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       dialogRef.componentInstance.noButtonTitle = 'Annuler';
       dialogRef.componentInstance.yesButtonTitle = 'Supprimer';
       dialogRef.componentInstance.confirmMessage =
-        `Etes-vous sûr de vouloir supprimer le contact <b style='color:#26a59a;'>${contact.first_name} ${contact.last_name}</b> ?`;
+        `Etes-vous sûr de vouloir supprimer le contact <b style='color:#036250;'>${contact.first_name} ${contact.last_name}</b> ?`;
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
           this.apiOrderService.deleteContact(contact.Id).subscribe(confirmed => {
