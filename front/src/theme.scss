@@ -86,7 +86,7 @@ $dark-theme-foreground-palette: mat.$dark-theme-foreground-palette (
 
 // Background config
 // Light bg
-$light-background: #fafafa;
+$light-background: #EFF8F6;
 $light-bg-darker-5: darken($light-background, 5%);
 $light-bg-darker-10: darken($light-background, 10%);
 $light-bg-darker-20: darken($light-background, 20%);
@@ -386,7 +386,7 @@ $info: #4177F6;
   }
 
   &:nth-child(odd) {
-    background-color: #eee;
+    background-color: #EFF8F6;
   }
 }
 
