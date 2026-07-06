@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="40"
+   height="40"
+   version="1.1"
+   viewBox="0 0 10.5836 10.583356"
+   id="svg41"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs41" />
+  <g
+     transform="matrix(0.04316398,0,0,-0.04316398,0.09078389,14.368278)"
+     shape-rendering="geometricPrecision"
+     id="g39">
+    <g
+       id="g41"
+       transform="translate(0.80585909,24.677319)">
+      <path
+         d="m 171.08,271.01 -34.863,-170.8 h 68.262 l 34.898,170.5 -68.297,0.309"
+         fill="#ee2432"
+         id="path35" />
+      <path
+         d="m 176.18,238.85 -2.988,-13.551 h 45.832 l 3.003,13.551 H 176.18"
+         fill="#ffffff"
+         id="path36" />
+      <path
+         d="m 186.32,209.07 h 13.332 l 9.473,46.043 H 195.797 L 186.32,209.07"
+         fill="#ffffff"
+         id="path37" />
+      <path
+         d="m 103.52,271 -35.2,-170.33 67.895,-0.469 34.883,170.8 H 103.52"
+         fill="#ffffff"
+         id="path38" />
+      <path
+         d="M 34.863,271 0,100.19 h 68.266 l 34.894,170.5 -68.297,0.309"
+         fill="#149e75"
+         id="path39" />
+    </g>
+  </g>
+</svg>

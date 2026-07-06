@@ -3,10 +3,30 @@
   flex-direction: column;
   align-items: center;
   height: 100%;
+  background-color: var(--primary-color);
 
   .mat-form-field {
     width: 90%;
     margin: 5px 0;
+
+    ::ng-deep .mat-form-field-flex {
+      padding: 0 8px;
+      border-radius: 4px 4px 0 0;
+    }
+
+    ::ng-deep .mat-form-field-underline,
+    ::ng-deep .mat-form-field-ripple {
+      background-color: white;
+    }
+
+    ::ng-deep .mat-form-field-label {
+      color: white;
+    }
+
+    ::ng-deep .mat-input-element {
+      color: white;
+      caret-color: white;
+    }
   }
 
   .list-container {
