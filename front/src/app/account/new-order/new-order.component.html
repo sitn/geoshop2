@@ -6,7 +6,7 @@
       <mat-form-field>
         <mat-label>Type de mandat</mat-label>
         <mat-select formControlName="orderType" required (selectionChange)="clearForms()"
-                    [compareWith]="orderTypeCompareWith">
+                    [compareWith]="orderTypeCompareWith" panelClass="order-type-panel">
           <mat-option *ngFor="let orderType of orderTypes" [value]="orderType">
             {{orderType.name}}
           </mat-option>

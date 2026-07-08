@@ -22,6 +22,13 @@ import * as fromCart from '../../_store/cart/cart.action';
 import {MatLegacyDialog as MatDialog, MatLegacyDialogRef as MatDialogRef} from '@angular/material/legacy-dialog';
 import {ConfirmDialogComponent} from '../../_components/confirm-dialog/confirm-dialog.component';
 
+// frontend-only order type labels, mapped to the 'Utilisateur permanent' order type when sent to backend
+const FRONTEND_ONLY_ORDER_TYPES = ['CFF', 'Groupe E', 'Swisscom', 'TransN', 'Viteos'];
+const MANDATORY_CONTACT_ORDER_TYPES = [
+  'Communal', 'Cantonal', 'Fédéral', 'Académique', 'Utilisateur permanent', ...FRONTEND_ONLY_ORDER_TYPES
+];
+const ORDER_TYPE_DISPLAY_ORDER = ['Privé', ...MANDATORY_CONTACT_ORDER_TYPES];
+
 @Component({
   selector: 'gs2-new-order',
   templateUrl: './new-order.component.html',
@@ -120,7 +127,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
     this.apiOrderService.getOrderTypes()
       .pipe(takeUntil(this.onDestroy$))
-      .subscribe(orderTypes => this.orderTypes = orderTypes);
+      .subscribe(orderTypes => this.orderTypes = this.addFrontendOnlyOrderTypes(orderTypes));
 
     this.filteredCustomers$ = this.contactFormGroup.get('customer')?.valueChanges.pipe(
       debounceTime(500),
@@ -186,6 +193,22 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       id: 1,
       name: 'Privé'
     };
+  }
+
+  private addFrontendOnlyOrderTypes(orderTypes: IOrderType[]): IOrderType[] {
+    const frontendTypes: IOrderType[] = FRONTEND_ONLY_ORDER_TYPES.map((name, index) => ({id: -(index + 1), name}));
+
+    return [...orderTypes, ...frontendTypes]
+      .sort((a, b) => this.getOrderTypeSortIndex(a) - this.getOrderTypeSortIndex(b));
+  }
+
+  private getOrderTypeSortIndex(orderType: IOrderType): number {
+    const index = ORDER_TYPE_DISPLAY_ORDER.indexOf(orderType.name);
+    return index === -1 ? ORDER_TYPE_DISPLAY_ORDER.length : index;
+  }
+
+  private getBackendOrderTypeName(name: string): string {
+    return FRONTEND_ONLY_ORDER_TYPES.indexOf(name) > -1 ? 'Utilisateur permanent' : name;
   }
 
   private createForms() {
@@ -374,8 +397,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   clearForms() {
     const orderTypeValue = this.orderFormGroup?.get('orderType')?.value;
     this.updateDescription(orderTypeValue);
-    const mandatoryContactOrders = ['Communal', 'Cantonal', 'Fédéral', 'Académique', 'Utilisateur permanent'];
-    if (mandatoryContactOrders.indexOf(orderTypeValue.name) > -1) {
+    if (MANDATORY_CONTACT_ORDER_TYPES.indexOf(orderTypeValue.name) > -1) {
       // Force enable contact form because it's a public mandate
       this.addressChoiceCtrl?.setValue('2');
     } else {
@@ -473,7 +495,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.currentOrder.invoice_reference = this.orderFormGroup.get('invoice_reference')?.value;
     this.currentOrder.email_deliver = this.orderFormGroup.get('emailDeliver')?.value;
     this.currentOrder.description = this.orderFormGroup.get('description')?.value;
-    this.currentOrder.order_type = this.orderFormGroup.get('orderType')?.value.name;
+    this.currentOrder.order_type = this.getBackendOrderTypeName(this.orderFormGroup.get('orderType')?.value.name);
 
     if (this.currentOrder.id === -1) {
       this.currentOrder.invoiceContact = invoiceContact;

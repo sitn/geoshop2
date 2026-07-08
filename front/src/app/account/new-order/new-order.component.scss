@@ -47,6 +47,14 @@
   .autocomplete-action-button {
     margin-left: 10px;
   }
+}
+
+// panel is rendered in the CDK overlay, outside this component's host element
+::ng-deep .mat-select-panel.order-type-panel {
+  max-height: min(550px, 80vh) !important;
+}
+
+:host {
 
   .table-container {
     flex: 1;
