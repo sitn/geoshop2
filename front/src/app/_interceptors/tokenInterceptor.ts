@@ -5,6 +5,7 @@ import {AppState} from '../_store';
 import {Store} from '@ngrx/store';
 import * as fromRoot from '../_store/index';
 import {first, flatMap} from 'rxjs/operators';
+import {SKIP_AUTH} from './http-context';
 
 @Injectable()
 export class TokenInterceptor implements HttpInterceptor {
@@ -13,6 +14,10 @@ export class TokenInterceptor implements HttpInterceptor {
   }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+
+    if (req.context.get(SKIP_AUTH)) {
+      return next.handle(req);
+    }
 
     return this.store.select(fromRoot.getToken).pipe(
       first(),

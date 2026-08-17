@@ -39,7 +39,8 @@ import Transform from 'ol-ext/interaction/Transform';
 import { BehaviorSubject, of } from 'rxjs';
 import { GeoHelper } from '../_helpers/geoHelper';
 import proj4 from 'proj4';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
+import { SKIP_AUTH } from '../_interceptors/http-context';
 import { map } from 'rxjs/operators';
 import { IBasemap, IPageFormat } from '../_models/IConfig';
 import { AppState, selectOrder } from '../_store';
@@ -287,7 +288,10 @@ export class MapService {
     }
     const url = new URL(urlText);
     url.searchParams.append('query', inputText);
-    return this.httpClient.get(url.toString()).pipe(
+    return this.httpClient.get(url.toString(), {
+      withCredentials: false,
+      context: new HttpContext().set(SKIP_AUTH, true)
+    }).pipe(
       map((featureCollectionData) => {
         const featureCollection = this.geoJsonFormatter.readFeatures(featureCollectionData);
         if (coordinateResult) {
